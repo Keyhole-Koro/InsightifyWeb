@@ -1,0 +1,133 @@
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #1f1f1f;
+  background-color: #f3f4f6;
+}
+
+body {
+  margin: 0;
+  background-color: #f3f4f6;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 24px;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 32px;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #ececec;
+  box-shadow: 0 12px 30px rgba(30, 30, 30, 0.08);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel.fill {
+  padding: 0;
+  overflow: hidden;
+}
+
+.panel h1 {
+  margin: 0;
+}
+
+.flow-shell {
+  width: 100%;
+  height: 100%;
+}
+
+.react-flow__node-nestable {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.nestable-node {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 12px;
+  border: 2px solid #d6d6d6;
+  box-shadow: 0 12px 20px rgba(20, 20, 20, 0.08);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nestable-node:hover {
+  border-color: #4f46e5;
+}
+
+.nestable-node.primary {
+  border-color: #4338ca;
+  box-shadow: 0 20px 30px rgba(67, 56, 202, 0.25);
+}
+
+.nestable-node.expanded {
+  background: #f8f7ff;
+}
+
+.node-label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.node-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+.node-handle:active {
+  cursor: grabbing;
+}
+
+.node-drag-indicator {
+  font-size: 0.9rem;
+  color: #a3a3a3;
+  letter-spacing: 2px;
+}
+
+.inner-flow {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  border-radius: 10px;
+  border: 1px dashed rgba(67, 56, 202, 0.4);
+  overflow: hidden;
+  background: #ffffff;
+  min-height: 140px;
+  height: 100%;
+}
+
+.inner-flow .react-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.mini-flow .react-flow__background {
+  opacity: 0.7;
+}
