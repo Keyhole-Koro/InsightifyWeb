@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import type { NodeChange, NodeMouseHandler, XYPosition } from 'reactflow';
@@ -28,6 +29,11 @@ type GraphBuildResult = {
   dimensions: GraphDimensions;
 };
 
+type DraggingInfo = {
+  display: XYPosition;
+  persist: XYPosition;
+};
+
 export type NestedFlowController = {
   nodes: GraphData['nodes'];
   buildNodes: (graph: GraphData, parentPath?: string) => GraphData['nodes'];
@@ -39,6 +45,11 @@ export type NestedFlowController = {
   ) => void;
   handleAnyNodeClick: NodeMouseHandler;
 };
+
+const clonePosition = (position: XYPosition): XYPosition => ({
+  x: position.x,
+  y: position.y,
+});
 
 export const useNestedFlowController = (): NestedFlowController => {
   const [expandedRootIds, setExpandedRootIds] = useState<Record<string, boolean>>(
@@ -58,13 +69,12 @@ export const useNestedFlowController = (): NestedFlowController => {
   const [nestedPositions, setNestedPositions] = useState<
     Record<string, XYPosition>
   >({});
-  type DraggingInfo = {
-    display: XYPosition;
-    persist: XYPosition;
-  };
   const [draggingNodes, setDraggingNodes] = useState<
     Record<string, DraggingInfo>
   >({});
+  const graphOffsetsRef = useRef<Record<string, XYPosition>>({
+    '': { x: 0, y: 0 },
+  });
 
   const handleNodeExpand = useCallback((nodeId: string) => {
     setExpandedRootIds((current) => ({
@@ -101,9 +111,11 @@ export const useNestedFlowController = (): NestedFlowController => {
       resolveContext: (
         change: NodeChange,
       ) =>
-        | {
+        |
+          {
             key: string;
-            position?: XYPosition | null;
+            display?: XYPosition | null;
+            persist?: XYPosition | null;
           }
         | null,
     ) => {
@@ -123,19 +135,24 @@ export const useNestedFlowController = (): NestedFlowController => {
           if (!context) {
             return;
           }
-          const { key, position } = context;
+          const { key, display, persist } = context;
 
           if (change.dragging) {
-            if (!position) {
+            if (!display || !persist) {
               return;
             }
-            const prevPos = next[key];
+            const prevEntry = next[key];
             if (
-              !prevPos ||
-              prevPos.x !== position.x ||
-              prevPos.y !== position.y
+              !prevEntry ||
+              prevEntry.display.x !== display.x ||
+              prevEntry.display.y !== display.y ||
+              prevEntry.persist.x !== persist.x ||
+              prevEntry.persist.y !== persist.y
             ) {
-              next[key] = position;
+              next[key] = {
+                display,
+                persist,
+              };
               mutated = true;
             }
             return;
@@ -153,6 +170,25 @@ export const useNestedFlowController = (): NestedFlowController => {
       });
     },
     [],
+  );
+
+  const getGraphOffset = useCallback(
+    (graphPath: string): XYPosition =>
+      graphOffsetsRef.current[graphPath] ?? { x: 0, y: 0 },
+    [],
+  );
+
+  const isGraphBeingDragged = useCallback(
+    (graphPath: string) => {
+      if (!graphPath) {
+        return Object.keys(draggingNodes).some((key) => !key.includes('/'));
+      }
+      const prefix = `${graphPath}/`;
+      return Object.keys(draggingNodes).some((key) =>
+        key.startsWith(prefix),
+      );
+    },
+    [draggingNodes],
   );
 
   const buildGraph = useCallback(
@@ -254,12 +290,35 @@ export const useNestedFlowController = (): NestedFlowController => {
       });
 
       const dimensions = computeGraphDimensions(undefined, processedNodes);
+      const shouldNormalize = parentPath !== '';
+      const graphKey = parentPath || '';
+      const reuseOffset =
+        shouldNormalize && isGraphBeingDragged(parentPath);
+      const offset = reuseOffset
+        ? getGraphOffset(graphKey)
+        : shouldNormalize
+          ? { x: dimensions.minX, y: dimensions.minY }
+          : { x: 0, y: 0 };
+      if (!reuseOffset) {
+        graphOffsetsRef.current[graphKey] = offset;
+      }
+      const normalizedNodes = shouldNormalize
+        ? processedNodes.map((node) => ({
+            ...node,
+            position: {
+              x: node.position.x - offset.x,
+              y: node.position.y - offset.y,
+            },
+          }))
+        : processedNodes;
 
-      return { nodes: processedNodes, dimensions };
+      return { nodes: normalizedNodes, dimensions };
     },
     [
       expandedRootIds,
+      getGraphOffset,
       handleNodeExpand,
+      isGraphBeingDragged,
       nestedExpanded,
       nestedPositions,
       primaryExpandedId,
@@ -279,7 +338,7 @@ export const useNestedFlowController = (): NestedFlowController => {
         }
         return {
           ...node,
-          position: override,
+          position: override.display,
           style: {
             ...node.style,
             opacity: 0.5,
@@ -309,10 +368,7 @@ export const useNestedFlowController = (): NestedFlowController => {
   );
 
   useEffect(() => {
-    if (
-      !autoLayoutPlan ||
-      Object.keys(draggingNodes).length > 0
-    ) {
+    if (!autoLayoutPlan || Object.keys(draggingNodes).length > 0) {
       return;
     }
     setRootPositions((prev) => {
@@ -349,7 +405,7 @@ export const useNestedFlowController = (): NestedFlowController => {
           if (change.type !== 'position' || change.dragging === true) {
             return;
           }
-          const override = draggingNodes[change.id];
+          const override = draggingNodes[change.id]?.persist;
           const finalPosition = change.position ?? override ?? null;
           if (!finalPosition) {
             return;
@@ -372,7 +428,15 @@ export const useNestedFlowController = (): NestedFlowController => {
         if (change.type !== 'position') {
           return null;
         }
-        return { key: change.id, position: change.position ?? null };
+        if (!change.position) {
+          return { key: change.id, display: null, persist: null };
+        }
+        const display = clonePosition(change.position);
+        return {
+          key: change.id,
+          display,
+          persist: clonePosition(display),
+        };
       });
     },
     [draggingNodes, updateDraggingState],
@@ -382,14 +446,13 @@ export const useNestedFlowController = (): NestedFlowController => {
     (
       parentPath: string,
       changes: NodeChange[],
-      layout?: ChildGraphLayout,
+      _layout?: ChildGraphLayout,
     ) => {
       if (!parentPath) {
         return;
       }
 
-      const offsetX = layout?.minX ?? 0;
-      const offsetY = layout?.minY ?? 0;
+      const graphOffset = getGraphOffset(parentPath);
 
       setNestedPositions((prev) => {
         let mutated = false;
@@ -400,22 +463,23 @@ export const useNestedFlowController = (): NestedFlowController => {
             return;
           }
           const key = `${parentPath}/${change.id}`;
-          const override = draggingNodes[key];
-          const rawPosition = change.position ?? override ?? null;
+          const override = draggingNodes[key]?.persist;
+          const rawPosition = change.position
+            ? {
+                x: change.position.x + graphOffset.x,
+                y: change.position.y + graphOffset.y,
+              }
+            : override ?? null;
           if (!rawPosition) {
             return;
           }
-          const adjustedPosition = {
-            x: rawPosition.x + offsetX,
-            y: rawPosition.y + offsetY,
-          };
           const prevPos = prev[key];
           if (
             !prevPos ||
-            prevPos.x !== adjustedPosition.x ||
-            prevPos.y !== adjustedPosition.y
+            prevPos.x !== rawPosition.x ||
+            prevPos.y !== rawPosition.y
           ) {
-            next[key] = adjustedPosition;
+            next[key] = rawPosition;
             mutated = true;
           }
         });
@@ -428,10 +492,21 @@ export const useNestedFlowController = (): NestedFlowController => {
           return null;
         }
         const key = `${parentPath}/${change.id}`;
-        return { key, position: change.position ?? null };
+        if (!change.position) {
+          return { key, display: null, persist: null };
+        }
+        const display = clonePosition(change.position);
+        return {
+          key,
+          display,
+          persist: {
+            x: display.x + graphOffset.x,
+            y: display.y + graphOffset.y,
+          },
+        };
       });
     },
-    [draggingNodes, updateDraggingState],
+    [draggingNodes, getGraphOffset, updateDraggingState],
   );
 
   return {
