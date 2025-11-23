@@ -21,6 +21,7 @@ import {
   CHILD_FLOW_MAX_WIDTH,
   CHILD_FLOW_STACK_PADDING,
   CHILD_NODE_HEIGHT,
+  CHILD_NODE_SCALE_FACTOR,
   PRIMARY_NODE_HEIGHT,
 } from './constants';
 import {
@@ -82,6 +83,9 @@ export const useNestedFlowController = (): NestedFlowController => {
   >({});
   const graphOffsetsRef = useRef<Record<string, XYPosition>>({
     '': { x: 0, y: 0 },
+  });
+  const graphScaleRef = useRef<Record<string, number>>({
+    '': 1,
   });
 
   const handleNodeExpand = useCallback((nodeId: string) => {
@@ -200,7 +204,9 @@ export const useNestedFlowController = (): NestedFlowController => {
   );
 
   const buildGraph = useCallback(
-    (graph: GraphData, parentPath = ''): GraphBuildResult => {
+    (graph: GraphData, parentPath = '', scale = 1): GraphBuildResult => {
+      const graphKey = parentPath || '';
+      graphScaleRef.current[graphKey] = scale;
       const processedNodes = graph.nodes.map((node) => {
         const path = parentPath ? `${parentPath}/${node.id}` : node.id;
         const isRoot = parentPath === '';
@@ -214,15 +220,30 @@ export const useNestedFlowController = (): NestedFlowController => {
         const isPrimary = isRoot
           ? node.id === primaryExpandedId
           : isExpanded;
+        const depth = path ? path.split('/').length - 1 : 0;
+        const zIndexBoost = isExpanded ? 100 : 0;
+        const computedZIndex = 10 + depth * 10 + zIndexBoost;
         const childGraphs = extractChildGraphs(node.data.childGraph);
         const hasChildGraphs = childGraphs.length > 0;
-        const collapsedSize = resolveCollapsedSize(node, isRoot, isPrimary);
+        const collapsedSize = resolveCollapsedSize(
+          node,
+          isRoot,
+          isPrimary,
+        );
+        const scaledCollapsedSize = {
+          width: collapsedSize.width * scale,
+          height: collapsedSize.height * scale,
+        };
         let childLayouts: { layout: GraphBuildResult; path: string }[] = [];
 
         if (isExpanded && hasChildGraphs) {
           childLayouts = childGraphs.map((childGraph, index) => {
             const childPath = buildChildGraphPath(path, index);
-            const layout = buildGraph(childGraph, childPath);
+            const layout = buildGraph(
+              childGraph,
+              childPath,
+              scale * CHILD_NODE_SCALE_FACTOR,
+            );
             return { layout, path: childPath };
           });
         }
@@ -252,14 +273,14 @@ export const useNestedFlowController = (): NestedFlowController => {
         const heightFromChildren =
           baseHeightFromChildren + stackPadding;
         const baseContentHeight =
-          node.data.size?.height ??
-          (isRoot
-            ? isPrimary
-              ? PRIMARY_NODE_HEIGHT
-              : BASE_NODE_HEIGHT
-            : CHILD_NODE_HEIGHT);
+          (node.data.size?.height ??
+            (isRoot
+              ? isPrimary
+                ? PRIMARY_NODE_HEIGHT
+                : BASE_NODE_HEIGHT
+              : CHILD_NODE_HEIGHT)) * scale;
         const chromeHeight = Math.max(
-          collapsedSize.height - baseContentHeight,
+          scaledCollapsedSize.height - baseContentHeight,
           0,
         );
         const adjustedHeightFromChildren =
@@ -267,17 +288,17 @@ export const useNestedFlowController = (): NestedFlowController => {
 
         const expandedWidth = childLayouts.length > 0
           ? widthFromChildren
-          : collapsedSize.width;
+          : scaledCollapsedSize.width;
         const expandedHeight = childLayouts.length > 0
-          ? Math.max(adjustedHeightFromChildren, collapsedSize.height)
-          : collapsedSize.height;
+          ? Math.max(adjustedHeightFromChildren, scaledCollapsedSize.height)
+          : scaledCollapsedSize.height;
 
         const width = isExpanded
-          ? Math.max(collapsedSize.width, expandedWidth)
-          : collapsedSize.width;
+          ? Math.max(scaledCollapsedSize.width, expandedWidth)
+          : scaledCollapsedSize.width;
         const height = isExpanded
-          ? Math.max(collapsedSize.height, expandedHeight)
-          : collapsedSize.height;
+          ? Math.max(scaledCollapsedSize.height, expandedHeight)
+          : scaledCollapsedSize.height;
 
         const computedType =
           hasChildGraphs && node.type !== 'nestable'
@@ -289,6 +310,7 @@ export const useNestedFlowController = (): NestedFlowController => {
           width,
           minHeight: height,
           height,
+          zIndex: computedZIndex,
         };
 
         const childLayoutsMeta: ChildGraphLayout[] | undefined =
@@ -324,7 +346,6 @@ export const useNestedFlowController = (): NestedFlowController => {
 
       const dimensions = computeGraphDimensions(undefined, processedNodes);
       const shouldNormalize = parentPath !== '';
-      const graphKey = parentPath || '';
       const reuseOffset =
         shouldNormalize && isGraphBeingDragged(parentPath);
       const offset = reuseOffset
@@ -382,8 +403,11 @@ export const useNestedFlowController = (): NestedFlowController => {
   );
 
   const buildNodes = useCallback(
-    (graph: GraphData, parentPath = ''): GraphData['nodes'] =>
-      applyDraggingOverrides(buildGraph(graph, parentPath).nodes),
+    (graph: GraphData, parentPath = ''): GraphData['nodes'] => {
+      const graphKey = parentPath || '';
+      const scale = graphScaleRef.current[graphKey] ?? 1;
+      return applyDraggingOverrides(buildGraph(graph, parentPath, scale).nodes);
+    },
     [applyDraggingOverrides, buildGraph],
   );
 

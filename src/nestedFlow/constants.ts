@@ -9,6 +9,7 @@ export const CHILD_FLOW_GAP = 30;
 export const CHILD_FLOW_MAX_WIDTH = 440;
 export const CHILD_FLOW_MAX_HEIGHT = 360;
 export const CHILD_FLOW_STACK_PADDING = 16;
+export const CHILD_NODE_SCALE_FACTOR = 0.7;
 export const INNER_FLOW_MIN_ZOOM = 0.6;
 export const INNER_FLOW_MAX_ZOOM = 1.6;
 export const INNER_FLOW_ZOOM_SENSITIVITY = 0.0012;

@@ -10,6 +10,7 @@ import ReactFlow, {
   PanOnScrollMode,
   Position,
   ReactFlowProvider,
+  Viewport,
   useReactFlow,
 } from 'reactflow';
 
@@ -101,6 +102,12 @@ export const NestableNode = ({
                 key={childPath}
                 className="inner-flow"
                 onClick={(event) => event.stopPropagation()}
+                onPointerDown={(event) => {
+                  const target = event.target as HTMLElement | null;
+                  if (target?.closest('.react-flow__node')) {
+                    event.stopPropagation();
+                  }
+                }}
                 style={{
                   height: displayHeight,
                   minHeight: displayHeight,
@@ -156,9 +163,7 @@ export const MiniReactFlow = ({
     [context, layout, parentPath],
   );
 
-  const flowKey = layout
-    ? `${parentPath}:${layout.minX}:${layout.minY}:${layout.width}:${layout.height}`
-    : parentPath;
+  const flowKey = parentPath;
 
   return (
     <ReactFlowProvider>
@@ -183,6 +188,14 @@ type MiniReactFlowContentProps = {
   onNodesChange?: (changes: NodeChange[]) => void;
 };
 
+type DraggingState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  viewport: Viewport;
+  hasDragged: boolean;
+};
+
 const MiniReactFlowContent = ({
   nodes,
   edges,
@@ -194,10 +207,11 @@ const MiniReactFlowContent = ({
   const reactFlow = useReactFlow();
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef<DraggingState | null>(null);
 
   useEffect(() => {
     const element = wrapperRef.current;
-    if (!element) {
+    if (!element || typeof window === 'undefined') {
       return;
     }
     const handleWheel = (event: WheelEvent) => {
@@ -231,6 +245,78 @@ const MiniReactFlowContent = ({
     element.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
       element.removeEventListener('wheel', handleWheel);
+    };
+  }, [reactFlow]);
+
+  useEffect(() => {
+    const element = wrapperRef.current;
+    if (!element || typeof window === 'undefined') {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.react-flow__node')) {
+        return;
+      }
+      if (target?.closest('.react-flow__node-drag-handle')) {
+        return;
+      }
+      dragStateRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        viewport: reactFlow.getViewport(),
+        hasDragged: false,
+      };
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const state = dragStateRef.current;
+      if (!state || state.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - state.startX;
+      const deltaY = event.clientY - state.startY;
+      if (!state.hasDragged) {
+        if (Math.abs(deltaX) + Math.abs(deltaY) < 4) {
+          return;
+        }
+        state.hasDragged = true;
+        element.classList.add('dragging');
+      }
+
+      reactFlow.setViewport({
+        x: state.viewport.x + deltaX,
+        y: state.viewport.y + deltaY,
+        zoom: state.viewport.zoom,
+      });
+    };
+
+    const handlePointerEnd = (event: PointerEvent) => {
+      const state = dragStateRef.current;
+      if (!state || state.pointerId !== event.pointerId) {
+        return;
+      }
+
+      dragStateRef.current = null;
+      element.classList.remove('dragging');
+    };
+
+    element.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerEnd);
+    window.addEventListener('pointercancel', handlePointerEnd);
+
+    return () => {
+      element.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerEnd);
+      window.removeEventListener('pointercancel', handlePointerEnd);
     };
   }, [reactFlow]);
 
