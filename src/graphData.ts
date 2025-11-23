@@ -1,12 +1,28 @@
 import type { Edge, Node } from 'reactflow';
 
+export type NodeSize = {
+  width: number;
+  height: number;
+};
+
+export type ChildGraphLayout = {
+  path: string;
+  width: number;
+  height: number;
+  minX: number;
+  minY: number;
+};
+
 export type NestableNodeData = {
   label: string;
-  childGraph?: GraphData;
+  childGraph?: GraphData | GraphData[];
   onExpand?: () => void;
   isExpanded?: boolean;
   isPrimaryExpanded?: boolean;
   path?: string;
+  size?: NodeSize;
+  primarySize?: NodeSize;
+  childLayouts?: ChildGraphLayout[];
 };
 
 export type GraphData = {
@@ -14,22 +30,66 @@ export type GraphData = {
   edges: Edge[];
 };
 
+const ROOT_NODE_SIZE: NodeSize = { width: 200, height: 90 };
+const ROOT_PRIMARY_NODE_SIZE: NodeSize = { width: 260, height: 120 };
+const CHILD_NODE_SIZE: NodeSize = { width: 180, height: 70 };
+const GRANDCHILD_NODE_SIZE: NodeSize = { width: 150, height: 55 };
+const GREAT_GRANDCHILD_NODE_SIZE: NodeSize = { width: 120, height: 45 };
+
+const hearingDrillDownGraph: GraphData = {
+  nodes: [
+    {
+      id: 'stakeholder-map',
+      position: { x: 0, y: 0 },
+      data: {
+        label: '意思決定者整理',
+        size: GREAT_GRANDCHILD_NODE_SIZE,
+      },
+    },
+    {
+      id: 'pain-deep-dive',
+      position: { x: 160, y: 0 },
+      data: {
+        label: '課題深掘り',
+        size: GREAT_GRANDCHILD_NODE_SIZE,
+      },
+    },
+    {
+      id: 'next-action',
+      position: { x: 160, y: 160 },
+      data: {
+        label: '次アクション共有',
+        size: GREAT_GRANDCHILD_NODE_SIZE,
+      },
+    },
+  ],
+  edges: [
+    { id: 'stakeholder-pain', source: 'stakeholder-map', target: 'pain-deep-dive' },
+    { id: 'pain-action', source: 'pain-deep-dive', target: 'next-action' },
+  ],
+};
+
 const qualifyChecklistGraph: GraphData = {
   nodes: [
     {
       id: 'research',
       position: { x: 0, y: 0 },
-      data: { label: '課題ヒアリング' },
+      data: {
+        label: '課題ヒアリング',
+        childGraph: hearingDrillDownGraph,
+        size: GREAT_GRANDCHILD_NODE_SIZE,
+      },
+      type: 'nestable',
     },
     {
       id: 'budget',
-      position: { x: 160, y: 60 },
-      data: { label: '予算確認' },
+      position: { x: 180, y: 0 },
+      data: { label: '予算確認', size: GREAT_GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'timeline',
-      position: { x: 320, y: -20 },
-      data: { label: 'スケジュール確認' },
+      position: { x: 90, y: 160 },
+      data: { label: 'スケジュール確認', size: GREAT_GRANDCHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -43,22 +103,26 @@ const leadJourneyGraph: GraphData = {
     {
       id: 'capture',
       position: { x: 0, y: 0 },
-      data: { label: 'フォーム入力' },
+      data: { label: 'フォーム入力', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'enrich',
-      position: { x: 160, y: 80 },
-      data: { label: '属性付与' },
+      position: { x: 180, y: 0 },
+      data: { label: '属性付与', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'assign',
-      position: { x: 320, y: 0 },
-      data: { label: '担当者アサイン' },
+      position: { x: 0, y: 170 },
+      data: { label: '担当者アサイン', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'qualify',
-      position: { x: 500, y: 20 },
-      data: { label: 'ニーズ確認', childGraph: qualifyChecklistGraph },
+      position: { x: 180, y: 170 },
+      data: {
+        label: 'ニーズ確認',
+        childGraph: qualifyChecklistGraph,
+        size: GRANDCHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
   ],
@@ -74,22 +138,22 @@ const adsOpsGraph: GraphData = {
     {
       id: 'brief',
       position: { x: 0, y: 0 },
-      data: { label: '企画' },
+      data: { label: '企画', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'creative',
-      position: { x: 150, y: 70 },
-      data: { label: 'クリエイティブ' },
+      position: { x: 180, y: 0 },
+      data: { label: 'クリエイティブ', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'launch',
-      position: { x: 310, y: 0 },
-      data: { label: '出稿' },
+      position: { x: 0, y: 170 },
+      data: { label: '出稿', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'optimize',
-      position: { x: 480, y: 50 },
-      data: { label: '最適化' },
+      position: { x: 180, y: 170 },
+      data: { label: '最適化', size: GRANDCHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -104,22 +168,22 @@ const etlPipelineGraph: GraphData = {
     {
       id: 'ingest',
       position: { x: 0, y: 0 },
-      data: { label: '取り込み' },
+      data: { label: '取り込み', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'transform',
-      position: { x: 160, y: 80 },
-      data: { label: '変換' },
+      position: { x: 180, y: 0 },
+      data: { label: '変換', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'load',
-      position: { x: 320, y: 0 },
-      data: { label: 'ロード' },
+      position: { x: 0, y: 170 },
+      data: { label: 'ロード', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'validate',
-      position: { x: 480, y: 70 },
-      data: { label: '検証' },
+      position: { x: 180, y: 170 },
+      data: { label: '検証', size: GRANDCHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -134,17 +198,17 @@ const playbookGraph: GraphData = {
     {
       id: 'triage',
       position: { x: 0, y: 0 },
-      data: { label: '優先度判定' },
+      data: { label: '優先度判定', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'assign-owner',
-      position: { x: 160, y: 70 },
-      data: { label: 'オーナー設定' },
+      position: { x: 180, y: 0 },
+      data: { label: 'オーナー設定', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'notify',
-      position: { x: 320, y: 0 },
-      data: { label: '通知' },
+      position: { x: 90, y: 160 },
+      data: { label: '通知', size: GRANDCHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -158,22 +222,22 @@ const devCycleGraph: GraphData = {
     {
       id: 'planning',
       position: { x: 0, y: 0 },
-      data: { label: '計画' },
+      data: { label: '計画', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'coding',
-      position: { x: 160, y: 70 },
-      data: { label: '実装' },
+      position: { x: 200, y: 0 },
+      data: { label: '実装', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'code-review',
-      position: { x: 320, y: 0 },
-      data: { label: 'コードレビュー' },
+      position: { x: 0, y: 180 },
+      data: { label: 'コードレビュー', size: GRANDCHILD_NODE_SIZE },
     },
     {
       id: 'qa',
-      position: { x: 480, y: 80 },
-      data: { label: 'QA' },
+      position: { x: 200, y: 180 },
+      data: { label: 'QA', size: GRANDCHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -187,29 +251,33 @@ const marketingGraph: GraphData = {
   nodes: [
     {
       id: 'campaigns',
-      position: { x: 0, y: 0 },
-      data: { label: 'キャンペーン' },
+      position: { x: 180, y: 0 },
+      data: { label: 'キャンペーン', size: CHILD_NODE_SIZE },
     },
     {
       id: 'ads',
-      position: { x: 160, y: -40 },
-      data: { label: '広告運用', childGraph: adsOpsGraph },
+      position: { x: 0, y: 180 },
+      data: {
+        label: '広告運用',
+        childGraph: adsOpsGraph,
+        size: CHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'webinar',
-      position: { x: 160, y: 60 },
-      data: { label: 'ウェビナー' },
+      position: { x: 180, y: 180 },
+      data: { label: 'ウェビナー', size: CHILD_NODE_SIZE },
     },
     {
       id: 'seo',
-      position: { x: 320, y: 0 },
-      data: { label: 'SEO' },
+      position: { x: 360, y: 180 },
+      data: { label: 'SEO', size: CHILD_NODE_SIZE },
     },
     {
       id: 'nurture',
-      position: { x: 500, y: 20 },
-      data: { label: 'リード育成' },
+      position: { x: 180, y: 360 },
+      data: { label: 'リード育成', size: CHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -227,34 +295,38 @@ const analyticsGraph: GraphData = {
   nodes: [
     {
       id: 'etl',
-      position: { x: 0, y: 0 },
-      data: { label: 'ETL', childGraph: etlPipelineGraph },
+      position: { x: 200, y: 0 },
+      data: {
+        label: 'ETL',
+        childGraph: etlPipelineGraph,
+        size: CHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'warehouse',
-      position: { x: 160, y: 60 },
-      data: { label: 'DWH' },
+      position: { x: 400, y: 200 },
+      data: { label: 'DWH', size: CHILD_NODE_SIZE },
     },
     {
       id: 'dashboard',
-      position: { x: 320, y: 0 },
-      data: { label: 'Dashboard' },
+      position: { x: 200, y: 400 },
+      data: { label: 'Dashboard', size: CHILD_NODE_SIZE },
     },
     {
       id: 'tracking',
-      position: { x: 0, y: 120 },
-      data: { label: '計測タグ' },
+      position: { x: 0, y: 200 },
+      data: { label: '計測タグ', size: CHILD_NODE_SIZE },
     },
     {
       id: 'model',
-      position: { x: 320, y: 100 },
-      data: { label: 'スコアリング' },
+      position: { x: 0, y: 400 },
+      data: { label: 'スコアリング', size: CHILD_NODE_SIZE },
     },
     {
       id: 'experiment',
-      position: { x: 480, y: 40 },
-      data: { label: 'ABテスト' },
+      position: { x: 400, y: 400 },
+      data: { label: 'ABテスト', size: CHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -271,34 +343,38 @@ const salesGraph: GraphData = {
   nodes: [
     {
       id: 'prospect',
-      position: { x: -80, y: -20 },
-      data: { label: 'Prospect' },
+      position: { x: 0, y: 0 },
+      data: { label: 'Prospect', size: CHILD_NODE_SIZE },
     },
     {
       id: 'lead',
-      position: { x: 80, y: 0 },
-      data: { label: 'Lead', childGraph: leadJourneyGraph },
+      position: { x: 220, y: 0 },
+      data: {
+        label: 'Lead',
+        childGraph: leadJourneyGraph,
+        size: CHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'mql',
-      position: { x: 240, y: 100 },
-      data: { label: 'MQL' },
+      position: { x: 440, y: 0 },
+      data: { label: 'MQL', size: CHILD_NODE_SIZE },
     },
     {
       id: 'sql',
-      position: { x: 400, y: 10 },
-      data: { label: 'SQL' },
+      position: { x: 0, y: 220 },
+      data: { label: 'SQL', size: CHILD_NODE_SIZE },
     },
     {
       id: 'demo',
-      position: { x: 560, y: 80 },
-      data: { label: 'デモ' },
+      position: { x: 220, y: 220 },
+      data: { label: 'デモ', size: CHILD_NODE_SIZE },
     },
     {
       id: 'close',
-      position: { x: 720, y: 0 },
-      data: { label: '契約' },
+      position: { x: 440, y: 220 },
+      data: { label: '契約', size: CHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -314,29 +390,33 @@ const insightGraph: GraphData = {
   nodes: [
     {
       id: 'report',
-      position: { x: 0, y: 0 },
-      data: { label: 'レポート' },
+      position: { x: 150, y: 0 },
+      data: { label: 'レポート', size: CHILD_NODE_SIZE },
     },
     {
       id: 'alert',
-      position: { x: 160, y: 80 },
-      data: { label: 'アラート' },
+      position: { x: 0, y: 180 },
+      data: { label: 'アラート', size: CHILD_NODE_SIZE },
     },
     {
       id: 'playbook',
-      position: { x: 320, y: 0 },
-      data: { label: '対応手順', childGraph: playbookGraph },
+      position: { x: 300, y: 180 },
+      data: {
+        label: '対応手順',
+        childGraph: playbookGraph,
+        size: CHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'ticket',
-      position: { x: 480, y: 70 },
-      data: { label: '改善チケット' },
+      position: { x: 150, y: 360 },
+      data: { label: '改善チケット', size: CHILD_NODE_SIZE },
     },
     {
       id: 'feedback',
-      position: { x: 320, y: 140 },
-      data: { label: 'フィードバック' },
+      position: { x: 300, y: 0 },
+      data: { label: 'フィードバック', size: CHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -353,28 +433,32 @@ const productGraph: GraphData = {
     {
       id: 'backlog',
       position: { x: 0, y: 0 },
-      data: { label: 'Backlog' },
+      data: { label: 'Backlog', size: CHILD_NODE_SIZE },
     },
     {
       id: 'spec',
-      position: { x: 160, y: 60 },
-      data: { label: '仕様' },
+      position: { x: 220, y: 0 },
+      data: { label: '仕様', size: CHILD_NODE_SIZE },
     },
     {
       id: 'design',
-      position: { x: 320, y: 0 },
-      data: { label: 'デザイン' },
+      position: { x: 440, y: 0 },
+      data: { label: 'デザイン', size: CHILD_NODE_SIZE },
     },
     {
       id: 'dev',
-      position: { x: 480, y: 80 },
-      data: { label: '開発', childGraph: devCycleGraph },
+      position: { x: 220, y: 220 },
+      data: {
+        label: '開発',
+        childGraph: devCycleGraph,
+        size: CHILD_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'release',
-      position: { x: 640, y: 0 },
-      data: { label: 'リリース' },
+      position: { x: 440, y: 220 },
+      data: { label: 'リリース', size: CHILD_NODE_SIZE },
     },
   ],
   edges: [
@@ -389,32 +473,57 @@ export const rootGraph: GraphData = {
   nodes: [
     {
       id: 'sales',
-      position: { x: 0, y: 50 },
-      data: { label: 'Sales', childGraph: salesGraph },
+      position: { x: 0, y: 0 },
+      data: {
+        label: 'Sales',
+        childGraph: salesGraph,
+        size: ROOT_NODE_SIZE,
+        primarySize: ROOT_PRIMARY_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'marketing',
-      position: { x: 220, y: 0 },
-      data: { label: 'Marketing', childGraph: marketingGraph },
+      position: { x: 260, y: 0 },
+      data: {
+        label: 'Marketing',
+        childGraph: marketingGraph,
+        size: ROOT_NODE_SIZE,
+        primarySize: ROOT_PRIMARY_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'analytics',
-      position: { x: 440, y: 70 },
-      data: { label: 'Analytics', childGraph: analyticsGraph },
+      position: { x: 520, y: 0 },
+      data: {
+        label: 'Analytics',
+        childGraph: analyticsGraph,
+        size: ROOT_NODE_SIZE,
+        primarySize: ROOT_PRIMARY_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'insight',
-      position: { x: 700, y: 10 },
-      data: { label: 'Insights', childGraph: insightGraph },
+      position: { x: 0, y: 260 },
+      data: {
+        label: 'Insights',
+        childGraph: insightGraph,
+        size: ROOT_NODE_SIZE,
+        primarySize: ROOT_PRIMARY_NODE_SIZE,
+      },
       type: 'nestable',
     },
     {
       id: 'product',
-      position: { x: 920, y: 60 },
-      data: { label: 'Product', childGraph: productGraph },
+      position: { x: 260, y: 260 },
+      data: {
+        label: 'Product',
+        childGraph: productGraph,
+        size: ROOT_NODE_SIZE,
+        primarySize: ROOT_PRIMARY_NODE_SIZE,
+      },
       type: 'nestable',
     },
   ],

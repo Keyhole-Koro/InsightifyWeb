@@ -1,0 +1,11 @@
+export const BASE_NODE_WIDTH = 200;
+export const BASE_NODE_HEIGHT = 180;
+export const PRIMARY_NODE_WIDTH = 260;
+export const PRIMARY_NODE_HEIGHT = 240;
+export const CHILD_NODE_WIDTH = 140;
+export const CHILD_NODE_HEIGHT = 100;
+export const CHILD_PADDING = 80;
+export const CHILD_FLOW_GAP = 30;
+export const ROOT_ROW_GROUP_TOLERANCE = 120;
+export const ROOT_LAYOUT_ROW_GAP = 32;
+export const ROOT_LAYOUT_COLUMN_GAP = 32;

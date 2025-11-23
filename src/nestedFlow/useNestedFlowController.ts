@@ -1,0 +1,444 @@
+import {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import type { NodeChange, NodeMouseHandler, XYPosition } from 'reactflow';
+
+import {
+  ChildGraphLayout,
+  GraphData,
+  NestableNodeData,
+  rootGraph,
+} from '../graphData';
+import { CHILD_FLOW_GAP } from './constants';
+import {
+  GraphDimensions,
+  buildChildGraphPath,
+  computeGraphDimensions,
+  extractChildGraphs,
+  planRootNodePositions,
+  resolveCollapsedSize,
+} from './layout';
+
+type GraphBuildResult = {
+  nodes: GraphData['nodes'];
+  dimensions: GraphDimensions;
+};
+
+export type NestedFlowController = {
+  nodes: GraphData['nodes'];
+  buildNodes: (graph: GraphData, parentPath?: string) => GraphData['nodes'];
+  handleNodesChange: (changes: NodeChange[]) => void;
+  handleNestedNodesChange: (
+    parentPath: string,
+    changes: NodeChange[],
+    layout?: ChildGraphLayout,
+  ) => void;
+  handleAnyNodeClick: NodeMouseHandler;
+};
+
+export const useNestedFlowController = (): NestedFlowController => {
+  const [expandedRootIds, setExpandedRootIds] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [primaryExpandedId, setPrimaryExpandedId] = useState<string | null>(null);
+  const [nestedExpanded, setNestedExpanded] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [rootPositions, setRootPositions] = useState<Record<string, XYPosition>>(
+    () =>
+      rootGraph.nodes.reduce<Record<string, XYPosition>>((acc, node) => {
+        acc[node.id] = node.position;
+        return acc;
+      }, {}),
+  );
+  const [nestedPositions, setNestedPositions] = useState<
+    Record<string, XYPosition>
+  >({});
+  type DraggingInfo = {
+    display: XYPosition;
+    persist: XYPosition;
+  };
+  const [draggingNodes, setDraggingNodes] = useState<
+    Record<string, DraggingInfo>
+  >({});
+
+  const handleNodeExpand = useCallback((nodeId: string) => {
+    setExpandedRootIds((current) => ({
+      ...current,
+      [nodeId]: !current[nodeId],
+    }));
+    setPrimaryExpandedId((current) => current ?? nodeId);
+  }, []);
+
+  const toggleNested = useCallback((path: string) => {
+    setNestedExpanded((current) => ({
+      ...current,
+      [path]: !current[path],
+    }));
+  }, []);
+
+  const handleAnyNodeClick = useCallback<NodeMouseHandler>(
+    (_, node) => {
+      const data = node.data as NestableNodeData | undefined;
+      if (!data) {
+        return;
+      }
+
+      const identifier = data.path ?? data.label ?? node.id;
+      console.log('[NestedFlow] clicked node:', identifier);
+      data.onExpand?.();
+    },
+    [],
+  );
+
+  const updateDraggingState = useCallback(
+    (
+      changes: NodeChange[],
+      resolveContext: (
+        change: NodeChange,
+      ) =>
+        | {
+            key: string;
+            position?: XYPosition | null;
+          }
+        | null,
+    ) => {
+      if (!changes.length) {
+        return;
+      }
+
+      setDraggingNodes((prev) => {
+        let mutated = false;
+        const next = { ...prev };
+
+        changes.forEach((change) => {
+          if (change.type !== 'position') {
+            return;
+          }
+          const context = resolveContext(change);
+          if (!context) {
+            return;
+          }
+          const { key, position } = context;
+
+          if (change.dragging) {
+            if (!position) {
+              return;
+            }
+            const prevPos = next[key];
+            if (
+              !prevPos ||
+              prevPos.x !== position.x ||
+              prevPos.y !== position.y
+            ) {
+              next[key] = position;
+              mutated = true;
+            }
+            return;
+          }
+
+          if (change.dragging === false) {
+            if (next[key]) {
+              delete next[key];
+              mutated = true;
+            }
+          }
+        });
+
+        return mutated ? next : prev;
+      });
+    },
+    [],
+  );
+
+  const buildGraph = useCallback(
+    (graph: GraphData, parentPath = ''): GraphBuildResult => {
+      const processedNodes = graph.nodes.map((node) => {
+        const path = parentPath ? `${parentPath}/${node.id}` : node.id;
+        const isRoot = parentPath === '';
+        const storedPosition = isRoot
+          ? rootPositions[node.id]
+          : nestedPositions[path];
+        const basePosition = storedPosition ?? node.position;
+        const isExpanded = isRoot
+          ? Boolean(expandedRootIds[node.id])
+          : Boolean(nestedExpanded[path]);
+        const isPrimary = isRoot
+          ? node.id === primaryExpandedId
+          : isExpanded;
+        const childGraphs = extractChildGraphs(node.data.childGraph);
+        const hasChildGraphs = childGraphs.length > 0;
+        const collapsedSize = resolveCollapsedSize(node, isRoot, isPrimary);
+        let childLayouts: { layout: GraphBuildResult; path: string }[] = [];
+
+        if (isExpanded && hasChildGraphs) {
+          childLayouts = childGraphs.map((childGraph, index) => {
+            const childPath = buildChildGraphPath(path, index);
+            const layout = buildGraph(childGraph, childPath);
+            return { layout, path: childPath };
+          });
+        }
+
+        const widthFromChildren = childLayouts.reduce(
+          (acc, entry) => Math.max(acc, entry.layout.dimensions.width),
+          0,
+        );
+        const heightFromChildren = childLayouts.reduce(
+          (acc, entry, index) =>
+            acc +
+            entry.layout.dimensions.height +
+            (index > 0 ? CHILD_FLOW_GAP : 0),
+          0,
+        );
+
+        const expandedDimensions =
+          childLayouts.length > 0
+            ? {
+                width: widthFromChildren,
+                height: heightFromChildren,
+              }
+            : collapsedSize;
+
+        const width = isExpanded
+          ? Math.max(collapsedSize.width, expandedDimensions.width)
+          : collapsedSize.width;
+        const height = isExpanded
+          ? Math.max(collapsedSize.height, expandedDimensions.height)
+          : collapsedSize.height;
+
+        const computedType =
+          hasChildGraphs && node.type !== 'nestable'
+            ? 'nestable'
+            : node.type;
+
+        const computedStyle: CSSProperties = {
+          ...node.style,
+          width,
+          minHeight: height,
+          height,
+        };
+
+        const childLayoutsMeta: ChildGraphLayout[] | undefined =
+          childLayouts.length > 0
+            ? childLayouts.map(({ layout, path: childPath }) => ({
+                path: childPath,
+                width: layout.dimensions.width,
+                height: layout.dimensions.height,
+                minX: layout.dimensions.minX,
+                minY: layout.dimensions.minY,
+              }))
+            : undefined;
+
+        return {
+          ...node,
+          type: computedType,
+          draggable: true,
+          dragHandle: isRoot ? '.node-handle' : node.dragHandle,
+          position: basePosition,
+          data: {
+            ...node.data,
+            onExpand: isRoot
+              ? () => handleNodeExpand(node.id)
+              : () => toggleNested(path),
+            isExpanded,
+            isPrimaryExpanded: isPrimary,
+            path,
+            childLayouts: childLayoutsMeta,
+          },
+          style: computedStyle,
+        };
+      });
+
+      const dimensions = computeGraphDimensions(undefined, processedNodes);
+
+      return { nodes: processedNodes, dimensions };
+    },
+    [
+      expandedRootIds,
+      handleNodeExpand,
+      nestedExpanded,
+      nestedPositions,
+      primaryExpandedId,
+      rootPositions,
+      toggleNested,
+    ],
+  );
+
+  const applyDraggingOverrides = useCallback(
+    (inputNodes: GraphData['nodes']): GraphData['nodes'] =>
+      inputNodes.map((node) => {
+        const data = node.data as NestableNodeData | undefined;
+        const path = data?.path ?? node.id;
+        const override = draggingNodes[path];
+        if (!override) {
+          return node;
+        }
+        return {
+          ...node,
+          position: override,
+          style: {
+            ...node.style,
+            opacity: 0.5,
+          },
+        };
+      }),
+    [draggingNodes],
+  );
+
+  const buildNodes = useCallback(
+    (graph: GraphData, parentPath = ''): GraphData['nodes'] =>
+      applyDraggingOverrides(buildGraph(graph, parentPath).nodes),
+    [applyDraggingOverrides, buildGraph],
+  );
+
+  const baseNodes = useMemo<GraphData['nodes']>(
+    () => buildGraph(rootGraph).nodes,
+    [buildGraph],
+  );
+  const nodes = useMemo<GraphData['nodes']>(
+    () => applyDraggingOverrides(baseNodes),
+    [applyDraggingOverrides, baseNodes],
+  );
+  const autoLayoutPlan = useMemo(
+    () => planRootNodePositions(baseNodes),
+    [baseNodes],
+  );
+
+  useEffect(() => {
+    if (
+      !autoLayoutPlan ||
+      Object.keys(draggingNodes).length > 0
+    ) {
+      return;
+    }
+    setRootPositions((prev) => {
+      let mutated = false;
+      const next = { ...prev };
+
+      Object.entries(autoLayoutPlan).forEach(([id, position]) => {
+        const prevPos = prev[id];
+        if (
+          !prevPos ||
+          prevPos.x !== position.x ||
+          prevPos.y !== position.y
+        ) {
+          next[id] = position;
+          mutated = true;
+        }
+      });
+
+      return mutated ? next : prev;
+    });
+  }, [autoLayoutPlan, draggingNodes]);
+
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      if (!changes.length) {
+        return;
+      }
+
+      setRootPositions((prev) => {
+        let mutated = false;
+        const next = { ...prev };
+
+        changes.forEach((change) => {
+          if (change.type !== 'position' || change.dragging === true) {
+            return;
+          }
+          const override = draggingNodes[change.id];
+          const finalPosition = change.position ?? override ?? null;
+          if (!finalPosition) {
+            return;
+          }
+          const prevPos = prev[change.id];
+          if (
+            !prevPos ||
+            prevPos.x !== finalPosition.x ||
+            prevPos.y !== finalPosition.y
+          ) {
+            next[change.id] = finalPosition;
+            mutated = true;
+          }
+        });
+
+        return mutated ? next : prev;
+      });
+
+      updateDraggingState(changes, (change) => {
+        if (change.type !== 'position') {
+          return null;
+        }
+        return { key: change.id, position: change.position ?? null };
+      });
+    },
+    [draggingNodes, updateDraggingState],
+  );
+
+  const handleNestedNodesChange = useCallback(
+    (
+      parentPath: string,
+      changes: NodeChange[],
+      layout?: ChildGraphLayout,
+    ) => {
+      if (!parentPath) {
+        return;
+      }
+
+      const offsetX = layout?.minX ?? 0;
+      const offsetY = layout?.minY ?? 0;
+
+      setNestedPositions((prev) => {
+        let mutated = false;
+        const next = { ...prev };
+
+        changes.forEach((change) => {
+          if (change.type !== 'position' || change.dragging === true) {
+            return;
+          }
+          const key = `${parentPath}/${change.id}`;
+          const override = draggingNodes[key];
+          const rawPosition = change.position ?? override ?? null;
+          if (!rawPosition) {
+            return;
+          }
+          const adjustedPosition = {
+            x: rawPosition.x + offsetX,
+            y: rawPosition.y + offsetY,
+          };
+          const prevPos = prev[key];
+          if (
+            !prevPos ||
+            prevPos.x !== adjustedPosition.x ||
+            prevPos.y !== adjustedPosition.y
+          ) {
+            next[key] = adjustedPosition;
+            mutated = true;
+          }
+        });
+
+        return mutated ? next : prev;
+      });
+
+      updateDraggingState(changes, (change) => {
+        if (change.type !== 'position') {
+          return null;
+        }
+        const key = `${parentPath}/${change.id}`;
+        return { key, position: change.position ?? null };
+      });
+    },
+    [draggingNodes, updateDraggingState],
+  );
+
+  return {
+    nodes,
+    buildNodes,
+    handleAnyNodeClick,
+    handleNestedNodesChange,
+    handleNodesChange,
+  };
+};
