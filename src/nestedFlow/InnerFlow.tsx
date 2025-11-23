@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import ReactFlow, {
   Background,
@@ -6,8 +6,11 @@ import ReactFlow, {
   Handle,
   NodeChange,
   NodeProps,
+  NodeMouseHandler,
+  PanOnScrollMode,
   Position,
   ReactFlowProvider,
+  useReactFlow,
 } from 'reactflow';
 
 import type {
@@ -15,7 +18,14 @@ import type {
   GraphData,
   NestableNodeData,
 } from '../graphData';
-import { CHILD_FLOW_GAP } from './constants';
+import {
+  CHILD_FLOW_GAP,
+  CHILD_FLOW_MAX_HEIGHT,
+  CHILD_FLOW_STACK_PADDING,
+  INNER_FLOW_MAX_ZOOM,
+  INNER_FLOW_MIN_ZOOM,
+  INNER_FLOW_ZOOM_SENSITIVITY,
+} from './constants';
 import { NestedGraphContext } from './context';
 import { buildChildGraphPath, extractChildGraphs } from './layout';
 
@@ -66,33 +76,47 @@ export const NestableNode = ({
         position={Position.Right}
         style={{ visibility: 'hidden' }}
       />
-      {resolvedExpanded &&
-        childGraphs.map((graph, index) => {
-          const parentPath = path ?? '';
-          const childPath = buildChildGraphPath(parentPath, index);
-          const layout = childLayouts?.find(
-            (item) => item.path === childPath,
-          );
-          const childHeight = layout?.height ?? undefined;
+      {resolvedExpanded && (
+        <div
+          className="inner-flow-stack"
+          style={{
+            gap: CHILD_FLOW_GAP,
+            paddingBottom: CHILD_FLOW_STACK_PADDING,
+          }}
+        >
+          {childGraphs.map((graph, index) => {
+            const parentPath = path ?? '';
+            const childPath = buildChildGraphPath(parentPath, index);
+            const layout = childLayouts?.find(
+              (item) => item.path === childPath,
+            );
+            const childHeight = layout?.height ?? undefined;
+            const displayHeight =
+              childHeight === undefined
+                ? CHILD_FLOW_MAX_HEIGHT
+                : Math.min(childHeight, CHILD_FLOW_MAX_HEIGHT);
 
-          return (
-            <div
-              key={childPath}
-              className="inner-flow"
-              onClick={(event) => event.stopPropagation()}
-              style={{
-                height: childHeight,
-                marginTop: index > 0 ? CHILD_FLOW_GAP : 0,
-              }}
-            >
-              <MiniReactFlow
-                graph={graph}
-                parentPath={childPath}
-                layout={layout}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={childPath}
+                className="inner-flow"
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  height: displayHeight,
+                  minHeight: displayHeight,
+                  maxHeight: CHILD_FLOW_MAX_HEIGHT,
+                }}
+              >
+                <MiniReactFlow
+                  graph={graph}
+                  parentPath={childPath}
+                  layout={layout}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -132,29 +156,104 @@ export const MiniReactFlow = ({
     [context, layout, parentPath],
   );
 
+  const flowKey = layout
+    ? `${parentPath}:${layout.minX}:${layout.minY}:${layout.width}:${layout.height}`
+    : parentPath;
+
   return (
     <ReactFlowProvider>
-      <ReactFlow
-        key={
-          layout
-            ? `${parentPath}:${layout.minX}:${layout.minY}:${layout.width}:${layout.height}`
-            : parentPath
-        }
+      <MiniReactFlowContent
         nodes={nodes}
         edges={graph.edges}
-        nodeTypes={nodeTypes}
+        layout={layout}
+        flowKey={flowKey}
         onNodeClick={context?.onNodeClick}
         onNodesChange={handleNodesChange}
+      />
+    </ReactFlowProvider>
+  );
+};
+
+type MiniReactFlowContentProps = {
+  nodes: GraphData['nodes'];
+  edges: GraphData['edges'];
+  layout?: ChildGraphLayout;
+  flowKey: string;
+  onNodeClick?: NodeMouseHandler;
+  onNodesChange?: (changes: NodeChange[]) => void;
+};
+
+const MiniReactFlowContent = ({
+  nodes,
+  edges,
+  layout,
+  flowKey,
+  onNodeClick,
+  onNodesChange,
+}: MiniReactFlowContentProps) => {
+  const reactFlow = useReactFlow();
+
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const element = wrapperRef.current;
+    if (!element) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+
+      const { x: viewportX, y: viewportY, zoom: currentZoom } =
+        reactFlow.getViewport();
+      const rect = element.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      const flowPointerX = (pointerX - viewportX) / currentZoom;
+      const flowPointerY = (pointerY - viewportY) / currentZoom;
+
+      const delta = -event.deltaY * INNER_FLOW_ZOOM_SENSITIVITY;
+      const nextZoom = Math.min(
+        INNER_FLOW_MAX_ZOOM,
+        Math.max(INNER_FLOW_MIN_ZOOM, currentZoom * (1 + delta)),
+      );
+      if (Math.abs(nextZoom - currentZoom) < 0.001) {
+        return;
+      }
+
+      const nextX = pointerX - flowPointerX * nextZoom;
+      const nextY = pointerY - flowPointerY * nextZoom;
+      reactFlow.setViewport({ x: nextX, y: nextY, zoom: nextZoom });
+    };
+    element.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      element.removeEventListener('wheel', handleWheel);
+    };
+  }, [reactFlow]);
+
+  return (
+    <div className="mini-flow-wrapper" ref={wrapperRef}>
+      <ReactFlow
+        key={flowKey}
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        onNodeClick={onNodeClick}
+        onNodesChange={onNodesChange}
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable={false}
-        panOnScroll={false}
-        panOnDrag={false}
+        panOnScroll
+        panOnScrollMode={PanOnScrollMode.Free}
+        panOnDrag
         zoomOnScroll={false}
         zoomOnPinch={false}
         zoomOnDoubleClick={false}
-        minZoom={1}
-        maxZoom={1}
+        minZoom={INNER_FLOW_MIN_ZOOM}
+        maxZoom={INNER_FLOW_MAX_ZOOM}
         defaultViewport={{
           x: layout ? -layout.minX : 0,
           y: layout ? -layout.minY : 0,
@@ -170,6 +269,6 @@ export const MiniReactFlow = ({
           color="rgba(0, 0, 0, 0.08)"
         />
       </ReactFlow>
-    </ReactFlowProvider>
+    </div>
   );
 };

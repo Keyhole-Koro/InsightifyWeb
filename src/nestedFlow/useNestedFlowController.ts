@@ -14,7 +14,15 @@ import {
   NestableNodeData,
   rootGraph,
 } from '../graphData';
-import { CHILD_FLOW_GAP } from './constants';
+import {
+  BASE_NODE_HEIGHT,
+  CHILD_FLOW_GAP,
+  CHILD_FLOW_MAX_HEIGHT,
+  CHILD_FLOW_MAX_WIDTH,
+  CHILD_FLOW_STACK_PADDING,
+  CHILD_NODE_HEIGHT,
+  PRIMARY_NODE_HEIGHT,
+} from './constants';
 import {
   GraphDimensions,
   buildChildGraphPath,
@@ -219,31 +227,56 @@ export const useNestedFlowController = (): NestedFlowController => {
           });
         }
 
-        const widthFromChildren = childLayouts.reduce(
+        const rawWidthFromChildren = childLayouts.reduce(
           (acc, entry) => Math.max(acc, entry.layout.dimensions.width),
           0,
         );
-        const heightFromChildren = childLayouts.reduce(
-          (acc, entry, index) =>
-            acc +
-            entry.layout.dimensions.height +
-            (index > 0 ? CHILD_FLOW_GAP : 0),
+        const widthFromChildren = Math.min(
+          rawWidthFromChildren,
+          CHILD_FLOW_MAX_WIDTH,
+        );
+        const baseHeightFromChildren = childLayouts.reduce(
+          (acc, entry, index) => {
+            const clampedHeight = Math.min(
+              entry.layout.dimensions.height,
+              CHILD_FLOW_MAX_HEIGHT,
+            );
+            return (
+              acc + clampedHeight + (index > 0 ? CHILD_FLOW_GAP : 0)
+            );
+          },
           0,
         );
+        const stackPadding =
+          childLayouts.length > 0 ? CHILD_FLOW_STACK_PADDING * 2 : 0;
+        const heightFromChildren =
+          baseHeightFromChildren + stackPadding;
+        const baseContentHeight =
+          node.data.size?.height ??
+          (isRoot
+            ? isPrimary
+              ? PRIMARY_NODE_HEIGHT
+              : BASE_NODE_HEIGHT
+            : CHILD_NODE_HEIGHT);
+        const chromeHeight = Math.max(
+          collapsedSize.height - baseContentHeight,
+          0,
+        );
+        const adjustedHeightFromChildren =
+          heightFromChildren + chromeHeight;
 
-        const expandedDimensions =
-          childLayouts.length > 0
-            ? {
-                width: widthFromChildren,
-                height: heightFromChildren,
-              }
-            : collapsedSize;
+        const expandedWidth = childLayouts.length > 0
+          ? widthFromChildren
+          : collapsedSize.width;
+        const expandedHeight = childLayouts.length > 0
+          ? Math.max(adjustedHeightFromChildren, collapsedSize.height)
+          : collapsedSize.height;
 
         const width = isExpanded
-          ? Math.max(collapsedSize.width, expandedDimensions.width)
+          ? Math.max(collapsedSize.width, expandedWidth)
           : collapsedSize.width;
         const height = isExpanded
-          ? Math.max(collapsedSize.height, expandedDimensions.height)
+          ? Math.max(collapsedSize.height, expandedHeight)
           : collapsedSize.height;
 
         const computedType =
