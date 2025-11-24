@@ -1,150 +1,43 @@
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #1f1f1f;
-  background-color: #f3f4f6;
-}
-
-body {
-  margin: 0;
-  background-color: #f3f4f6;
-}
-
+html,
+body,
 #root {
-  width: 100vw;
-  height: 100vh;
-}
-
-.app-shell {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) 1fr;
-  gap: 24px;
-  height: 100vh;
-  box-sizing: border-box;
-  padding: 32px;
-}
-
-.panel {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #ececec;
-  box-shadow: 0 12px 30px rgba(30, 30, 30, 0.08);
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.panel.fill {
-  padding: 0;
-  overflow: hidden;
-}
-
-.panel h1 {
+  width: 100%;
+  height: 100%;
   margin: 0;
-}
-
-.flow-shell {
-  width: 100%;
-  height: 100%;
-}
-
-.react-flow__node-nestable {
   padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  font-family: sans-serif;
 }
 
-.nestable-node {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
+.custom-node-body {
   background: #fff;
-  border-radius: 12px;
-  border: 2px solid #d6d6d6;
-  box-shadow: 0 12px 20px rgba(20, 20, 20, 0.08);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
 }
 
-.nestable-node:hover {
-  border-color: #4f46e5;
-}
-
-.nestable-node.primary {
-  border-color: #4338ca;
-  box-shadow: 0 20px 30px rgba(67, 56, 202, 0.25);
-}
-
-.nestable-node.expanded {
-  background: #f8f7ff;
-}
-
-.node-label {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.node-handle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
-  cursor: grab;
-  user-select: none;
-}
-
-.node-handle:active {
-  cursor: grabbing;
-}
-
-.node-drag-indicator {
-  font-size: 0.9rem;
-  color: #a3a3a3;
-  letter-spacing: 2px;
-}
-
-.inner-flow {
-  flex: none;
-  width: 100%;
-  display: flex;
-  align-items: stretch;
-  border-radius: 10px;
-  border: 1px dashed rgba(67, 56, 202, 0.4);
-  overflow: hidden;
-  background: #ffffff;
-  min-height: 140px;
-}
-
-.inner-flow-stack {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.inner-flow .react-flow {
-  width: 100%;
-  height: 100%;
-}
-
-.mini-flow-wrapper {
-  width: 100%;
-  height: 100%;
+.custom-node-body .node-header {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   cursor: grab;
 }
 
-.mini-flow-wrapper.dragging {
-  cursor: grabbing;
+.custom-node-body .node-header.expanded {
+  background: #e0e0ff;
 }
 
-.mini-flow .react-flow__background {
-  opacity: 0.7;
+.custom-node-body .node-content {
+  padding: 10px;
+  min-height: 40px;
+}
+
+.custom-node-body .inner-flow-wrapper {
+  width: 100%;
+  min-height: 0;
+  background: #fafafa;
 }

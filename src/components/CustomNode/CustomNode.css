@@ -1,0 +1,42 @@
+.custom-node-body {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.node-content {
+  overflow: hidden;
+  opacity: 0;
+  width: 160px;
+  height: 40px;
+  max-width: 160px;
+  max-height: 40px;
+  transition:
+    width 0.45s ease-in-out,
+    height 0.45s ease-in-out,
+    max-width 0.45s ease-in-out,
+    max-height 0.45s ease-in-out,
+    opacity 0.3s ease-in-out;
+}
+
+.node-content.expanded {
+  opacity: 1;
+  width: 500px;
+  height: 320px;
+  max-width: 500px;
+  max-height: 320px;
+}
+
+.custom-node-body .inner-flow-wrapper {
+  width: 100%;
+  height: 100%;
+  background: #fafafa;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.inner-flow-wrapper.expanded {
+  opacity: 1;
+  pointer-events: auto;
+}
