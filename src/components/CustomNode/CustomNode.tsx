@@ -1,11 +1,13 @@
+import React from 'react';
 import { memo, PointerEvent as ReactPointerEvent, MouseEvent } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { CustomNodeData } from '@/types/graphTypes';
 import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
+
 import './CustomNode.css';
 
 export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
-  const { label, isExpanded, onExpand, innerGraph, path } = data;
+  const { label, description, isExpanded, onExpand, innerGraph, path } = data;
 
   const handleInnerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement | null;
@@ -27,10 +29,14 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
 
   const handleHeaderClick = (event: MouseEvent) => {
     event.stopPropagation();
-    console.log('[CustomNode] Header clicked:', data);
-    if (onExpand) {
-      onExpand();
+    // Only call the expand handler if innerGraph exists
+    if (onExpand && innerGraph) {
+      onExpand(path);
     }
+  };
+
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    event.stopPropagation();
   };
 
   return (
@@ -39,14 +45,16 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
       <div
         className={`node-header ${isExpanded ? 'expanded' : ''}`}
         onClick={handleHeaderClick}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: innerGraph ? 'pointer' : 'default' }}
       >
         {label}
       </div>
+      {description && <div className="node-description">{description}</div>}
       <div className={`node-content ${isExpanded ? 'expanded' : ''}`} aria-hidden={!isExpanded}>
         <div
           className={`inner-flow-wrapper ${isExpanded ? 'expanded' : ''}`}
           onPointerDown={handleInnerPointerDown}
+          onWheel={handleWheel}
         >
           {innerGraph && (
             <NestedGraphEditor initialGraph={innerGraph} parentPath={data.path} />

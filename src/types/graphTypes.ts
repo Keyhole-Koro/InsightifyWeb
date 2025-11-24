@@ -11,6 +11,7 @@ export interface NestedGraph {
 export interface NestedNode {
   id: string;
   label: string;
+  description?: string;
   position: { x: number; y: number };
   innerGraph?: NestedGraph;
 }
@@ -19,6 +20,7 @@ export interface NestedNode {
 export interface CustomNodeData {
   id: string;
   label: string;
+  description?: string;
   path: string; // Hierarchical path from the root (e.g. 'root/node-1/sub-node-a')
   isExpanded: boolean;
   onExpand: () => void;
@@ -51,6 +53,7 @@ export function transformToReactFlow(
       data: {
         id: node.id,
         label: node.label,
+        description: node.description,
         path,
         isExpanded: expandedNodes.has(path),
         onExpand: () => onExpand(path),

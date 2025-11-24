@@ -130,6 +130,7 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
 
   const onWheel = useCallback(
     (event: WheelEvent) => {
+      event.stopPropagation();
       event.preventDefault();
       const { x, y, zoom } = getViewport();
 
@@ -179,6 +180,7 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
       zoomOnScroll={false} // Disable default zoom so Ctrl+Scroll handler can take over
       zoomOnPinch
       zoomOnDoubleClick
+      proOptions={{ hideAttribution: true }}
     >
       <Controls />
       <Background />

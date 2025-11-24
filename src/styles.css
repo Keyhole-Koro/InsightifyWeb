@@ -10,34 +10,34 @@ body,
 
 .custom-node-body {
   background: #fff;
-  border: 1px solid #555;
-  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   font-size: 12px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease-in-out;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .custom-node-body .node-header {
-  background: #f0f0f0;
-  padding: 8px 12px;
-  border-bottom: 1px solid #ddd;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  background: #fff;
+  padding: 10px 14px;
+  font-weight: 600;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
   cursor: grab;
 }
 
 .custom-node-body .node-header.expanded {
-  background: #e0e0ff;
+  background: #f6f6ff;
 }
 
 .custom-node-body .node-content {
-  padding: 10px;
-  min-height: 40px;
+  padding: 0 12px 12px;
+  min-height: 32px;
 }
 
 .custom-node-body .inner-flow-wrapper {
   width: 100%;
   min-height: 0;
-  background: #fafafa;
+  background: #f8f9fb;
 }
