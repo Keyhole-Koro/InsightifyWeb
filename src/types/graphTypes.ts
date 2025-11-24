@@ -1,4 +1,4 @@
-import { Edge, Node } from 'reactflow';
+import { Edge, Node, Position } from 'reactflow';
 
 // Child graph data attached to a node
 export interface NestedGraph {
@@ -14,6 +14,14 @@ export interface NestedNode {
   description?: string;
   position: { x: number; y: number };
   innerGraph?: NestedGraph;
+  handles?: NodeHandleConfig[];
+}
+
+export interface NodeHandleConfig {
+  id: string;
+  type: 'source' | 'target';
+  position?: Position;
+  style?: Record<string, string | number>;
 }
 
 // Custom payload stored in each React Flow node
@@ -25,6 +33,7 @@ export interface CustomNodeData {
   isExpanded: boolean;
   onExpand: () => void;
   innerGraph?: NestedGraph;
+  handles?: NodeHandleConfig[];
 }
 
 /**
@@ -58,6 +67,7 @@ export function transformToReactFlow(
         isExpanded: expandedNodes.has(path),
         onExpand: () => onExpand(path),
         innerGraph: node.innerGraph,
+        handles: node.handles,
       },
     };
   });

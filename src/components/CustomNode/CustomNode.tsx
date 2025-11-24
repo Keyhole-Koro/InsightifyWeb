@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { memo, PointerEvent as ReactPointerEvent, MouseEvent } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { CustomNodeData } from '@/types/graphTypes';
+import { CustomNodeData, NodeHandleConfig } from '@/types/graphTypes';
 import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
 
 import './CustomNode.css';
 
+const buildDefaultHandles = (nodeId: string): NodeHandleConfig[] => [
+  {
+    id: `${nodeId}-default-target`,
+    type: 'target',
+    position: Position.Top,
+    style: { left: '50%', transform: 'translateX(-50%)' },
+  },
+  {
+    id: `${nodeId}-default-source`,
+    type: 'source',
+    position: Position.Bottom,
+    style: { left: '50%', transform: 'translateX(-50%)' },
+  },
+];
+
 export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
-  const { label, description, isExpanded, onExpand, innerGraph, path } = data;
+  const { label, description, isExpanded, onExpand, innerGraph, path, handles, id } = data;
+  const resolvedHandles = handles?.length ? handles : buildDefaultHandles(id);
 
   const handleInnerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement | null;
@@ -39,9 +55,20 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
     event.stopPropagation();
   };
 
+  const renderHandles = () =>
+    resolvedHandles.map((handleConfig) => (
+      <Handle
+        key={handleConfig.id}
+        id={handleConfig.id}
+        type={handleConfig.type}
+        position={handleConfig.position ?? Position.Bottom}
+        style={handleConfig.style as CSSProperties | undefined}
+      />
+    ));
+
   return (
     <div className={`custom-node-body ${isExpanded ? 'expanded' : ''}`}>
-      <Handle type="target" position={Position.Top} />
+      {renderHandles()}
       <div
         className={`node-header ${isExpanded ? 'expanded' : ''}`}
         onClick={handleHeaderClick}
@@ -61,7 +88,6 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
           )}
         </div>
       </div>
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 });
