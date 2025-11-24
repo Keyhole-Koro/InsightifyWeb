@@ -22,6 +22,7 @@ export interface NodeHandleConfig {
   type: 'source' | 'target';
   position?: Position;
   style?: Record<string, string | number>;
+  label?: string;
 }
 
 // Custom payload stored in each React Flow node

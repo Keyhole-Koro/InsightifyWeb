@@ -1,5 +1,12 @@
-import React, { CSSProperties } from 'react';
-import { memo, PointerEvent as ReactPointerEvent, MouseEvent } from 'react';
+import React, {
+  CSSProperties,
+  memo,
+  PointerEvent as ReactPointerEvent,
+  MouseEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { CustomNodeData, NodeHandleConfig } from '@/types/graphTypes';
 import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
@@ -24,6 +31,66 @@ const buildDefaultHandles = (nodeId: string): NodeHandleConfig[] => [
 export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
   const { label, description, isExpanded, onExpand, innerGraph, path, handles, id } = data;
   const resolvedHandles = handles?.length ? handles : buildDefaultHandles(id);
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const [nodeSize, setNodeSize] = useState<{ width: number; height: number } | null>(null);
+  const [collapsedSize, setCollapsedSize] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const element = nodeRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) {
+        return;
+      }
+
+      const { width, height } = entry.contentRect;
+      setNodeSize({ width, height });
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded && nodeSize) {
+      setCollapsedSize(nodeSize);
+    }
+  }, [isExpanded, nodeSize]);
+
+  const widthScale =
+    isExpanded && collapsedSize && collapsedSize.width > 0 && nodeSize
+      ? nodeSize.width / collapsedSize.width
+      : 1;
+  const heightScale =
+    isExpanded && collapsedSize && collapsedSize.height > 0 && nodeSize
+      ? nodeSize.height / collapsedSize.height
+      : 1;
+
+  const getScaledHandleStyle = (
+    style?: NodeHandleConfig['style'],
+  ): CSSProperties | undefined => {
+    if (!style) {
+      return undefined;
+    }
+    const scaledStyle: Record<string, string | number> = { ...style };
+    (['top', 'bottom'] as const).forEach((prop) => {
+      const value = style[prop];
+      if (typeof value === 'number') {
+        scaledStyle[prop] = value * heightScale;
+      }
+    });
+    (['left', 'right'] as const).forEach((prop) => {
+      const value = style[prop];
+      if (typeof value === 'number') {
+        scaledStyle[prop] = value * widthScale;
+      }
+    });
+    return scaledStyle as CSSProperties;
+  };
 
   const handleInnerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement | null;
@@ -46,8 +113,8 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
   const handleHeaderClick = (event: MouseEvent) => {
     event.stopPropagation();
     // Only call the expand handler if innerGraph exists
-    if (onExpand && innerGraph) {
-      onExpand(path);
+    if (innerGraph) {
+      onExpand();
     }
   };
 
@@ -62,12 +129,17 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
         id={handleConfig.id}
         type={handleConfig.type}
         position={handleConfig.position ?? Position.Bottom}
-        style={handleConfig.style as CSSProperties | undefined}
-      />
+        style={getScaledHandleStyle(handleConfig.style)}
+        className="custom-node-handle"
+      >
+        {handleConfig.label && (
+          <span className="custom-node-handle__label">{handleConfig.label}</span>
+        )}
+      </Handle>
     ));
 
   return (
-    <div className={`custom-node-body ${isExpanded ? 'expanded' : ''}`}>
+    <div ref={nodeRef} className={`custom-node-body ${isExpanded ? 'expanded' : ''}`}>
       {renderHandles()}
       <div
         className={`node-header ${isExpanded ? 'expanded' : ''}`}
