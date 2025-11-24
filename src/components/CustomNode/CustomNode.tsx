@@ -1,6 +1,6 @@
 import { memo, PointerEvent as ReactPointerEvent, MouseEvent } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { CustomNodeData, NodeExpandHandler } from '@/types/graphTypes';
+import { CustomNodeData } from '@/types/graphTypes';
 import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
 import './CustomNode.css';
 
@@ -37,7 +37,7 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
     event.stopPropagation();
     console.log('[CustomNode] Header clicked:', data);
     if (onExpand) {
-      (onExpand as NodeExpandHandler)(path);
+      onExpand();
     }
   };
 

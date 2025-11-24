@@ -24,7 +24,7 @@ export const useAutoLayout = () => {
           const dy = nodeB.position.y - nodeA.position.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          const minDistance = ((nodeA.width ?? 0) + (nodeB.width ?? 0)) / 2 + padding;
+          const minDistance = (nodeA.width ?? 0) + (nodeB.width ?? 0) + padding;
 
           if (distance < minDistance) {
             const angle = Math.atan2(dy, dx);

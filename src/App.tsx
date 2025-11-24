@@ -1,5 +1,6 @@
 import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
 import { sampleGraph } from '@/data/sampleGraph';
+// @ts-ignore
 import 'reactflow/dist/style.css';
 
 const App = () => {
