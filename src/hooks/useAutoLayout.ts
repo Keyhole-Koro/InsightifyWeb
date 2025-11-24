@@ -44,7 +44,6 @@ export const useAutoLayout = () => {
         }
       }
     }
-    console.log('[useAutoLayout] Resolving overlaps. New positions calculated.');
     setNodes(simulationNodes);
   }, [getNodes, setNodes]);
 
@@ -88,7 +87,6 @@ export const useAutoLayout = () => {
             y: nodeB.position.y + moveY,
           };
 
-          console.log(`[useAutoLayout] Moving node ${node.id} away from ${draggedNode.id}. New position:`, newPosition);
           return { ...nodeB, position: newPosition };
         }
 

@@ -19,15 +19,7 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
       interactedPane && wrapper.contains(interactedPane as HTMLElement),
     );
     const shouldStop = isInnerNode || isInnerPane;
-    console.log('[CustomNode] inner pointer down', {
-      path,
-      targetClass: target?.className ?? 'unknown',
-      paneHit: Boolean(interactedPane),
-      nodeHit: Boolean(interactedNode),
-      innerNode: isInnerNode,
-      innerPane: isInnerPane,
-      stopped: shouldStop,
-    });
+
     if (shouldStop) {
       event.stopPropagation();
     }

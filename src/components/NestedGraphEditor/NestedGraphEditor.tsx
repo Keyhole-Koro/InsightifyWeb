@@ -32,14 +32,14 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { resolveAllOverlaps, runOverlapRemoval } = useAutoLayout();
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+  const noPanClassName = useMemo(() => {
+    const normalizedPath = parentPath.replace(/[^a-zA-Z0-9-]/g, '-') || 'root';
+    return `nopan-${normalizedPath}`;
+  }, [parentPath]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     // Log position changes for debugging
     for (const change of changes) {
-      if (change.type === 'position' && change.position) {
-        console.log(`[onNodesChange] Node ${change.id} position changed to:`, change.position);
-      }
-      // Trigger layout recalculation when node dimensions change (e.g., after expanding)
       if (change.type === 'dimensions') {
         setLayoutTick(t => t + 1);
       }
@@ -175,6 +175,7 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
       fitView
       onWheel={onWheel}
       panOnDrag
+      noPanClassName={noPanClassName}
       zoomOnScroll={false} // Disable default zoom so Ctrl+Scroll handler can take over
       zoomOnPinch
       zoomOnDoubleClick
