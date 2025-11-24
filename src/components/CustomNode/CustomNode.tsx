@@ -146,7 +146,15 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
         onClick={handleHeaderClick}
         style={{ cursor: innerGraph ? 'pointer' : 'default' }}
       >
-        {label}
+        <span className="node-header__label">{label}</span>
+        {innerGraph && (
+          <span
+            className={`node-expand-indicator ${isExpanded ? 'expanded' : ''}`}
+            aria-hidden="true"
+          >
+            <span className="node-expand-indicator__icon" />
+          </span>
+        )}
       </div>
       {description && <div className="node-description">{description}</div>}
       <div className={`node-content ${isExpanded ? 'expanded' : ''}`} aria-hidden={!isExpanded}>

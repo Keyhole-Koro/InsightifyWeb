@@ -50,33 +50,15 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
   const [layoutTick, setLayoutTick] = useState(0);
   const handleNodeExpandToggle = useCallback((nodePath: string) => {
     setActiveNodePath(nodePath);
-    setNodes((currentNodes) => {
-      const expandedNodePaths = new Set<string>();
-      const newNodes = currentNodes.map(n => {
-        if (n.data.path === nodePath) {
-          const isExpanded = !n.data.isExpanded;
-          if (isExpanded) {
-            expandedNodePaths.add(nodePath);
-          }
-          return { ...n, data: { ...n.data, isExpanded } };
-        }
-        if (n.data.isExpanded) {
-          expandedNodePaths.add(n.data.path);
-        }
-        return n;
-      });
-
-      const { nodes: transformedNodes, edges: transformedEdges } = transformToReactFlow(
-        initialGraph,
-        handleNodeExpandToggle,
-        expandedNodePaths,
-        parentPath,
-      );
-      setEdges(transformedEdges);
-      return transformedNodes;
-    });
-    setLayoutTick(t => t + 1);
-  }, [initialGraph, parentPath, setNodes, setEdges]);
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        node.data.path === nodePath
+          ? { ...node, data: { ...node.data, isExpanded: !node.data.isExpanded } }
+          : node,
+      ),
+    );
+    setLayoutTick((t) => t + 1);
+  }, [setNodes]);
 
   const lockPriorityNodes = useCallback(
     (node: Node<CustomNodeData>) => {
