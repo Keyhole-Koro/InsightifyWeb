@@ -1,7 +1,7 @@
 import { Edge, Node, Position } from "reactflow";
 
 // Child graph data attached to a node
-export interface NestedGraph {
+export interface Graph {
   id: string;
   nodes: NestedNode[];
   edges: Edge[];
@@ -13,7 +13,7 @@ export interface NestedNode {
   label: string;
   description?: string;
   position: { x: number; y: number };
-  innerGraph?: NestedGraph;
+  innerGraph?: Graph;
   handles?: NodeHandleConfig[];
 }
 
@@ -33,26 +33,26 @@ export interface CustomNodeData {
   path: string; // Hierarchical path from the root (e.g. 'root/node-1/sub-node-a')
   isExpanded: boolean;
   onExpand: () => void;
-  innerGraph?: NestedGraph;
+  innerGraph?: Graph;
   handles?: NodeHandleConfig[];
 }
 
 /**
- * Helper that turns our custom `NestedGraph` structure into React Flow-friendly
+ * Helper that turns our custom `Graph` structure into React Flow-friendly
  * `Node[]` and `Edge[]` collections.
- * @param nestedGraph Graph data to convert
+ * @param Graph Graph data to convert
  * @param onExpand Callback invoked when a node toggles expansion
  * @param expandedNodes Set of node IDs that should render expanded
  * @param pathPrefix Current graph path (used to build child paths)
  * @returns React Flow nodes and edges
  */
 export function transformToReactFlow(
-  nestedGraph: NestedGraph,
+  Graph: Graph,
   onExpand: (nodePath: string) => void,
   expandedNodes: Set<string>,
   pathPrefix: string = "",
 ): { nodes: Node<CustomNodeData>[]; edges: Edge[] } {
-  const nodes: Node<CustomNodeData>[] = nestedGraph.nodes.map((node) => {
+  const nodes: Node<CustomNodeData>[] = Graph.nodes.map((node) => {
     const path = pathPrefix ? `${pathPrefix}/${node.id}` : node.id;
     return {
       id: node.id,
@@ -73,5 +73,5 @@ export function transformToReactFlow(
     };
   });
 
-  return { nodes, edges: nestedGraph.edges };
+  return { nodes, edges: Graph.edges };
 }

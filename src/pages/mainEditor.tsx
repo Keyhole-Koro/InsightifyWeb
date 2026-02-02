@@ -20,19 +20,19 @@ import ReactFlow, {
 } from "reactflow";
 
 import {
-  NestedGraph,
+  Graph,
   CustomNodeData,
   transformToReactFlow,
 } from "@/types/graphTypes";
 import { CustomNode } from "@/components/graph/CustomNode/CustomNode";
 import { useAutoLayout } from "@/hooks/useAutoLayout";
 
-interface NestedGraphEditorProps {
-  initialGraph: NestedGraph;
+interface GraphEditorProps {
+  initialGraph: Graph;
   parentPath?: string;
 }
 
-function GraphView({ initialGraph, parentPath = "" }: NestedGraphEditorProps) {
+function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
   const [activeNodePath, setActiveNodePath] = useState<string | null>(null);
   const { getViewport, setViewport } = useReactFlow<CustomNodeData>();
   const [nodes, setNodes, onNodesChangeInternal] =
@@ -188,7 +188,7 @@ function GraphView({ initialGraph, parentPath = "" }: NestedGraphEditorProps) {
   );
 }
 
-export function NestedGraphEditor(props: NestedGraphEditorProps) {
+export function GraphEditor(props: GraphEditorProps) {
   return (
     <ReactFlowProvider>
       <GraphView {...props} />

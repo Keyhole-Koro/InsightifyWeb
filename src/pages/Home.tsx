@@ -6,23 +6,14 @@ import ReactFlow, {
   useNodesState,
 } from "reactflow";
 
-import { NestedGraphEditor } from "@/components/graph/NestedGraphEditor/NestedGraphEditor";
+import { FloatingGraphEditor } from "@/pages/processingGraph";
 import { sampleGraph } from "@/data/sampleGraph";
 import { startRun } from "@/api/pipelineApi";
-import { Tabs, TabOption } from "@/components/ui/Tabs";
 
 // @ts-ignore
 import "reactflow/dist/style.css";
 
-type TabId = "editor" | "plan";
-
-const TABS: TabOption<TabId>[] = [
-  { id: "editor", label: "Nested Editor" },
-  { id: "plan", label: "Execution Plan" },
-];
-
 export const Home = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("editor");
   const [isPlanning, setIsPlanning] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -104,7 +95,6 @@ export const Home = () => {
 
       setNodes(newNodes);
       setEdges(newEdges);
-      setActiveTab("plan");
     } catch (err) {
       console.error("Plan request failed", err);
     } finally {
@@ -117,76 +107,55 @@ export const Home = () => {
       style={{
         width: "100vw",
         height: "100vh",
-        display: "flex",
-        flexDirection: "column",
+        position: "relative",
         backgroundColor: "#ffffff",
       }}
     >
-      <header
+      <button
+        type="button"
+        onClick={handlePlanClick}
+        disabled={isPlanning}
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 24px",
-          borderBottom: "1px solid #e2e8f0",
-          backgroundColor: "#ffffff",
+          position: "absolute",
+          top: "16px",
+          right: "24px",
+          zIndex: 10,
+          padding: "8px 16px",
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "#ffffff",
+          backgroundColor: isPlanning ? "#94a3b8" : "#2563eb",
+          border: "none",
+          borderRadius: "6px",
+          cursor: isPlanning ? "not-allowed" : "pointer",
+          transition: "background-color 0.2s",
+          boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <h1
-            style={{
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#0f172a",
-              margin: 0,
-            }}
-          >
-            Insightify
-          </h1>
-          <div
-            style={{ width: "1px", height: "24px", backgroundColor: "#e2e8f0" }}
-          />
-          <Tabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
-
-        <button
-          type="button"
-          onClick={handlePlanClick}
-          disabled={isPlanning}
-          style={{
-            padding: "8px 16px",
-            fontSize: "14px",
-            fontWeight: 600,
-            color: "#ffffff",
-            backgroundColor: isPlanning ? "#94a3b8" : "#2563eb",
-            border: "none",
-            borderRadius: "6px",
-            cursor: isPlanning ? "not-allowed" : "pointer",
-            transition: "background-color 0.2s",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-          }}
+        {isPlanning ? "Planning..." : "Run Plan"}
+      </button>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          fitView
+          proOptions={{ hideAttribution: true }}
         >
-          {isPlanning ? "Planning..." : "Run Plan"}
-        </button>
-      </header>
-
-      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-        {activeTab === "plan" ? (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            fitView
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background color="#f1f5f9" gap={16} />
-            <Controls />
-          </ReactFlow>
-        ) : (
-          <NestedGraphEditor initialGraph={sampleGraph} />
-        )}
+          <Background color="#f1f5f9" gap={16} />
+          <Controls />
+        </ReactFlow>
       </div>
+
+      <FloatingGraphEditor initialGraph={sampleGraph} />
     </div>
   );
 };

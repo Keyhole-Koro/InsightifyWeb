@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Handle, Position, NodeProps } from "reactflow";
 import { CustomNodeData, NodeHandleConfig } from "@/types/graphTypes";
-import { NestedGraphEditor } from "@/components/graph/NestedGraphEditor/NestedGraphEditor";
+import { GraphEditor } from "@/components/graph/GraphEditor/GraphEditor";
 
 import "./CustomNode.css";
 
@@ -187,10 +187,7 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
           onWheel={handleWheel}
         >
           {innerGraph && (
-            <NestedGraphEditor
-              initialGraph={innerGraph}
-              parentPath={data.path}
-            />
+            <GraphEditor initialGraph={innerGraph} parentPath={data.path} />
           )}
         </div>
       </div>
