@@ -6,38 +6,53 @@ import React, {
   useEffect,
   useRef,
   useState,
-} from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
-import { CustomNodeData, NodeHandleConfig } from '@/types/graphTypes';
-import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
+} from "react";
+import { Handle, Position, NodeProps } from "reactflow";
+import { CustomNodeData, NodeHandleConfig } from "@/types/graphTypes";
+import { NestedGraphEditor } from "@/components/graph/NestedGraphEditor/NestedGraphEditor";
 
-import './CustomNode.css';
+import "./CustomNode.css";
 
 const buildDefaultHandles = (nodeId: string): NodeHandleConfig[] => [
   {
     id: `${nodeId}-default-target`,
-    type: 'target',
+    type: "target",
     position: Position.Top,
-    style: { left: '50%', transform: 'translateX(-50%)' },
+    style: { left: "50%", transform: "translateX(-50%)" },
   },
   {
     id: `${nodeId}-default-source`,
-    type: 'source',
+    type: "source",
     position: Position.Bottom,
-    style: { left: '50%', transform: 'translateX(-50%)' },
+    style: { left: "50%", transform: "translateX(-50%)" },
   },
 ];
 
 export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
-  const { label, description, isExpanded, onExpand, innerGraph, path, handles, id } = data;
+  const {
+    label,
+    description,
+    isExpanded,
+    onExpand,
+    innerGraph,
+    path,
+    handles,
+    id,
+  } = data;
   const resolvedHandles = handles?.length ? handles : buildDefaultHandles(id);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const [nodeSize, setNodeSize] = useState<{ width: number; height: number } | null>(null);
-  const [collapsedSize, setCollapsedSize] = useState<{ width: number; height: number } | null>(null);
+  const [nodeSize, setNodeSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [collapsedSize, setCollapsedSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   useEffect(() => {
     const element = nodeRef.current;
-    if (!element || typeof ResizeObserver === 'undefined') {
+    if (!element || typeof ResizeObserver === "undefined") {
       return;
     }
 
@@ -71,21 +86,21 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
       : 1;
 
   const getScaledHandleStyle = (
-    style?: NodeHandleConfig['style'],
+    style?: NodeHandleConfig["style"],
   ): CSSProperties | undefined => {
     if (!style) {
       return undefined;
     }
     const scaledStyle: Record<string, string | number> = { ...style };
-    (['top', 'bottom'] as const).forEach((prop) => {
+    (["top", "bottom"] as const).forEach((prop) => {
       const value = style[prop];
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         scaledStyle[prop] = value * heightScale;
       }
     });
-    (['left', 'right'] as const).forEach((prop) => {
+    (["left", "right"] as const).forEach((prop) => {
       const value = style[prop];
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         scaledStyle[prop] = value * widthScale;
       }
     });
@@ -95,8 +110,8 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
   const handleInnerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement | null;
     const wrapper = event.currentTarget;
-    const interactedPane = target?.closest('.react-flow__pane');
-    const interactedNode = target?.closest('.react-flow__node');
+    const interactedPane = target?.closest(".react-flow__pane");
+    const interactedNode = target?.closest(".react-flow__node");
     const isInnerNode = Boolean(
       interactedNode && wrapper.contains(interactedNode as HTMLElement),
     );
@@ -133,23 +148,28 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
         className="custom-node-handle"
       >
         {handleConfig.label && (
-          <span className="custom-node-handle__label">{handleConfig.label}</span>
+          <span className="custom-node-handle__label">
+            {handleConfig.label}
+          </span>
         )}
       </Handle>
     ));
 
   return (
-    <div ref={nodeRef} className={`custom-node-body ${isExpanded ? 'expanded' : ''}`}>
+    <div
+      ref={nodeRef}
+      className={`custom-node-body ${isExpanded ? "expanded" : ""}`}
+    >
       {renderHandles()}
       <div
-        className={`node-header ${isExpanded ? 'expanded' : ''}`}
+        className={`node-header ${isExpanded ? "expanded" : ""}`}
         onClick={handleHeaderClick}
-        style={{ cursor: innerGraph ? 'pointer' : 'default' }}
+        style={{ cursor: innerGraph ? "pointer" : "default" }}
       >
         <span className="node-header__label">{label}</span>
         {innerGraph && (
           <span
-            className={`node-expand-indicator ${isExpanded ? 'expanded' : ''}`}
+            className={`node-expand-indicator ${isExpanded ? "expanded" : ""}`}
             aria-hidden="true"
           >
             <span className="node-expand-indicator__icon" />
@@ -157,14 +177,20 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
         )}
       </div>
       {description && <div className="node-description">{description}</div>}
-      <div className={`node-content ${isExpanded ? 'expanded' : ''}`} aria-hidden={!isExpanded}>
+      <div
+        className={`node-content ${isExpanded ? "expanded" : ""}`}
+        aria-hidden={!isExpanded}
+      >
         <div
-          className={`inner-flow-wrapper ${isExpanded ? 'expanded' : ''}`}
+          className={`inner-flow-wrapper ${isExpanded ? "expanded" : ""}`}
           onPointerDown={handleInnerPointerDown}
           onWheel={handleWheel}
         >
           {innerGraph && (
-            <NestedGraphEditor initialGraph={innerGraph} parentPath={data.path} />
+            <NestedGraphEditor
+              initialGraph={innerGraph}
+              parentPath={data.path}
+            />
           )}
         </div>
       </div>

@@ -1,14 +1,7 @@
-import { NestedGraphEditor } from '@/components/NestedGraphEditor/NestedGraphEditor';
-import { sampleGraph } from '@/data/sampleGraph';
-// @ts-ignore
-import 'reactflow/dist/style.css';
+import { Home } from "@/pages/Home";
 
 const App = () => {
-  return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <NestedGraphEditor initialGraph={sampleGraph} />
-    </div>
-  );
+  return <Home />;
 };
 
 export default App;

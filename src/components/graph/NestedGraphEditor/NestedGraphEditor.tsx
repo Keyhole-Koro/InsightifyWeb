@@ -1,4 +1,11 @@
-import { useState, useCallback, useMemo, useEffect, WheelEvent, MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  WheelEvent,
+  MouseEvent as ReactMouseEvent,
+} from "react";
 import ReactFlow, {
   Controls,
   Background,
@@ -9,60 +16,71 @@ import ReactFlow, {
   NodeDragHandler,
   useNodesState,
   useEdgesState,
-  NodeChange
-} from 'reactflow';
+  NodeChange,
+} from "reactflow";
 
 import {
   NestedGraph,
   CustomNodeData,
   transformToReactFlow,
-} from '@/types/graphTypes';
-import { CustomNode } from '@/components/CustomNode/CustomNode';
-import { useAutoLayout } from '@/hooks/useAutoLayout';
+} from "@/types/graphTypes";
+import { CustomNode } from "@/components/graph/CustomNode/CustomNode";
+import { useAutoLayout } from "@/hooks/useAutoLayout";
 
 interface NestedGraphEditorProps {
   initialGraph: NestedGraph;
   parentPath?: string;
 }
 
-function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
+function GraphView({ initialGraph, parentPath = "" }: NestedGraphEditorProps) {
   const [activeNodePath, setActiveNodePath] = useState<string | null>(null);
   const { getViewport, setViewport } = useReactFlow<CustomNodeData>();
-  const [nodes, setNodes, onNodesChangeInternal] = useNodesState<CustomNodeData>([]);
+  const [nodes, setNodes, onNodesChangeInternal] =
+    useNodesState<CustomNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { resolveAllOverlaps, runOverlapRemoval } = useAutoLayout();
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
   const noPanClassName = useMemo(() => {
-    const normalizedPath = parentPath.replace(/[^a-zA-Z0-9-]/g, '-') || 'root';
+    const normalizedPath = parentPath.replace(/[^a-zA-Z0-9-]/g, "-") || "root";
     return `nopan-${normalizedPath}`;
   }, [parentPath]);
 
-  const onNodesChange = useCallback((changes: NodeChange[]) => {
-    // Log position changes for debugging
-    for (const change of changes) {
-      if (change.type === 'dimensions') {
-        setLayoutTick(t => t + 1);
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      // Log position changes for debugging
+      for (const change of changes) {
+        if (change.type === "dimensions") {
+          setLayoutTick((t) => t + 1);
+        }
       }
-    }
-    onNodesChangeInternal(changes);
-  }, [onNodesChangeInternal]);
+      onNodesChangeInternal(changes);
+    },
+    [onNodesChangeInternal],
+  );
 
   const [layoutTick, setLayoutTick] = useState(0);
-  const handleNodeExpandToggle = useCallback((nodePath: string) => {
-    setActiveNodePath(nodePath);
-    setNodes((currentNodes) =>
-      currentNodes.map((node) =>
-        node.data.path === nodePath
-          ? { ...node, data: { ...node.data, isExpanded: !node.data.isExpanded } }
-          : node,
-      ),
-    );
-    setLayoutTick((t) => t + 1);
-  }, [setNodes]);
+  const handleNodeExpandToggle = useCallback(
+    (nodePath: string) => {
+      setActiveNodePath(nodePath);
+      setNodes((currentNodes) =>
+        currentNodes.map((node) =>
+          node.data.path === nodePath
+            ? {
+                ...node,
+                data: { ...node.data, isExpanded: !node.data.isExpanded },
+              }
+            : node,
+        ),
+      );
+      setLayoutTick((t) => t + 1);
+    },
+    [setNodes],
+  );
 
   const lockPriorityNodes = useCallback(
     (node: Node<CustomNodeData>) => {
-      const nodePath = (node.data as CustomNodeData | undefined)?.path ?? node.id;
+      const nodePath =
+        (node.data as CustomNodeData | undefined)?.path ?? node.id;
       return Boolean(node.data?.isExpanded) || nodePath === activeNodePath;
     },
     [activeNodePath],
@@ -78,7 +96,7 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
     );
     setNodes(initialNodes);
     setEdges(initialEdges);
-    setLayoutTick(t => t + 1);
+    setLayoutTick((t) => t + 1);
   }, [initialGraph, parentPath, setNodes, setEdges, handleNodeExpandToggle]);
 
   // Re-run overlap resolution after nodes finish rendering with new sizes
@@ -101,14 +119,11 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
     [runOverlapRemoval],
   );
 
-  const onNodeDragStop: NodeDragHandler = useCallback(
-    (_event, node) => {
-      const nodePath = (node.data as CustomNodeData | undefined)?.path ?? node.id;
-      setActiveNodePath(nodePath);
-      // Drag-based layout (`runLayout`) is not currently implemented in useAutoLayout.
-    },
-    [],
-  );
+  const onNodeDragStop: NodeDragHandler = useCallback((_event, node) => {
+    const nodePath = (node.data as CustomNodeData | undefined)?.path ?? node.id;
+    setActiveNodePath(nodePath);
+    // Drag-based layout (`runLayout`) is not currently implemented in useAutoLayout.
+  }, []);
 
   const onWheel = useCallback(
     (event: WheelEvent) => {
@@ -122,24 +137,27 @@ function GraphView({ initialGraph, parentPath = '' }: NestedGraphEditorProps) {
         setViewport({ x, y, zoom: zoom * zoomFactor }, { duration: 80 });
       } else {
         // Pan
-        setViewport({ x: x - event.deltaX, y: y - event.deltaY, zoom }, { duration: 80 });
+        setViewport(
+          { x: x - event.deltaX, y: y - event.deltaY, zoom },
+          { duration: 80 },
+        );
       }
     },
     [getViewport, setViewport],
   );
 
   const onNodeClick = useCallback((_event: ReactMouseEvent, node: Node) => {
-    console.log('Node clicked:', node);
+    console.log("Node clicked:", node);
   }, []);
 
   const onEdgeClick = useCallback((_event: ReactMouseEvent, edge: Edge) => {
-    console.log('Edge clicked:', edge);
+    console.log("Edge clicked:", edge);
   }, []);
 
   const onPaneClick = useCallback((event: ReactMouseEvent) => {
     // Stop propagation to prevent clicks on the pane from being caught by parent flows.
     event.stopPropagation();
-    console.log('Pane clicked:', event);
+    console.log("Pane clicked:", event);
     setActiveNodePath(null);
   }, []);
 

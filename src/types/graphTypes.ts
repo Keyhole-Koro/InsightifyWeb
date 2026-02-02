@@ -1,4 +1,4 @@
-import { Edge, Node, Position } from 'reactflow';
+import { Edge, Node, Position } from "reactflow";
 
 // Child graph data attached to a node
 export interface NestedGraph {
@@ -19,7 +19,7 @@ export interface NestedNode {
 
 export interface NodeHandleConfig {
   id: string;
-  type: 'source' | 'target';
+  type: "source" | "target";
   position?: Position;
   style?: Record<string, string | number>;
   label?: string;
@@ -50,15 +50,15 @@ export function transformToReactFlow(
   nestedGraph: NestedGraph,
   onExpand: (nodePath: string) => void,
   expandedNodes: Set<string>,
-  pathPrefix: string = '',
+  pathPrefix: string = "",
 ): { nodes: Node<CustomNodeData>[]; edges: Edge[] } {
   const nodes: Node<CustomNodeData>[] = nestedGraph.nodes.map((node) => {
     const path = pathPrefix ? `${pathPrefix}/${node.id}` : node.id;
     return {
       id: node.id,
-      type: 'custom', // Render with the custom node component
+      type: "custom", // Render with the custom node component
       position: node.position,
-      dragHandle: '.node-header', // Only elements with this class act as drag handles
+      dragHandle: ".node-header", // Only elements with this class act as drag handles
       draggable: true, // Keep nodes draggable even when panOnDrag is enabled
       data: {
         id: node.id,
