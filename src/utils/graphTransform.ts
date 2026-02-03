@@ -20,7 +20,7 @@ interface ApiGraph {
 
 export function transformApiGraphToReactFlow(
   data: ApiGraph,
-  options?: { useVariedStyles?: boolean }
+  options?: { useVariedStyles?: boolean },
 ): { nodes: Node[]; edges: Edge[] } {
   const styles = options?.useVariedStyles ? nodeStyles : [nodeStyles[1]];
 
