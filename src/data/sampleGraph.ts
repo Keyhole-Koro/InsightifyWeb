@@ -1,7 +1,7 @@
-import { NestedGraph } from '@/types/graphTypes';
+import { Graph } from "@/types/graphTypes";
 import { Position } from 'reactflow';
 
-export const sampleGraph: NestedGraph = {
+export const sampleGraph: Graph = {
   id: 'root',
   nodes: [
     {

@@ -18,6 +18,7 @@ export function usePipelineRun({
   const runPlan = useCallback(
     async (pipelineId: string, params: Record<string, string> = {}) => {
       setIsRunning(true);
+      setStreamingLog("Starting...");
       try {
         const response = await startRun({ pipelineId, params });
         if (response.clientView?.graph) {
@@ -28,8 +29,38 @@ export function usePipelineRun({
           onNodesChange(nodes);
           onEdgesChange(edges);
         }
+
+        const runId = response.runId;
+        if (!runId) {
+          setStreamingLog(null);
+          return;
+        }
+
+        for await (const event of watchRun({ runId })) {
+          if (event.message) setStreamingLog(event.message);
+
+          if (
+            event.eventType === "EVENT_TYPE_COMPLETE" &&
+            event.clientView?.graph
+          ) {
+            const { nodes, edges } = transformApiGraphToReactFlow(
+              event.clientView.graph,
+            );
+            onNodesChange(nodes);
+            onEdgesChange(edges);
+          }
+
+          if (event.eventType === "EVENT_TYPE_ERROR") {
+            throw new Error(event.message || "Unknown error");
+          }
+        }
+
+        setTimeout(() => setStreamingLog(null), 2000);
       } catch (err) {
         console.error("Plan request failed", err);
+        setStreamingLog(
+          "Error: " + (err instanceof Error ? err.message : String(err)),
+        );
       } finally {
         setIsRunning(false);
       }

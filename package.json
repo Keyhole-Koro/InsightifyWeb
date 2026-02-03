@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
+    "elkjs": "^0.9.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.11.3"

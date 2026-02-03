@@ -6,13 +6,10 @@ import ReactFlow, {
   useNodesState,
 } from "reactflow";
 
-import {
-  FloatingGraphEditor,
-  FloatingNodeSamples,
-} from "@/components/floating";
+import { FloatingNodeSamples } from "@/components/floating";
+import { CompletedRunTabs, WatchRunViewer } from "@/components/run";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { sampleGraph } from "@/data/sampleGraph";
-import { usePipelineRun } from "@/hooks/usePipelineRun";
+import { useRunManager } from "@/hooks/useRunManager";
 
 import "reactflow/dist/style.css";
 
@@ -20,7 +17,7 @@ export const Home = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const { isRunning, streamingLog, runPlan, runStreaming } = usePipelineRun({
+  const { inProgress, completed, runPlan, runStreaming } = useRunManager({
     onNodesChange: setNodes,
     onEdgesChange: setEdges,
   });
@@ -44,20 +41,18 @@ export const Home = () => {
     >
       <ActionButton
         onClick={handlePlanClick}
-        disabled={isRunning}
         variant="primary"
         style={{ position: "absolute", top: 16, right: 24, zIndex: 10 }}
       >
-        {isRunning ? "Running..." : "Run Plan"}
+        Run Plan
       </ActionButton>
 
       <ActionButton
         onClick={handleTestStreaming}
-        disabled={isRunning}
         variant="success"
         style={{ position: "absolute", top: 16, right: 140, zIndex: 10 }}
       >
-        {isRunning ? "Streaming..." : "Test Streaming"}
+        Test Streaming
       </ActionButton>
 
       <div
@@ -81,10 +76,8 @@ export const Home = () => {
         </ReactFlow>
       </div>
 
-      <FloatingGraphEditor
-        initialGraph={sampleGraph}
-        streamingLog={streamingLog}
-      />
+      <WatchRunViewer runs={inProgress} />
+      <CompletedRunTabs runs={completed} />
       <FloatingNodeSamples />
     </div>
   );

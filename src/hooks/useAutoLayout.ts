@@ -1,52 +1,24 @@
 import { useCallback, useRef } from "react";
 import { Node, useReactFlow } from "reactflow";
 import { CustomNodeData } from "@/types/graphTypes";
+import { resolveGraphOverlaps } from "@/layout/layout";
+import ELK from "elkjs/lib/elk.bundled.js";
 
 export const useAutoLayout = () => {
   const { getNodes, setNodes, getEdges } = useReactFlow<CustomNodeData>();
   const animationFrameRef = useRef<number | null>(null);
+  type ElkInstance = InstanceType<typeof ELK>;
+  const elkRef = useRef<ElkInstance | null>(null);
+
+  if (!elkRef.current) {
+    elkRef.current = new ELK();
+  }
 
   const resolveAllOverlaps = useCallback(
     (isLocked: (node: Node) => boolean) => {
-      const nodes = getNodes();
-      const simulationNodes = nodes.map((node) => ({ ...node }));
-
-      // A simple iterative overlap removal
-      const iterations = 100;
-      const padding = 20;
-
-      for (let i = 0; i < iterations; i++) {
-        for (let j = 0; j < simulationNodes.length; j++) {
-          for (let k = j + 1; k < simulationNodes.length; k++) {
-            const nodeA = simulationNodes[j];
-            const nodeB = simulationNodes[k];
-
-            const dx = nodeB.position.x - nodeA.position.x;
-            const dy = nodeB.position.y - nodeA.position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            const minDistance =
-              (nodeA.width ?? 0) + (nodeB.width ?? 0) + padding;
-
-            if (distance < minDistance) {
-              const angle = Math.atan2(dy, dx);
-              const overlap = minDistance - distance;
-              const moveX = (overlap / 2) * Math.cos(angle);
-              const moveY = (overlap / 2) * Math.sin(angle);
-
-              if (!isLocked(nodeA)) {
-                nodeA.position.x -= moveX;
-                nodeA.position.y -= moveY;
-              }
-              if (!isLocked(nodeB)) {
-                nodeB.position.x += moveX;
-                nodeB.position.y += moveY;
-              }
-            }
-          }
-        }
-      }
-      setNodes(simulationNodes);
+      const nodes = getNodes() as Node<CustomNodeData>[];
+      const resolved = resolveGraphOverlaps(nodes, (node) => isLocked(node));
+      setNodes(resolved);
     },
     [getNodes, setNodes],
   );
@@ -58,71 +30,84 @@ export const useAutoLayout = () => {
       }
 
       animationFrameRef.current = requestAnimationFrame(() => {
-        const nodes = getNodes();
-        const padding = 30;
-
-        const updatedNodes = nodes.map((node) => {
-          if (node.id === draggedNode.id) {
-            return node; // The dragged node's position is handled by React Flow
-          }
-
-          const nodeA = draggedNode;
-          const nodeB = node;
-
-          const nodeAWidth = nodeA.width ?? 150;
-          const nodeAHeight = nodeA.height ?? 50;
-          const nodeBWidth = nodeB.width ?? 150;
-          const nodeBHeight = nodeB.height ?? 50;
-
-          const overlapX = Math.max(
-            0,
-            Math.min(
-              nodeA.position.x + nodeAWidth,
-              nodeB.position.x + nodeBWidth,
-            ) -
-              Math.max(nodeA.position.x, nodeB.position.x) +
-              padding,
-          );
-          const overlapY = Math.max(
-            0,
-            Math.min(
-              nodeA.position.y + nodeAHeight,
-              nodeB.position.y + nodeBHeight,
-            ) -
-              Math.max(nodeA.position.y, nodeB.position.y) +
-              padding,
-          );
-
-          if (overlapX > 0 && overlapY > 0) {
-            let moveX = 0;
-            let moveY = 0;
-
-            if (overlapX < overlapY) {
-              moveX =
-                nodeA.position.x < nodeB.position.x ? overlapX : -overlapX;
-            } else {
-              moveY =
-                nodeA.position.y < nodeB.position.y ? overlapY : -overlapY;
-            }
-
-            const newPosition = {
-              x: nodeB.position.x + moveX,
-              y: nodeB.position.y + moveY,
-            };
-
-            return { ...nodeB, position: newPosition };
-          }
-
-          return node;
-        });
-
+        const nodes = getNodes() as Node<CustomNodeData>[];
+        const updatedNodes = resolveGraphOverlaps(
+          nodes,
+          (node) => node.id === draggedNode.id,
+        );
         setNodes(updatedNodes);
       });
     },
     [getNodes, setNodes],
   );
 
+  type SugiyamaLayoutOptions = {
+    direction?: "RIGHT" | "LEFT" | "DOWN" | "UP";
+    layerSpacing?: number;
+    nodeSpacing?: number;
+  };
+
+  const runSugiyamaLayout = useCallback(
+    async (options: SugiyamaLayoutOptions = {}) => {
+      const nodes = getNodes();
+      const edges = getEdges();
+
+      if (nodes.length === 0) return;
+
+      const direction = options.direction ?? "RIGHT";
+      const layerSpacing = options.layerSpacing ?? 80;
+      const nodeSpacing = options.nodeSpacing ?? 50;
+
+      const elkGraph = {
+        id: "root",
+        layoutOptions: {
+          "elk.algorithm": "layered",
+          "elk.direction": direction,
+          "elk.layered.spacing.nodeNodeBetweenLayers": String(layerSpacing),
+          "elk.spacing.nodeNode": String(nodeSpacing),
+        },
+        children: nodes.map((node) => ({
+          id: node.id,
+          width: node.width ?? 180,
+          height: node.height ?? 60,
+        })),
+        edges: edges.map((edge) => ({
+          id: edge.id,
+          sources: [edge.source],
+          targets: [edge.target],
+        })),
+      };
+
+      try {
+        const layout = await elkRef.current!.layout(elkGraph);
+        const layoutChildren = layout.children ?? [];
+
+        const laidOutNodes = nodes.map((node) => {
+          const layoutNode = layoutChildren.find((n) => n.id === node.id);
+          if (!layoutNode || layoutNode.x == null || layoutNode.y == null) {
+            return node;
+          }
+          return {
+            ...node,
+            position: {
+              x: layoutNode.x,
+              y: layoutNode.y,
+            },
+          };
+        });
+
+        setNodes(laidOutNodes);
+      } catch (err) {
+        console.warn("ELK layout failed, falling back to overlap resolver.", err);
+        resolveAllOverlaps(() => false);
+      }
+    },
+    [getEdges, getNodes, resolveAllOverlaps, setNodes],
+  );
+
   return {
+    runLayout: runSugiyamaLayout,
+    runSugiyamaLayout,
     resolveAllOverlaps,
     runOverlapRemoval,
   };

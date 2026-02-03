@@ -33,12 +33,11 @@ interface GraphEditorProps {
 }
 
 function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
-  const [activeNodePath, setActiveNodePath] = useState<string | null>(null);
   const { getViewport, setViewport } = useReactFlow<CustomNodeData>();
   const [nodes, setNodes, onNodesChangeInternal] =
     useNodesState<CustomNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { resolveAllOverlaps, runOverlapRemoval } = useAutoLayout();
+  const { runLayout, runOverlapRemoval } = useAutoLayout();
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
   const noPanClassName = useMemo(() => {
     const normalizedPath = parentPath.replace(/[^a-zA-Z0-9-]/g, "-") || "root";
@@ -61,7 +60,6 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
   const [layoutTick, setLayoutTick] = useState(0);
   const handleNodeExpandToggle = useCallback(
     (nodePath: string) => {
-      setActiveNodePath(nodePath);
       setNodes((currentNodes) =>
         currentNodes.map((node) =>
           node.data.path === nodePath
@@ -75,15 +73,6 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
       setLayoutTick((t) => t + 1);
     },
     [setNodes],
-  );
-
-  const lockPriorityNodes = useCallback(
-    (node: Node<CustomNodeData>) => {
-      const nodePath =
-        (node.data as CustomNodeData | undefined)?.path ?? node.id;
-      return Boolean(node.data?.isExpanded) || nodePath === activeNodePath;
-    },
-    [activeNodePath],
   );
 
   useEffect(() => {
@@ -105,12 +94,18 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
       return;
     }
     // Wait for the next frame so DOM measurements are up to date
+    let cancelled = false;
     const frame = requestAnimationFrame(() => {
-      resolveAllOverlaps(lockPriorityNodes);
+      if (!cancelled) {
+        void runLayout();
+      }
     });
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
     // Only run once per layout tick to avoid thrashing
-  }, [layoutTick, lockPriorityNodes, resolveAllOverlaps]);
+  }, [layoutTick, runLayout]);
 
   const onNodeDrag: NodeDragHandler = useCallback(
     (_event, node) => {
@@ -119,9 +114,7 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
     [runOverlapRemoval],
   );
 
-  const onNodeDragStop: NodeDragHandler = useCallback((_event, node) => {
-    const nodePath = (node.data as CustomNodeData | undefined)?.path ?? node.id;
-    setActiveNodePath(nodePath);
+  const onNodeDragStop: NodeDragHandler = useCallback(() => {
     // Drag-based layout (`runLayout`) is not currently implemented in useAutoLayout.
   }, []);
 
@@ -158,7 +151,6 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
     // Stop propagation to prevent clicks on the pane from being caught by parent flows.
     event.stopPropagation();
     console.log("Pane clicked:", event);
-    setActiveNodePath(null);
   }, []);
 
   return (
