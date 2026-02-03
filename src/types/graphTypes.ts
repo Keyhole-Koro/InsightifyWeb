@@ -13,6 +13,9 @@ export interface NestedNode {
   label: string;
   description?: string;
   position: { x: number; y: number };
+  data?: {
+    style?: Record<string, string | number>;
+  };
   innerGraph?: Graph;
   handles?: NodeHandleConfig[];
 }

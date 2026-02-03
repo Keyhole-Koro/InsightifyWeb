@@ -1,43 +1,37 @@
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply w-full h-full m-0 p-0 font-sans;
+  }
 }
 
-.custom-node-body {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  font-size: 12px;
-  text-align: left;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
+@layer components {
+  .custom-node-body {
+    @apply bg-white border border-black/[0.08] rounded-[10px] text-xs text-left transition-all duration-200 ease-in-out;
+    @apply grid grid-rows-[auto_auto_auto] gap-1;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  }
 
-.custom-node-body .node-header {
-  background: #fff;
-  padding: 10px 14px;
-  font-weight: 600;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  cursor: grab;
-}
+  .custom-node-body .node-header {
+    @apply bg-white px-3.5 py-2.5 font-semibold rounded-t-[10px] cursor-grab;
+  }
 
-.custom-node-body .node-header.expanded {
-  background: #f6f6ff;
-}
+  .custom-node-body .node-header.expanded {
+    @apply bg-[#f6f6ff];
+  }
 
-.custom-node-body .node-content {
-  padding: 0 12px 12px;
-  min-height: 32px;
-}
+  .custom-node-body .node-content {
+    @apply px-3 overflow-hidden h-0 opacity-0 invisible transition-all duration-300 ease-in-out;
+  }
 
-.custom-node-body .inner-flow-wrapper {
-  width: 100%;
-  min-height: 0;
-  background: #f8f9fb;
+  .custom-node-body .node-content.expanded {
+    @apply h-80 opacity-100 visible pb-3;
+  }
+
+  .custom-node-body .inner-flow-wrapper {
+    @apply w-full h-full bg-[#f8f9fb];
+  }
 }

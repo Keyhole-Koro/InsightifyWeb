@@ -39,6 +39,7 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
     handles,
     id,
   } = data;
+  const style = (data as any).style;
   const resolvedHandles = handles?.length ? handles : buildDefaultHandles(id);
   const nodeRef = useRef<HTMLDivElement>(null);
   const [nodeSize, setNodeSize] = useState<{
@@ -159,6 +160,7 @@ export const CustomNode = memo(({ data }: NodeProps<CustomNodeData>) => {
     <div
       ref={nodeRef}
       className={`custom-node-body ${isExpanded ? "expanded" : ""}`}
+      style={style}
     >
       {renderHandles()}
       <div
