@@ -1,3 +1,5 @@
+import type { EventType, BaseRunEvent, ClientView } from "@/types/api";
+
 // Define types based on insightify/v1/pipeline.proto
 export interface StartRunRequest {
   /**
@@ -15,7 +17,7 @@ export interface StartRunRequest {
 
 export interface StartRunResponse {
   runId?: string;
-  clientView?: any;
+  clientView?: ClientView;
 }
 
 const defaultBase =
@@ -67,17 +69,7 @@ export interface StreamRunRequest {
   params?: Record<string, string>;
 }
 
-export interface StreamRunEvent {
-  eventType:
-    | "EVENT_TYPE_UNSPECIFIED"
-    | "EVENT_TYPE_LOG"
-    | "EVENT_TYPE_PROGRESS"
-    | "EVENT_TYPE_COMPLETE"
-    | "EVENT_TYPE_ERROR";
-  message?: string;
-  progressPercent?: number;
-  clientView?: any;
-}
+export interface StreamRunEvent extends BaseRunEvent {}
 
 export const STREAM_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/StreamRun`;
 
@@ -154,17 +146,7 @@ export interface WatchRunRequest {
   runId: string;
 }
 
-export interface RunEvent {
-  eventType:
-    | "EVENT_TYPE_UNSPECIFIED"
-    | "EVENT_TYPE_LOG"
-    | "EVENT_TYPE_PROGRESS"
-    | "EVENT_TYPE_COMPLETE"
-    | "EVENT_TYPE_ERROR";
-  message?: string;
-  progressPercent?: number;
-  clientView?: any;
-}
+export interface RunEvent extends BaseRunEvent {}
 
 export const WATCH_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/WatchRun`;
 

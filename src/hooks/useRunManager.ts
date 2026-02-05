@@ -76,6 +76,13 @@ export function useRunManager({
     setCompleted((current) => [finishedRun, ...current]);
   }, []);
 
+  const dismissCompleted = useCallback((clientId: string) => {
+    completedClientIds.current.delete(clientId);
+    setCompleted((current) =>
+      current.filter((run) => run.clientId !== clientId),
+    );
+  }, []);
+
   const watchExistingRun = useCallback(
     async (
       runId: string,
@@ -230,5 +237,6 @@ export function useRunManager({
     isRunning,
     runPlan,
     runStreaming,
+    dismissCompleted,
   };
 }

@@ -1,22 +1,6 @@
 import { Node, Edge } from "reactflow";
 import { nodeStyles } from "@/styles/nodeStyles";
-
-interface ApiGraphNode {
-  id?: string;
-  name?: string;
-  label?: string;
-  description?: string;
-}
-
-interface ApiGraphEdge {
-  from: string;
-  to: string;
-}
-
-interface ApiGraph {
-  nodes?: ApiGraphNode[];
-  edges?: ApiGraphEdge[];
-}
+import type { ApiGraph } from "@/types/api";
 
 export function transformApiGraphToReactFlow(
   data: ApiGraph,

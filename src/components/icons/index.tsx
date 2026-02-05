@@ -1,7 +1,11 @@
-export const ExpandIcon = () => (
+interface IconProps {
+  size?: number;
+}
+
+export const ExpandIcon = ({ size = 24 }: IconProps) => (
   <svg
-    width="24"
-    height="24"
+    width={size}
+    height={size}
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -16,10 +20,10 @@ export const ExpandIcon = () => (
   </svg>
 );
 
-export const CollapseIcon = () => (
+export const CollapseIcon = ({ size = 24 }: IconProps) => (
   <svg
-    width="24"
-    height="24"
+    width={size}
+    height={size}
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"

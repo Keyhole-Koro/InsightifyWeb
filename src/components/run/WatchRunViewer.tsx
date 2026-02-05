@@ -8,42 +8,7 @@ import {
 } from "@mui/material";
 import { RunItem } from "@/hooks/useRunManager";
 import { RunGraphPreview } from "@/components/run/RunGraphPreview";
-
-const ExpandIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 3 21 3 21 9"></polyline>
-    <polyline points="9 21 3 21 3 15"></polyline>
-    <line x1="21" y1="3" x2="14" y2="10"></line>
-    <line x1="3" y1="21" x2="10" y2="14"></line>
-  </svg>
-);
-
-const CollapseIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="4 14 10 14 10 20"></polyline>
-    <polyline points="20 10 14 10 14 4"></polyline>
-    <line x1="14" y1="10" x2="21" y2="3"></line>
-    <line x1="3" y1="21" x2="10" y2="14"></line>
-  </svg>
-);
+import { ExpandIcon, CollapseIcon } from "@/components/icons";
 
 interface WatchRunViewerProps {
   runs: RunItem[];
@@ -117,7 +82,11 @@ export const WatchRunViewer = ({ runs }: WatchRunViewerProps) => {
                     }))
                   }
                 >
-                  {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
+                  {isExpanded ? (
+                    <CollapseIcon size={20} />
+                  ) : (
+                    <ExpandIcon size={20} />
+                  )}
                 </IconButton>
               </Box>
             </Box>
@@ -134,7 +103,11 @@ export const WatchRunViewer = ({ runs }: WatchRunViewerProps) => {
             </Box>
 
             {isExpanded && (
-              <RunGraphPreview nodes={run.nodes} edges={run.edges} height={240} />
+              <RunGraphPreview
+                nodes={run.nodes}
+                edges={run.edges}
+                height={240}
+              />
             )}
           </Paper>
         );
