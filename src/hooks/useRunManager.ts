@@ -28,6 +28,22 @@ const nowIso = () => new Date().toISOString();
 const makeClientId = (runId: string) =>
   `${runId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+const mergeNodes = (current: Node[], incoming: Node[]): Node[] => {
+  if (incoming.length === 0) return current;
+  const merged = new Map<string, Node>();
+  for (const node of current) merged.set(node.id, node);
+  for (const node of incoming) merged.set(node.id, node);
+  return Array.from(merged.values());
+};
+
+const mergeEdges = (current: Edge[], incoming: Edge[]): Edge[] => {
+  if (incoming.length === 0) return current;
+  const merged = new Map<string, Edge>();
+  for (const edge of current) merged.set(edge.id, edge);
+  for (const edge of incoming) merged.set(edge.id, edge);
+  return Array.from(merged.values());
+};
+
 export function useRunManager({
   onNodesChange,
   onEdgesChange,
@@ -90,8 +106,8 @@ export function useRunManager({
             const snapshot = transformApiGraphToReactFlow(
               event.clientView.graph,
             );
-            nodes = snapshot.nodes;
-            edges = snapshot.edges;
+            nodes = mergeNodes(run.nodes, snapshot.nodes);
+            edges = mergeEdges(run.edges, snapshot.edges);
           }
 
           return {
