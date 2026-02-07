@@ -90,6 +90,8 @@ export function useRunManager({
       initialNodes: Node[],
       initialEdges: Edge[],
     ) => {
+      let terminalStatus: RunStatus | null = null;
+
       const initialRun: RunItem = {
         clientId: makeClientId(runId),
         id: runId,
@@ -130,7 +132,7 @@ export function useRunManager({
           event.eventType === "EVENT_TYPE_COMPLETE" ||
           event.eventType === "EVENT_TYPE_ERROR"
         ) {
-          const status =
+          terminalStatus =
             event.eventType === "EVENT_TYPE_ERROR" ? "error" : "complete";
           setInProgress((current) => {
             const target = current.find((run) => run.id === runId);
@@ -140,11 +142,25 @@ export function useRunManager({
               onNodesChange?.(target.nodes);
               onEdgesChange?.(target.edges);
             }
-            moveToCompleted(target, status);
+            moveToCompleted(target, terminalStatus!);
             return current.filter((run) => run.id !== runId);
           });
           break;
         }
+      }
+
+      // If stream closes without explicit terminal event, finalize as complete.
+      if (!terminalStatus) {
+        setInProgress((current) => {
+          const target = current.find((run) => run.id === runId);
+          if (!target) return current;
+          if (target.nodes.length > 0 || target.edges.length > 0) {
+            onNodesChange?.(target.nodes);
+            onEdgesChange?.(target.edges);
+          }
+          moveToCompleted(target, "complete");
+          return current.filter((run) => run.id !== runId);
+        });
       }
     },
     [moveToCompleted, onEdgesChange, onNodesChange, updateRun],

@@ -1,3 +1,9 @@
+import { createClient } from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import {
+  PipelineService,
+  WatchRunResponse_EventType,
+} from "@/gen/insightify/v1/pipeline_pb.js";
 import type { EventType, BaseRunEvent, ClientView } from "@/types/api";
 
 // Define types based on insightify/v1/pipeline.proto
@@ -40,41 +46,67 @@ const defaultBase =
   "http://localhost:8080";
 const base = defaultBase.replace(/\/$/, "");
 
-// Service: insightify.v1.PipelineService
-// Method: InitRun
-export const INIT_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/InitRun`;
+const transport = createConnectTransport({
+  baseUrl: base,
+  useBinaryFormat: false,
+});
+
+const pipelineClient: any = createClient(PipelineService as any, transport);
+
+const toEventType = (value: unknown): EventType => {
+  if (typeof value === "string") {
+    if (
+      value === "EVENT_TYPE_UNSPECIFIED" ||
+      value === "EVENT_TYPE_LOG" ||
+      value === "EVENT_TYPE_PROGRESS" ||
+      value === "EVENT_TYPE_COMPLETE" ||
+      value === "EVENT_TYPE_ERROR"
+    ) {
+      return value;
+    }
+  }
+
+  if (typeof value === "number") {
+    switch (value) {
+      case WatchRunResponse_EventType.EVENT_TYPE_LOG:
+        return "EVENT_TYPE_LOG";
+      case WatchRunResponse_EventType.EVENT_TYPE_PROGRESS:
+        return "EVENT_TYPE_PROGRESS";
+      case WatchRunResponse_EventType.EVENT_TYPE_COMPLETE:
+        return "EVENT_TYPE_COMPLETE";
+      case WatchRunResponse_EventType.EVENT_TYPE_ERROR:
+        return "EVENT_TYPE_ERROR";
+      default:
+        return "EVENT_TYPE_UNSPECIFIED";
+    }
+  }
+
+  switch (value) {
+    case "LOG":
+      return "EVENT_TYPE_LOG";
+    case "PROGRESS":
+      return "EVENT_TYPE_PROGRESS";
+    case "COMPLETE":
+      return "EVENT_TYPE_COMPLETE";
+    case "ERROR":
+      return "EVENT_TYPE_ERROR";
+    default:
+      return "EVENT_TYPE_UNSPECIFIED";
+  }
+};
 
 export async function initRun(
   request: InitRunRequest,
 ): Promise<InitRunResponse> {
-  const res = await fetch(INIT_RUN_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Connect-Protocol-Version": "1",
-    },
-    body: JSON.stringify(request),
+  const res = await pipelineClient.initRun({
+    userId: request.userId,
+    repoUrl: request.repoUrl,
   });
-
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const errorJson = await res.json();
-      detail = JSON.stringify(errorJson);
-    } catch {
-      const text = await res.text();
-      if (text) detail = text;
-    }
-    throw new Error(`InitRun failed (${res.status}): ${detail}`);
-  }
-
-  const resJson = await res.json();
-  return resJson as InitRunResponse;
+  return {
+    sessionId: res.sessionId,
+    repoName: res.repoName,
+  };
 }
-
-// Service: insightify.v1.PipelineService
-// Method: StartRun
-export const START_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/StartRun`;
 
 /**
  * Starts a pipeline run using the Connect protocol.
@@ -82,33 +114,15 @@ export const START_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/StartRu
 export async function startRun(
   request: StartRunRequest,
 ): Promise<StartRunResponse> {
-  const res = await fetch(START_RUN_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Connect-Protocol-Version": "1",
-    },
-    body: JSON.stringify(request),
+  const res = await pipelineClient.startRun({
+    sessionId: request.sessionId ?? "",
+    pipelineId: request.pipelineId,
+    params: request.params ?? {},
   });
-
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      // Try to parse JSON error details if available (common in Connect RPC)
-      const errorJson = await res.json();
-      detail = JSON.stringify(errorJson);
-    } catch {
-      // Fallback to text if JSON parsing fails
-      const text = await res.text();
-      if (text) detail = text;
-    }
-    throw new Error(`StartRun failed (${res.status}): ${detail}`);
-  }
-
-  const resJson = await res.json();
-  console.log("startRun response:", resJson);
-
-  return resJson as StartRunResponse;
+  return {
+    runId: res.runId,
+    clientView: (res.clientView as ClientView | undefined) ?? undefined,
+  };
 }
 
 export interface StreamRunRequest {
@@ -118,75 +132,20 @@ export interface StreamRunRequest {
 
 export interface StreamRunEvent extends BaseRunEvent {}
 
-export const STREAM_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/StreamRun`;
-
 /**
- * Starts a streaming pipeline run.
- * Returns an async generator that yields events as they arrive.
+ * Legacy API kept for compatibility.
  */
 export async function* streamRun(
-  request: StreamRunRequest,
+  _request: StreamRunRequest,
   onEvent?: (event: StreamRunEvent) => void,
 ): AsyncGenerator<StreamRunEvent, void, unknown> {
-  const res = await fetch(STREAM_RUN_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Connect-Protocol-Version": "1",
-      "Connect-Accept-Encoding": "identity",
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!res.ok) {
-    throw new Error(`StreamRun failed (${res.status}): ${res.statusText}`);
-  }
-
-  const reader = res.body?.getReader();
-  if (!reader) {
-    throw new Error("No response body");
-  }
-
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-
-      // Parse newline-delimited JSON events
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            const event = JSON.parse(line) as StreamRunEvent;
-            onEvent?.(event);
-            yield event;
-          } catch (e) {
-            console.warn("Failed to parse streaming event:", line, e);
-          }
-        }
-      }
-    }
-
-    // Handle remaining buffer
-    if (buffer.trim()) {
-      try {
-        const event = JSON.parse(buffer) as StreamRunEvent;
-        onEvent?.(event);
-        yield event;
-      } catch (e) {
-        console.warn("Failed to parse final event:", buffer, e);
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
+  const event: StreamRunEvent = {
+    eventType: "EVENT_TYPE_ERROR",
+    message:
+      "StreamRun is not available. Use startRun() + watchRun() with Connect client.",
+  };
+  onEvent?.(event);
+  yield event;
 }
 
 export interface WatchRunRequest {
@@ -195,66 +154,22 @@ export interface WatchRunRequest {
 
 export interface RunEvent extends BaseRunEvent {}
 
-export const WATCH_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/WatchRun`;
-
-// SSE endpoint for watching runs
-export const WATCH_RUN_SSE_ENDPOINT = `${base}/api/watch`;
-
 /**
  * Watch a running pipeline for streaming events.
  */
 export async function* watchRun(
   request: WatchRunRequest,
 ): AsyncGenerator<RunEvent, void, unknown> {
-  const url = `${WATCH_RUN_SSE_ENDPOINT}/${request.runId}`;
-
-  const eventSource = new EventSource(url);
-
-  const events: RunEvent[] = [];
-  let resolve: (() => void) | null = null;
-  let closed = false;
-
-  eventSource.onmessage = (e) => {
-    try {
-      const event = JSON.parse(e.data) as RunEvent;
-      events.push(event);
-      resolve?.();
-    } catch (err) {
-      console.warn("Failed to parse SSE event:", e.data, err);
-    }
-  };
-
-  eventSource.addEventListener("close", () => {
-    closed = true;
-    resolve?.();
+  const stream = pipelineClient.watchRun({
+    runId: request.runId,
   });
 
-  eventSource.onerror = () => {
-    closed = true;
-    eventSource.close();
-    resolve?.();
-  };
-
-  try {
-    while (!closed) {
-      if (events.length > 0) {
-        const event = events.shift()!;
-        yield event;
-
-        if (
-          event.eventType === "EVENT_TYPE_COMPLETE" ||
-          event.eventType === "EVENT_TYPE_ERROR"
-        ) {
-          break;
-        }
-      } else {
-        await new Promise<void>((r) => {
-          resolve = r;
-        });
-        resolve = null;
-      }
-    }
-  } finally {
-    eventSource.close();
+  for await (const event of stream) {
+    yield {
+      eventType: toEventType(event.eventType),
+      message: event.message,
+      progressPercent: event.progressPercent,
+      clientView: (event.clientView as ClientView | undefined) ?? undefined,
+    };
   }
 }
