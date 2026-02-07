@@ -9,9 +9,9 @@ export function transformApiGraphToReactFlow(
   const styles = options?.useVariedStyles ? nodeStyles : [nodeStyles[1]];
 
   const nodes = (data.nodes || []).map((n, i) => ({
-    id: n.id || n.name || `node-${i}`,
+    id: n.uid || n.id || n.name || `node-${i}`,
     position: { x: (i % 3) * 300, y: Math.floor(i / 3) * 150 },
-    data: { label: n.label || n.name, description: n.description },
+    data: { label: n.label || n.name || n.uid, description: n.description },
     type: "default",
     style: {
       padding: "10px",
@@ -22,7 +22,8 @@ export function transformApiGraphToReactFlow(
   }));
 
   const edges = (data.edges || []).map((e, i) => ({
-    id: `e${i}`,
+    // Keep edge IDs stable across streamed snapshots to avoid accidental overwrite.
+    id: `${e.from}->${e.to}#${i}`,
     source: e.from,
     target: e.to,
     animated: true,

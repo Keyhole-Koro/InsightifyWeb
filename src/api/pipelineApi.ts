@@ -3,6 +3,11 @@ import type { EventType, BaseRunEvent, ClientView } from "@/types/api";
 // Define types based on insightify/v1/pipeline.proto
 export interface StartRunRequest {
   /**
+   * Session ID created by InitRun.
+   */
+  sessionId?: string;
+
+  /**
    * The ID of the pipeline to start.
    * Corresponds to `pipeline_id` in proto.
    */
@@ -20,10 +25,52 @@ export interface StartRunResponse {
   clientView?: ClientView;
 }
 
+export interface InitRunRequest {
+  userId: string;
+  repoUrl: string;
+}
+
+export interface InitRunResponse {
+  sessionId?: string;
+  repoName?: string;
+}
+
 const defaultBase =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   "http://localhost:8080";
 const base = defaultBase.replace(/\/$/, "");
+
+// Service: insightify.v1.PipelineService
+// Method: InitRun
+export const INIT_RUN_ENDPOINT = `${base}/insightify.v1.PipelineService/InitRun`;
+
+export async function initRun(
+  request: InitRunRequest,
+): Promise<InitRunResponse> {
+  const res = await fetch(INIT_RUN_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Connect-Protocol-Version": "1",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const errorJson = await res.json();
+      detail = JSON.stringify(errorJson);
+    } catch {
+      const text = await res.text();
+      if (text) detail = text;
+    }
+    throw new Error(`InitRun failed (${res.status}): ${detail}`);
+  }
+
+  const resJson = await res.json();
+  return resJson as InitRunResponse;
+}
 
 // Service: insightify.v1.PipelineService
 // Method: StartRun

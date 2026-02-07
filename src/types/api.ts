@@ -16,6 +16,7 @@ export interface ApiGraph {
 }
 
 export interface ApiGraphNode {
+  uid?: string;
   id?: string;
   name?: string;
   label?: string;

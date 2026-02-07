@@ -4,6 +4,7 @@ import ReactFlow, {
   Controls,
   type Edge,
   type Node,
+  type NodeTypes,
   type OnEdgesChange,
   type OnNodesChange,
 } from "reactflow";
@@ -16,6 +17,7 @@ export type HomeGraphConfig = {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   fitView?: boolean;
+  nodeTypes?: NodeTypes;
 };
 
 export type HomeSlots = {
@@ -78,6 +80,7 @@ export const HomeShell = ({
               onNodesChange={graphConfig.onNodesChange}
               onEdgesChange={graphConfig.onEdgesChange}
               fitView={graphConfig.fitView}
+              nodeTypes={graphConfig.nodeTypes}
               proOptions={{ hideAttribution: true }}
             >
               {resolvedLayout.showGraphBackground ? (

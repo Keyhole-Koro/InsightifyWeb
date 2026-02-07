@@ -151,10 +151,14 @@ export function useRunManager({
   );
 
   const runStreaming = useCallback(
-    async (pipelineId: string, params: Record<string, string> = {}) => {
+    async (
+      pipelineId: string,
+      params: Record<string, string> = {},
+      sessionId?: string,
+    ) => {
       let runId = "";
       try {
-        const response = await startRun({ pipelineId, params });
+        const response = await startRun({ sessionId, pipelineId, params });
         runId = response.runId ?? "";
         if (!runId) throw new Error("No run_id returned");
 
@@ -187,9 +191,13 @@ export function useRunManager({
   );
 
   const runPlan = useCallback(
-    async (pipelineId: string, params: Record<string, string> = {}) => {
+    async (
+      pipelineId: string,
+      params: Record<string, string> = {},
+      sessionId?: string,
+    ) => {
       try {
-        const response = await startRun({ pipelineId, params });
+        const response = await startRun({ sessionId, pipelineId, params });
         const runId = response.runId ?? "";
         let nodes: Node[] = [];
         let edges: Edge[] = [];

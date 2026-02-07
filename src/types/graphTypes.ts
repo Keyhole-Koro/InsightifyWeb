@@ -1,4 +1,5 @@
-import { Edge, Node, Position } from "reactflow";
+import type { ComponentType } from "react";
+import { Edge, Node, Position, type NodeProps } from "reactflow";
 
 // Child graph data attached to a node
 export interface Graph {
@@ -39,6 +40,75 @@ export interface CustomNodeData {
   innerGraph?: Graph;
   handles?: NodeHandleConfig[];
 }
+
+export interface LLMInputNodeData {
+  type: "llmChat";
+  props: LLMChatNodeProps;
+  meta?: GraphNodeMeta;
+}
+
+export type GraphNodeType = "llmChat" | "markdown" | "image" | "table";
+
+export interface GraphNodeMeta {
+  title?: string;
+  description?: string;
+  tags?: string[];
+}
+
+export interface GraphNodeShell<TType extends GraphNodeType, TProps> {
+  type: TType;
+  props: TProps;
+  meta?: GraphNodeMeta;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface LLMChatNodeProps {
+  model?: string;
+  input: string;
+  isResponding: boolean;
+  messages: ChatMessage[];
+  onInputChange: (value: string) => void;
+  onSend: () => void;
+}
+
+export interface MarkdownNodeProps {
+  markdown: string;
+}
+
+export interface ImageNodeProps {
+  src: string;
+  alt?: string;
+}
+
+export interface TableNodeProps {
+  columns: string[];
+  rows: string[][];
+}
+
+export interface GraphNodePropsByType {
+  llmChat: LLMChatNodeProps;
+  markdown: MarkdownNodeProps;
+  image: ImageNodeProps;
+  table: TableNodeProps;
+}
+
+export type GraphNodeData<TType extends GraphNodeType = GraphNodeType> =
+  GraphNodeShell<TType, GraphNodePropsByType[TType]>;
+
+export type RuntimeGraphNode<TType extends GraphNodeType = GraphNodeType> =
+  Node<GraphNodeData<TType>, TType>;
+
+export type GraphNodeComponent<TType extends GraphNodeType = GraphNodeType> =
+  ComponentType<NodeProps<GraphNodeData<TType>>>;
+
+export type GraphNodeRegistry = {
+  [K in GraphNodeType]?: GraphNodeComponent<K>;
+};
 
 /**
  * Helper that turns our custom `Graph` structure into React Flow-friendly

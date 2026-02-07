@@ -16,11 +16,15 @@ export function usePipelineRun({
   const [streamingLog, setStreamingLog] = useState<string | null>(null);
 
   const runPlan = useCallback(
-    async (pipelineId: string, params: Record<string, string> = {}) => {
+    async (
+      pipelineId: string,
+      params: Record<string, string> = {},
+      sessionId?: string,
+    ) => {
       setIsRunning(true);
       setStreamingLog("Starting...");
       try {
-        const response = await startRun({ pipelineId, params });
+        const response = await startRun({ sessionId, pipelineId, params });
         if (response.clientView?.graph) {
           const { nodes, edges } = transformApiGraphToReactFlow(
             response.clientView.graph,
@@ -69,12 +73,16 @@ export function usePipelineRun({
   );
 
   const runStreaming = useCallback(
-    async (pipelineId: string, params: Record<string, string> = {}) => {
+    async (
+      pipelineId: string,
+      params: Record<string, string> = {},
+      sessionId?: string,
+    ) => {
       setIsRunning(true);
       setStreamingLog("Starting...");
 
       try {
-        const response = await startRun({ pipelineId, params });
+        const response = await startRun({ sessionId, pipelineId, params });
         const runId = response.runId;
         if (!runId) throw new Error("No run_id returned");
 
