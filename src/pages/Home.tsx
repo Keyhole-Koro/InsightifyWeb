@@ -24,7 +24,7 @@ export const Home = () => {
   const [repoName, setRepoName] = useState<string | null>(null);
   const [userIdInput, setUserIdInput] = useState("demo-user");
   const [repoUrlInput, setRepoUrlInput] = useState(
-    "https://github.com/example/repo",
+    "https://github.com/Keyhole-Koro/PoliTopics.git",
   );
 
   const nodeSeq = useRef(1);
@@ -203,12 +203,38 @@ export const Home = () => {
 
   const handlePlanClick = useCallback(() => {
     if (!sessionId) return;
-    runPlan("worker_DAG", { repo_name: "PoliTopics" }, sessionId);
+    setInitError(null);
+    void runPlan("worker_DAG", { repo_name: "PoliTopics" }, sessionId).catch(
+      (err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message.includes("session") && message.includes("not found")) {
+          setSessionId(null);
+          setRepoName(null);
+          setInitError(
+            "Session expired on API server. Please initialize again.",
+          );
+          setShowInitModal(true);
+          return;
+        }
+        setInitError(message);
+      },
+    );
   }, [runPlan, sessionId]);
 
   const handleTestStreaming = useCallback(() => {
     if (!sessionId) return;
-    runStreaming("test_pipeline", {}, sessionId);
+    setInitError(null);
+    void runStreaming("test_pipeline", {}, sessionId).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("session") && message.includes("not found")) {
+        setSessionId(null);
+        setRepoName(null);
+        setInitError("Session expired on API server. Please initialize again.");
+        setShowInitModal(true);
+        return;
+      }
+      setInitError(message);
+    });
   }, [runStreaming, sessionId]);
 
   return (

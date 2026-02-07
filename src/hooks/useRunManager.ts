@@ -204,6 +204,7 @@ export function useRunManager({
             return current.filter((run) => run.id !== runId);
           });
         }
+        throw err;
       }
     },
     [moveToCompleted, onEdgesChange, onNodesChange, watchExistingRun],
@@ -256,6 +257,7 @@ export function useRunManager({
         await watchExistingRun(runId, pipelineId, nodes, edges);
       } catch (err) {
         console.error("Plan request failed", err);
+        throw err;
       }
     },
     [onEdgesChange, onNodesChange, watchExistingRun],
