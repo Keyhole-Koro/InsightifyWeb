@@ -14,6 +14,11 @@ const base = defaultBase.replace(/\/$/, "");
 const transport = createConnectTransport({
   baseUrl: base,
   useBinaryFormat: false,
+  fetch: (input, init) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
 });
 
 export const pipelineClient: any = createClient(PipelineService as any, transport);

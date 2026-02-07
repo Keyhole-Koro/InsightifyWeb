@@ -21,6 +21,11 @@ export function usePipelineRun({
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
+      if (!sessionId) {
+        setStreamingLog("Error: session_id is required. Run Init first.");
+        setIsRunning(false);
+        return;
+      }
       setIsRunning(true);
       setStreamingLog("Starting...");
       try {
@@ -78,6 +83,11 @@ export function usePipelineRun({
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
+      if (!sessionId) {
+        setStreamingLog("Error: session_id is required. Run Init first.");
+        setIsRunning(false);
+        return;
+      }
       setIsRunning(true);
       setStreamingLog("Starting...");
 

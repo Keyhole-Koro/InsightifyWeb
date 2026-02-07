@@ -202,11 +202,13 @@ export const Home = () => {
   }, [repoUrlInput, userIdInput]);
 
   const handlePlanClick = useCallback(() => {
-    runPlan("worker_DAG", { repo_name: "PoliTopics" }, sessionId ?? undefined);
+    if (!sessionId) return;
+    runPlan("worker_DAG", { repo_name: "PoliTopics" }, sessionId);
   }, [runPlan, sessionId]);
 
   const handleTestStreaming = useCallback(() => {
-    runStreaming("test_pipeline", {}, sessionId ?? undefined);
+    if (!sessionId) return;
+    runStreaming("test_pipeline", {}, sessionId);
   }, [runStreaming, sessionId]);
 
   return (
@@ -242,6 +244,7 @@ export const Home = () => {
             <ActionButton
               onClick={handleTestStreaming}
               variant="success"
+              disabled={!isInitialized}
               style={{ position: "absolute", top: 16, right: 286, zIndex: 10 }}
             >
               Test Streaming

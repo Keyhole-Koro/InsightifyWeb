@@ -41,7 +41,7 @@ export async function startRun(
   request: StartRunRequest,
 ): Promise<StartRunResponse> {
   const res = await pipelineClient.startRun({
-    sessionId: request.sessionId ?? "",
+    sessionId: request.sessionId,
     pipelineId: request.pipelineId,
     params: request.params ?? {},
   });

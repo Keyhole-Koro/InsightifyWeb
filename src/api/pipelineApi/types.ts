@@ -4,7 +4,7 @@ export interface StartRunRequest {
   /**
    * Session ID created by InitRun.
    */
-  sessionId?: string;
+  sessionId: string;
 
   /**
    * The ID of the pipeline to start.

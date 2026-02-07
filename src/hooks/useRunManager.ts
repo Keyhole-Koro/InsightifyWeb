@@ -172,6 +172,9 @@ export function useRunManager({
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
+      if (!sessionId) {
+        throw new Error("session_id is required. Run Init first.");
+      }
       let runId = "";
       try {
         const response = await startRun({ sessionId, pipelineId, params });
@@ -212,6 +215,9 @@ export function useRunManager({
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
+      if (!sessionId) {
+        throw new Error("session_id is required. Run Init first.");
+      }
       try {
         const response = await startRun({ sessionId, pipelineId, params });
         const runId = response.runId ?? "";
