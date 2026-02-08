@@ -25,6 +25,8 @@ export const ActionButton = ({
     padding: "8px 16px",
     fontSize: "14px",
     fontWeight: 600,
+    fontFamily: 'var(--font-ui, "Manrope", "Segoe UI", sans-serif)',
+    letterSpacing: "0.01em",
     color: "#ffffff",
     backgroundColor: disabled ? colors.bgDisabled : colors.bg,
     border: "none",

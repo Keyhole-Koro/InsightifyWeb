@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { InitRunRequest, InitRunResponse, StartRunRequest, StartRunResponse, WatchRunRequest, WatchRunResponse } from "./pipeline_pb.js";
+import { InitRunRequest, InitRunResponse, StartRunRequest, StartRunResponse, SubmitRunInputRequest, SubmitRunInputResponse, WatchRunRequest, WatchRunResponse } from "./pipeline_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -32,6 +32,17 @@ export const PipelineService = {
       name: "StartRun",
       I: StartRunRequest,
       O: StartRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Submit user input for an interactive run (e.g. init_purpose).
+     *
+     * @generated from rpc insightify.v1.PipelineService.SubmitRunInput
+     */
+    submitRunInput: {
+      name: "SubmitRunInput",
+      I: SubmitRunInputRequest,
+      O: SubmitRunInputResponse,
       kind: MethodKind.Unary,
     },
     /**

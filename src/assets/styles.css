@@ -1,10 +1,24 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 @layer base {
+  :root {
+    --font-ui: "Manrope", "Segoe UI", sans-serif;
+    --font-display: "Space Grotesk", "Manrope", sans-serif;
+    --ink-900: #0f172a;
+    --ink-700: #334155;
+    --line-200: #cbd5e1;
+    --card-start: #f8fafc;
+    --card-end: #eef2ff;
+    --accent: #0ea5e9;
+  }
+
   html,
   body,
   #root {
-    @apply w-full h-full m-0 p-0 font-sans;
+    @apply w-full h-full m-0 p-0;
+    font-family: var(--font-ui);
+    color: var(--ink-900);
   }
 }
 

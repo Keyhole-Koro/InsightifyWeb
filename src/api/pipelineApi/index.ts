@@ -3,6 +3,8 @@ import type {
   InitRunRequest,
   InitRunResponse,
   RunEvent,
+  SubmitRunInputRequest,
+  SubmitRunInputResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
@@ -14,6 +16,8 @@ export type {
   InitRunRequest,
   InitRunResponse,
   RunEvent,
+  SubmitRunInputRequest,
+  SubmitRunInputResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
@@ -26,11 +30,12 @@ export async function initRun(
 ): Promise<InitRunResponse> {
   const res = await pipelineClient.initRun({
     userId: request.userId,
-    repoUrl: request.repoUrl,
+    repoUrl: request.repoUrl ?? "",
   });
   return {
     sessionId: res.sessionId,
     repoName: res.repoName,
+    bootstrapRunId: res.bootstrapRunId,
   };
 }
 
@@ -88,4 +93,15 @@ export async function* watchRun(
       clientView: event.clientView,
     };
   }
+}
+
+export async function submitRunInput(
+  request: SubmitRunInputRequest,
+): Promise<SubmitRunInputResponse> {
+  const res = await pipelineClient.submitRunInput({
+    sessionId: request.sessionId,
+    runId: request.runId ?? "",
+    input: request.input,
+  });
+  return { runId: res.runId };
 }

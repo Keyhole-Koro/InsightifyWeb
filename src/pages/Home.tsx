@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEdgesState, useNodesState } from "reactflow";
 
-import { initRun } from "@/api/pipelineApi";
+import { initRun, submitRunInput, watchRun } from "@/api/pipelineApi";
 import { FloatingNodeSamples } from "@/components/floating";
 import { LLMInputNode } from "@/components/graph/LLMInputNode/LLMInputNode";
 import { HomeShell } from "@/components/home/HomeShell";
@@ -17,8 +17,6 @@ import type {
 export const Home = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<LLMInputNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [showInitModal, setShowInitModal] = useState(false);
-  const [initLoading, setInitLoading] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [repoName, setRepoName] = useState<string | null>(null);
@@ -26,6 +24,14 @@ export const Home = () => {
   const [repoUrlInput, setRepoUrlInput] = useState(
     "https://github.com/Keyhole-Koro/PoliTopics.git",
   );
+  const [showPurposeModal, setShowPurposeModal] = useState(false);
+  const [purposeRunId, setPurposeRunId] = useState<string | null>(null);
+  const [purposeInput, setPurposeInput] = useState("");
+  const [purposeSubmitting, setPurposeSubmitting] = useState(false);
+  const [purposeAwaitingInput, setPurposeAwaitingInput] = useState(false);
+  const [purposeMessages, setPurposeMessages] = useState<
+    Array<{ id: string; role: "assistant" | "user"; content: string }>
+  >([]);
 
   const nodeSeq = useRef(1);
   const msgSeq = useRef(1);
@@ -176,30 +182,116 @@ export const Home = () => {
     setNodes((current) => [...current, nextNode]);
   }, [handleNodeInputChange, handleNodeSend, setNodes]);
 
-  const handleOpenInitModal = useCallback(() => {
-    setInitError(null);
-    setShowInitModal(true);
+  const streamInitPurpose = useCallback(async (runId: string) => {
+    setPurposeRunId(runId);
+    let assistantDraft = "";
+    setPurposeMessages((current) => {
+      const next = [...current];
+      if (!next.length || next[next.length - 1].role !== "assistant") {
+        next.push({ id: `msg-${Date.now()}`, role: "assistant", content: "" });
+      }
+      return next;
+    });
+    for await (const event of watchRun({ runId })) {
+      if (event.message && event.eventType === "EVENT_TYPE_LOG") {
+        assistantDraft += event.message;
+        setPurposeMessages((current) => {
+          if (!current.length) return current;
+          const next = [...current];
+          const last = next[next.length - 1];
+          if (last.role !== "assistant") {
+            next.push({
+              id: `msg-${Date.now()}`,
+              role: "assistant",
+              content: assistantDraft,
+            });
+            return next;
+          }
+          next[next.length - 1] = {
+            ...last,
+            content: assistantDraft,
+          };
+          return next;
+        });
+      }
+
+      if (event.eventType === "EVENT_TYPE_COMPLETE") {
+        if (event.message === "INPUT_REQUIRED") {
+          setPurposeAwaitingInput(true);
+          setPurposeSubmitting(false);
+        } else {
+          setPurposeAwaitingInput(false);
+          setPurposeSubmitting(false);
+          setShowPurposeModal(false);
+        }
+      }
+
+      if (event.eventType === "EVENT_TYPE_ERROR") {
+        setPurposeAwaitingInput(false);
+        setPurposeSubmitting(false);
+      }
+    }
   }, []);
 
-  const handleCloseInitModal = useCallback(() => {
-    if (initLoading) return;
-    setShowInitModal(false);
-  }, [initLoading]);
+  useEffect(() => {
+    if (sessionId) return;
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const res = await initRun({ userId: userIdInput, repoUrl: repoUrlInput });
+        if (cancelled) return;
+        setSessionId(res.sessionId ?? null);
+        setRepoName(res.repoName ?? null);
+        if (res.bootstrapRunId) {
+          setPurposeMessages([]);
+          setShowPurposeModal(true);
+          setPurposeAwaitingInput(false);
+          setPurposeSubmitting(true);
+          void streamInitPurpose(res.bootstrapRunId);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setInitError(err instanceof Error ? err.message : String(err));
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [repoUrlInput, sessionId, streamInitPurpose, userIdInput]);
 
-  const handleInitSubmit = useCallback(async () => {
-    setInitLoading(true);
-    setInitError(null);
+  const handlePurposeSubmit = useCallback(async () => {
+    if (!sessionId || !purposeInput.trim()) return;
+    const text = purposeInput.trim();
+    setPurposeMessages((current) => [
+      ...current,
+      { id: `msg-${Date.now()}`, role: "user", content: text },
+    ]);
+    setPurposeInput("");
+    setPurposeSubmitting(true);
+    setPurposeAwaitingInput(false);
     try {
-      const res = await initRun({ userId: userIdInput, repoUrl: repoUrlInput });
-      setSessionId(res.sessionId ?? null);
-      setRepoName(res.repoName ?? null);
-      setShowInitModal(false);
+      const res = await submitRunInput({
+        sessionId,
+        runId: purposeRunId ?? undefined,
+        input: text,
+      });
+      const nextRunId = res.runId ?? "";
+      if (!nextRunId) {
+        setPurposeSubmitting(false);
+        return;
+      }
+      setPurposeMessages((current) => [
+        ...current,
+        { id: `msg-${Date.now()}-a`, role: "assistant", content: "" },
+      ]);
+      void streamInitPurpose(nextRunId);
     } catch (err) {
+      setPurposeSubmitting(false);
+      setPurposeAwaitingInput(true);
       setInitError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setInitLoading(false);
     }
-  }, [repoUrlInput, userIdInput]);
+  }, [purposeInput, purposeRunId, sessionId, streamInitPurpose]);
 
   const handlePlanClick = useCallback(() => {
     if (!sessionId) return;
@@ -213,7 +305,6 @@ export const Home = () => {
           setInitError(
             "Session expired on API server. Please initialize again.",
           );
-          setShowInitModal(true);
           return;
         }
         setInitError(message);
@@ -230,7 +321,6 @@ export const Home = () => {
         setSessionId(null);
         setRepoName(null);
         setInitError("Session expired on API server. Please initialize again.");
-        setShowInitModal(true);
         return;
       }
       setInitError(message);
@@ -252,17 +342,9 @@ export const Home = () => {
         actions: (
           <>
             <ActionButton
-              onClick={handleOpenInitModal}
-              variant="secondary"
-              style={{ position: "absolute", top: 16, right: 24, zIndex: 10 }}
-            >
-              Init Run
-            </ActionButton>
-
-            <ActionButton
               onClick={handleAddLLMChatNode}
               variant="secondary"
-              style={{ position: "absolute", top: 16, right: 112, zIndex: 10 }}
+              style={{ position: "absolute", top: 16, right: 24, zIndex: 10 }}
             >
               Add LLM Chat Node
             </ActionButton>
@@ -271,7 +353,7 @@ export const Home = () => {
               onClick={handleTestStreaming}
               variant="success"
               disabled={!isInitialized}
-              style={{ position: "absolute", top: 16, right: 286, zIndex: 10 }}
+              style={{ position: "absolute", top: 16, right: 198, zIndex: 10 }}
             >
               Test Streaming
             </ActionButton>
@@ -280,7 +362,7 @@ export const Home = () => {
               onClick={handlePlanClick}
               variant="primary"
               disabled={!isInitialized}
-              style={{ position: "absolute", top: 16, right: 422, zIndex: 10 }}
+              style={{ position: "absolute", top: 16, right: 334, zIndex: 10 }}
             >
               Run Plan
             </ActionButton>
@@ -288,116 +370,144 @@ export const Home = () => {
             <div
               style={{
                 position: "absolute",
-                top: 56,
+                top: 60,
                 right: 24,
                 zIndex: 10,
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: 6,
-                padding: "6px 10px",
+                background:
+                  "linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(238,242,255,0.9) 100%)",
+                border: "1px solid rgba(148,163,184,0.5)",
+                backdropFilter: "blur(6px)",
+                borderRadius: 10,
+                padding: "8px 12px",
                 fontSize: 12,
                 color: "#334155",
+                boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
+                fontFamily: 'var(--font-ui, "Manrope", "Segoe UI", sans-serif)',
               }}
             >
               {isInitialized
-                ? `Initialized: ${repoName ?? "mock-repo"} (${sessionId})`
-                : "Not initialized"}
+                ? `Session Ready · ${repoName ?? "mock-repo"} (${sessionId})`
+                : "Session Not Initialized"}
             </div>
 
-            {showInitModal ? (
+            {showPurposeModal ? (
               <div
                 style={{
                   position: "fixed",
                   inset: 0,
-                  backgroundColor: "rgba(2, 6, 23, 0.45)",
+                  backdropFilter: "blur(6px)",
+                  background: "rgba(255,255,255,0.52)",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1000,
+                  zIndex: 1100,
                 }}
               >
                 <div
                   style={{
-                    width: 420,
-                    maxWidth: "90vw",
-                    background: "#ffffff",
-                    borderRadius: 10,
-                    border: "1px solid #e2e8f0",
-                    padding: 20,
-                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.2)",
+                    width: "min(100%, 1200px)",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    paddingLeft: "clamp(24px, 10vw, 180px)",
+                    paddingRight: "clamp(24px, 10vw, 180px)",
                   }}
                 >
-                  <h3 style={{ margin: 0, marginBottom: 12, fontSize: 18 }}>
-                    Init Run
-                  </h3>
-
-                  <label
-                    style={{ display: "block", marginBottom: 10, fontSize: 13 }}
-                  >
-                    User ID
-                    <input
-                      value={userIdInput}
-                      onChange={(e) => setUserIdInput(e.target.value)}
-                      style={{
-                        marginTop: 6,
-                        width: "100%",
-                        boxSizing: "border-box",
-                        border: "1px solid #cbd5e1",
-                        borderRadius: 6,
-                        padding: "8px 10px",
-                      }}
-                    />
-                  </label>
-
-                  <label
-                    style={{ display: "block", marginBottom: 12, fontSize: 13 }}
-                  >
-                    Repository URL
-                    <input
-                      value={repoUrlInput}
-                      onChange={(e) => setRepoUrlInput(e.target.value)}
-                      style={{
-                        marginTop: 6,
-                        width: "100%",
-                        boxSizing: "border-box",
-                        border: "1px solid #cbd5e1",
-                        borderRadius: 6,
-                        padding: "8px 10px",
-                      }}
-                    />
-                  </label>
-
-                  {initError ? (
-                    <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 10 }}>
-                      {initError}
-                    </div>
-                  ) : null}
-
                   <div
                     style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: 8,
+                      padding: 20,
+                      overflowY: "auto",
+                      flex: 1,
                     }}
                   >
-                    <ActionButton
-                      onClick={handleCloseInitModal}
-                      variant="secondary"
-                      disabled={initLoading}
+                    {purposeMessages.map((m) => (
+                      <div
+                        key={m.id}
+                        style={{
+                          display: "flex",
+                          justifyContent:
+                            m.role === "user" ? "flex-end" : "flex-start",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <div
+                          style={{
+                            maxWidth: "78%",
+                            whiteSpace: "pre-wrap",
+                            fontSize: 14,
+                            lineHeight: 1.6,
+                            borderRadius: 16,
+                            padding: "10px 14px",
+                            border:
+                              m.role === "user"
+                                ? "1px solid rgba(15, 23, 42, 0.65)"
+                                : "1px solid rgba(148, 163, 184, 0.38)",
+                            background:
+                              m.role === "user"
+                                ? "#0f172a"
+                                : "rgba(255,255,255,0.9)",
+                            color: m.role === "user" ? "#f8fafc" : "#0f172a",
+                          }}
+                        >
+                          {m.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    style={{
+                      padding: 14,
+                      borderTop: "1px solid rgba(148, 163, 184, 0.22)",
+                    }}
+                  >
+                    <textarea
+                      value={purposeInput}
+                      onChange={(e) => setPurposeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (purposeInput.trim()) {
+                            void handlePurposeSubmit();
+                          }
+                        }
+                      }}
+                      placeholder="気になるテーマ or GitHub URL を入力..."
+                      rows={3}
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        border: "1px solid rgba(148,163,184,0.55)",
+                        borderRadius: 12,
+                        padding: "10px 12px",
+                        resize: "none",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        background: "rgba(255,255,255,0.92)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 8,
+                      }}
                     >
-                      Cancel
-                    </ActionButton>
-                    <ActionButton
-                      onClick={handleInitSubmit}
-                      variant="primary"
-                      disabled={
-                        initLoading ||
-                        userIdInput.trim().length === 0 ||
-                        repoUrlInput.trim().length === 0
-                      }
-                    >
-                      {initLoading ? "Initializing..." : "Initialize"}
-                    </ActionButton>
+                      <span style={{ fontSize: 12, color: "#64748b" }}>
+                        {purposeSubmitting
+                          ? "Assistant is thinking..."
+                          : purposeAwaitingInput
+                            ? "Reply to continue"
+                            : "Starting..."}
+                      </span>
+                      <ActionButton
+                        onClick={handlePurposeSubmit}
+                        variant="primary"
+                        disabled={!purposeInput.trim()}
+                      >
+                        Send
+                      </ActionButton>
+                    </div>
                   </div>
                 </div>
               </div>

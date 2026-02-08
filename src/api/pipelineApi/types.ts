@@ -26,12 +26,13 @@ export interface StartRunResponse {
 
 export interface InitRunRequest {
   userId: string;
-  repoUrl: string;
+  repoUrl?: string;
 }
 
 export interface InitRunResponse {
   sessionId?: string;
   repoName?: string;
+  bootstrapRunId?: string;
 }
 
 export interface StreamRunRequest {
@@ -46,3 +47,13 @@ export interface WatchRunRequest {
 }
 
 export interface RunEvent extends BaseRunEvent {}
+
+export interface SubmitRunInputRequest {
+  sessionId: string;
+  runId?: string;
+  input: string;
+}
+
+export interface SubmitRunInputResponse {
+  runId?: string;
+}
