@@ -71,6 +71,8 @@ export interface LLMChatNodeProps {
   model?: string;
   input: string;
   isResponding: boolean;
+  sendLocked?: boolean;
+  sendLockHint?: string;
   messages: ChatMessage[];
   onInputChange: (value: string) => void;
   onSend: () => void;

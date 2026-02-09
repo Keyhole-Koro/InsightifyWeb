@@ -7,6 +7,7 @@ export type EventType =
   | "EVENT_TYPE_ERROR";
 
 export interface ClientView {
+  llmResponse?: string;
   graph?: ApiGraph;
 }
 

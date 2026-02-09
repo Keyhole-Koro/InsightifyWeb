@@ -5,199 +5,268 @@ import type { LLMInputNodeData } from "@/types/graphTypes";
 
 export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
   const { props, meta } = data;
-  const sendDisabled = props.isResponding || props.input.trim().length === 0;
+  const sendDisabled =
+    props.isResponding || Boolean(props.sendLocked) || props.input.trim().length === 0;
 
   return (
     <div
       style={{
-        width: 440,
-        background: "linear-gradient(165deg, #f8fafc 0%, #eef2ff 100%)",
-        border: "1px solid rgba(148, 163, 184, 0.45)",
-        borderRadius: 16,
-        boxShadow: "0 14px 30px rgba(15, 23, 42, 0.18)",
+        width: 420,
+        backgroundColor: "#ffffff",
+        borderRadius: "16px",
+        boxShadow:
+          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.05)",
+        fontFamily: 'var(--font-ui, "Manrope", "Segoe UI", sans-serif)',
         overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Handle
         type="target"
         position={Position.Top}
-        style={{ width: 10, height: 10 }}
+        style={{
+          width: 10,
+          height: 10,
+          background: "#cbd5e1",
+          border: "2px solid #fff",
+        }}
       />
+
+      {/* Minimal Handle */}
       <div
         style={{
-          background:
-            "linear-gradient(120deg, #0f172a 0%, #1e293b 45%, #0ea5e9 120%)",
-          color: "#e2e8f0",
-          padding: "10px 14px",
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
+          height: 20,
+          backgroundColor: "#f8fafc",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "center",
+          cursor: "grab",
         }}
       >
-        <span>{meta?.title ?? "LLM Prompt Console"}</span>
-        <span
+        <div
           style={{
-            fontWeight: 600,
-            color: "#e0f2fe",
-            background: "rgba(14, 165, 233, 0.25)",
-            border: "1px solid rgba(125, 211, 252, 0.55)",
-            borderRadius: 999,
-            padding: "2px 8px",
-            textTransform: "none",
-            letterSpacing: 0,
+            width: 32,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: "#cbd5e1",
           }}
-        >
-          {props.model ?? "LLM"}
-        </span>
+        />
       </div>
 
+      {/* Chat Area */}
       <div
         className="nodrag"
         style={{
-          height: 250,
+          height: 300,
           overflowY: "auto",
-          padding: 12,
-          background:
-            "radial-gradient(circle at top right, rgba(186,230,253,0.35) 0%, rgba(248,250,252,0.7) 55%)",
-          borderBottom: "1px solid rgba(148, 163, 184, 0.35)",
+          padding: "16px",
+          backgroundColor: "#f8fafc",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
         }}
       >
-        {props.messages.map((message) => (
-          <div
-            key={message.id}
-            style={{
-              display: "flex",
-              justifyContent:
-                message.role === "user" ? "flex-end" : "flex-start",
-              marginBottom: 8,
-            }}
-          >
+        {props.messages.map((message) => {
+          const isUser = message.role === "user";
+          return (
             <div
+              key={message.id}
               style={{
-                maxWidth: "86%",
-                whiteSpace: "pre-wrap",
-                fontSize: 12,
-                lineHeight: 1.45,
-                padding: "9px 11px",
-                borderRadius: 12,
-                border:
-                  message.role === "user"
-                    ? "1px solid rgba(30, 41, 59, 0.85)"
-                    : "1px solid rgba(148, 163, 184, 0.45)",
-                background:
-                  message.role === "user"
-                    ? "linear-gradient(120deg, #0f172a 0%, #1e293b 100%)"
-                    : "#ffffff",
-                color: message.role === "user" ? "#f8fafc" : "#0f172a",
-                boxShadow:
-                  message.role === "user"
-                    ? "0 6px 14px rgba(15, 23, 42, 0.25)"
-                    : "0 4px 10px rgba(15, 23, 42, 0.08)",
+                display: "flex",
+                justifyContent: isUser ? "flex-end" : "flex-start",
+                paddingLeft: isUser ? 32 : 0,
+                paddingRight: isUser ? 0 : 32,
               }}
             >
-              {message.content}
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "14px",
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                  borderTopRightRadius: isUser ? 2 : 14,
+                  borderTopLeftRadius: isUser ? 14 : 2,
+                  backgroundColor: isUser ? "#2563eb" : "#ffffff",
+                  color: isUser ? "#ffffff" : "#334155",
+                  boxShadow: isUser
+                    ? "0 4px 6px -1px rgba(37, 99, 235, 0.2)"
+                    : "0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.02)",
+                  border: isUser ? "none" : "1px solid rgba(0,0,0,0.02)",
+                }}
+              >
+                {message.content}
+              </div>
+            </div>
+          );
+        })}
+        {props.isResponding && (
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div
+              style={{
+                padding: "10px 16px",
+                borderRadius: "14px",
+                borderTopLeftRadius: 2,
+                backgroundColor: "#ffffff",
+                boxShadow: "0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                fontSize: 12,
+                color: "#64748b",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: "#94a3b8",
+                  borderRadius: "50%",
+                  animation: "pulse 1.5s infinite",
+                }}
+              />
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: "#94a3b8",
+                  borderRadius: "50%",
+                  animation: "pulse 1.5s infinite 0.2s",
+                }}
+              />
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: "#94a3b8",
+                  borderRadius: "50%",
+                  animation: "pulse 1.5s infinite 0.4s",
+                }}
+              />
             </div>
           </div>
-        ))}
-        {props.isResponding ? (
-          <div
-            style={{
-              fontSize: 12,
-              color: "#0369a1",
-              padding: "4px 6px",
-              fontWeight: 600,
-            }}
-          >
-            返信を生成中...
-          </div>
-        ) : null}
+        )}
       </div>
 
-      <div style={{ padding: 12 }}>
-        <div
-          style={{
-            marginBottom: 8,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            color: "#334155",
-          }}
-        >
-          Prompt
-        </div>
-        <textarea
-          className="nodrag"
-          value={props.input}
-          onChange={(e) => props.onInputChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              props.onSend();
-            }
-          }}
-          placeholder="Ask, summarize, compare, or break down the task..."
-          rows={3}
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            border: "1px solid rgba(148, 163, 184, 0.65)",
-            borderRadius: 10,
-            padding: "10px 12px",
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: "#0f172a",
-            backgroundColor: "rgba(255, 255, 255, 0.92)",
-            resize: "none",
-            boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.08)",
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 10,
-          }}
-        >
-          <span style={{ fontSize: 11, color: "#64748b" }}>
-            Enter to send, Shift+Enter for newline
-          </span>
+      {/* Input Area */}
+      <div
+        style={{
+          padding: "16px",
+          backgroundColor: "#ffffff",
+          borderTop: "1px solid #f1f5f9",
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <textarea
+            className="nodrag"
+            value={props.input}
+            onChange={(e) => props.onInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                props.onSend();
+              }
+            }}
+            placeholder="メッセージを入力..."
+            rows={2}
+            style={{
+              width: "100%",
+              boxSizing: "border-box",
+              border: "1px solid #e2e8f0",
+              borderRadius: "12px",
+              padding: "12px 14px",
+              paddingRight: "48px",
+              fontSize: 14,
+              lineHeight: 1.5,
+              color: "#0f172a",
+              backgroundColor: "#f8fafc",
+              resize: "none",
+              outline: "none",
+              transition: "all 0.2s ease",
+              fontFamily: "inherit",
+            }}
+            onFocus={(e) => {
+              e.target.style.backgroundColor = "#ffffff";
+              e.target.style.borderColor = "#3b82f6";
+              e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.target.style.backgroundColor = "#f8fafc";
+              e.target.style.borderColor = "#e2e8f0";
+              e.target.style.boxShadow = "none";
+            }}
+          />
           <button
             type="button"
             className="nodrag"
             onClick={props.onSend}
             disabled={sendDisabled}
             style={{
+              position: "absolute",
+              bottom: 10,
+              right: 10,
               border: "none",
-              borderRadius: 10,
-              padding: "8px 14px",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#f8fafc",
-              background:
-                sendDisabled
-                  ? "#94a3b8"
-                  : "linear-gradient(120deg, #0ea5e9 0%, #2563eb 100%)",
+              borderRadius: "8px",
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#ffffff",
+              background: sendDisabled ? "#cbd5e1" : "#2563eb",
+              cursor: sendDisabled ? "not-allowed" : "pointer",
+              transition: "all 0.2s ease",
               boxShadow: sendDisabled
                 ? "none"
-                : "0 8px 16px rgba(37, 99, 235, 0.3)",
-              cursor: sendDisabled ? "not-allowed" : "pointer",
+                : "0 2px 4px rgba(37, 99, 235, 0.3)",
             }}
           >
-            Send Prompt
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
           </button>
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 11,
+            color: "#94a3b8",
+            textAlign: "right",
+            fontWeight: 500,
+          }}
+        >
+          {props.sendLocked && props.sendLockHint
+            ? props.sendLockHint
+            : "Shift + Enter で改行"}
         </div>
       </div>
       <Handle
         type="source"
         position={Position.Bottom}
-        style={{ width: 10, height: 10 }}
+        style={{
+          width: 10,
+          height: 10,
+          background: "#cbd5e1",
+          border: "2px solid #fff",
+        }}
       />
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 });
