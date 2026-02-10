@@ -35,12 +35,12 @@ export const PipelineService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Submit user input for an interactive run (e.g. init_purpose).
+     * Respond to a pending user-input request for an interactive run.
      *
-     * @generated from rpc insightify.v1.PipelineService.SubmitRunInput
+     * @generated from rpc insightify.v1.PipelineService.NeedUserInput
      */
-    submitRunInput: {
-      name: "SubmitRunInput",
+    needUserInput: {
+      name: "NeedUserInput",
       I: SubmitRunInputRequest,
       O: SubmitRunInputResponse,
       kind: MethodKind.Unary,
@@ -58,4 +58,3 @@ export const PipelineService = {
     },
   }
 };
-

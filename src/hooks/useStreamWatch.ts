@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-import { watchRun } from "@/api/pipelineApi";
+import { watchRun } from "@/api/coreApi";
 
 const WATCH_RETRY_LIMIT = 3;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,6 +20,15 @@ export interface StreamCallbacks {
   onChunk: (text: string) => void;
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
+  onNeedUserInput: (inputRequestId: string) => void;
+}
+
+const INPUT_REQUIRED_PREFIX = "INPUT_REQUIRED:";
+
+export function parseInputRequiredMessage(message?: string): string {
+  const text = (message ?? "").trim();
+  if (!text.startsWith(INPUT_REQUIRED_PREFIX)) return "";
+  return text.slice(INPUT_REQUIRED_PREFIX.length).trim();
 }
 
 /**
@@ -67,6 +76,18 @@ export function useStreamWatch() {
             if (event.eventType === "EVENT_TYPE_LOG" && event.message) {
               accumulated += event.message;
               callbacks.onChunk(accumulated);
+            }
+
+            if (event.eventType === "EVENT_TYPE_PROGRESS") {
+              const inputRequestId = parseInputRequiredMessage(event.message);
+              if (inputRequestId) {
+                callbacks.onNeedUserInput(inputRequestId);
+                const assistant = extractAssistantFromView(event);
+                if (assistant) {
+                  callbacks.onChunk(assistant);
+                }
+                continue;
+              }
             }
 
             if (event.eventType === "EVENT_TYPE_COMPLETE") {

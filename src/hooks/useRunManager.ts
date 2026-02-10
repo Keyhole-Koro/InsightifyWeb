@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Node, Edge } from "reactflow";
-import { startRun, watchRun } from "@/api/pipelineApi";
+import { startRun, watchRun } from "@/api/coreApi";
 import { transformApiGraphToReactFlow } from "@/utils/graphTransform";
 
 export type RunStatus = "running" | "complete" | "error";
@@ -8,7 +8,7 @@ export type RunStatus = "running" | "complete" | "error";
 export interface RunItem {
   clientId: string;
   id: string;
-  pipelineId: string;
+  workerKey: string;
   title: string;
   status: RunStatus;
   log: string | null;
@@ -86,7 +86,7 @@ export function useRunManager({
   const watchExistingRun = useCallback(
     async (
       runId: string,
-      pipelineId: string,
+      workerKey: string,
       initialNodes: Node[],
       initialEdges: Edge[],
     ) => {
@@ -95,8 +95,8 @@ export function useRunManager({
       const initialRun: RunItem = {
         clientId: makeClientId(runId),
         id: runId,
-        pipelineId,
-        title: pipelineId,
+        workerKey,
+        title: workerKey,
         status: "running",
         log: "Starting...",
         nodes: initialNodes,
@@ -168,7 +168,7 @@ export function useRunManager({
 
   const runStreaming = useCallback(
     async (
-      pipelineId: string,
+      workerKey: string,
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
@@ -177,7 +177,12 @@ export function useRunManager({
       }
       let runId = "";
       try {
-        const response = await startRun({ sessionId, pipelineId, params });
+        const resolvedWorkerKey = workerKey.trim();
+        const response = await startRun({
+          sessionId,
+          workerKey: resolvedWorkerKey,
+          params,
+        });
         runId = response.runId ?? "";
         if (!runId) throw new Error("No run_id returned");
 
@@ -193,7 +198,12 @@ export function useRunManager({
           onEdgesChange?.(initialEdges);
         }
 
-        await watchExistingRun(runId, pipelineId, initialNodes, initialEdges);
+        await watchExistingRun(
+          runId,
+          resolvedWorkerKey,
+          initialNodes,
+          initialEdges,
+        );
       } catch (err) {
         console.error("Streaming failed", err);
         if (runId) {
@@ -212,7 +222,7 @@ export function useRunManager({
 
   const runPlan = useCallback(
     async (
-      pipelineId: string,
+      workerKey: string,
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
@@ -220,7 +230,12 @@ export function useRunManager({
         throw new Error("session_id is required. Run Init first.");
       }
       try {
-        const response = await startRun({ sessionId, pipelineId, params });
+        const resolvedWorkerKey = workerKey.trim();
+        const response = await startRun({
+          sessionId,
+          workerKey: resolvedWorkerKey,
+          params,
+        });
         const runId = response.runId ?? "";
         let nodes: Node[] = [];
         let edges: Edge[] = [];
@@ -241,8 +256,8 @@ export function useRunManager({
           const finishedRun: RunItem = {
             clientId: makeClientId(fallbackId),
             id: fallbackId,
-            pipelineId,
-            title: pipelineId,
+            workerKey: resolvedWorkerKey,
+            title: resolvedWorkerKey,
             status: "complete",
             log: "Completed",
             nodes,
@@ -254,7 +269,7 @@ export function useRunManager({
           return;
         }
 
-        await watchExistingRun(runId, pipelineId, nodes, edges);
+        await watchExistingRun(runId, resolvedWorkerKey, nodes, edges);
       } catch (err) {
         console.error("Plan request failed", err);
         throw err;

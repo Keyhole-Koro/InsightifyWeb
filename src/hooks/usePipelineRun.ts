@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Node, Edge } from "reactflow";
-import { startRun, watchRun } from "@/api/pipelineApi";
+import { startRun, watchRun } from "@/api/coreApi";
 import { transformApiGraphToReactFlow } from "@/utils/graphTransform";
 
 interface UsePipelineRunOptions {
@@ -17,7 +17,7 @@ export function usePipelineRun({
 
   const runPlan = useCallback(
     async (
-      pipelineId: string,
+      workerKey: string,
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
@@ -29,7 +29,7 @@ export function usePipelineRun({
       setIsRunning(true);
       setStreamingLog("Starting...");
       try {
-        const response = await startRun({ sessionId, pipelineId, params });
+        const response = await startRun({ sessionId, workerKey, params });
         if (response.clientView?.graph) {
           const { nodes, edges } = transformApiGraphToReactFlow(
             response.clientView.graph,
@@ -79,7 +79,7 @@ export function usePipelineRun({
 
   const runStreaming = useCallback(
     async (
-      pipelineId: string,
+      workerKey: string,
       params: Record<string, string> = {},
       sessionId?: string,
     ) => {
@@ -92,7 +92,7 @@ export function usePipelineRun({
       setStreamingLog("Starting...");
 
       try {
-        const response = await startRun({ sessionId, pipelineId, params });
+        const response = await startRun({ sessionId, workerKey, params });
         const runId = response.runId;
         if (!runId) throw new Error("No run_id returned");
 

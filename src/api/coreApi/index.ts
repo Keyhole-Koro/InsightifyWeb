@@ -2,9 +2,9 @@ import { pipelineClient, toEventType } from "./client";
 import type {
   InitRunRequest,
   InitRunResponse,
+  NeedUserInputRequest,
+  NeedUserInputResponse,
   RunEvent,
-  SubmitRunInputRequest,
-  SubmitRunInputResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
@@ -15,9 +15,9 @@ import type {
 export type {
   InitRunRequest,
   InitRunResponse,
+  NeedUserInputRequest,
+  NeedUserInputResponse,
   RunEvent,
-  SubmitRunInputRequest,
-  SubmitRunInputResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
@@ -40,14 +40,18 @@ export async function initRun(
 }
 
 /**
- * Starts a pipeline run using the Connect protocol.
+ * Starts a worker run using the Connect protocol.
  */
 export async function startRun(
   request: StartRunRequest,
 ): Promise<StartRunResponse> {
+  const workerKey = (request.workerKey ?? request.pipelineId ?? "").trim();
+  if (!workerKey) {
+    throw new Error("workerKey is required");
+  }
   const res = await pipelineClient.startRun({
     sessionId: request.sessionId,
-    pipelineId: request.pipelineId,
+    pipelineId: workerKey,
     params: request.params ?? {},
   });
   return {
@@ -76,7 +80,7 @@ export async function* streamRun(
 }
 
 /**
- * Watch a running pipeline for streaming events.
+ * Watch a running worker run for streaming events.
  */
 export async function* watchRun(
   request: WatchRunRequest,
@@ -95,10 +99,16 @@ export async function* watchRun(
   }
 }
 
-export async function submitRunInput(
-  request: SubmitRunInputRequest,
-): Promise<SubmitRunInputResponse> {
-  const res = await pipelineClient.submitRunInput({
+export async function respondNeedUserInput(
+  request: NeedUserInputRequest,
+): Promise<NeedUserInputResponse> {
+  const rpc =
+    pipelineClient.needUserInput?.bind(pipelineClient) ??
+    pipelineClient.submitRunInput?.bind(pipelineClient);
+  if (!rpc) {
+    throw new Error("needUserInput RPC is not available on pipeline client");
+  }
+  const res = await rpc({
     sessionId: request.sessionId,
     runId: request.runId ?? "",
     input: request.input,

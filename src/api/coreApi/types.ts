@@ -7,13 +7,18 @@ export interface StartRunRequest {
   sessionId: string;
 
   /**
-   * The ID of the pipeline to start.
-   * Corresponds to `pipeline_id` in proto.
+   * The worker key to start.
+   * Mapped to `pipeline_id` in proto for backward compatibility.
    */
-  pipelineId: string;
+  workerKey: string;
 
   /**
-   * Parameters for the pipeline run.
+   * @deprecated Use workerKey.
+   */
+  pipelineId?: string;
+
+  /**
+   * Parameters for the worker run.
    * Corresponds to `params` map<string, string> in proto.
    */
   params?: Record<string, string>;
@@ -36,7 +41,11 @@ export interface InitRunResponse {
 }
 
 export interface StreamRunRequest {
-  pipelineId: string;
+  workerKey: string;
+  /**
+   * @deprecated Use workerKey.
+   */
+  pipelineId?: string;
   params?: Record<string, string>;
 }
 
@@ -48,12 +57,12 @@ export interface WatchRunRequest {
 
 export interface RunEvent extends BaseRunEvent {}
 
-export interface SubmitRunInputRequest {
+export interface NeedUserInputRequest {
   sessionId: string;
   runId?: string;
   input: string;
 }
 
-export interface SubmitRunInputResponse {
+export interface NeedUserInputResponse {
   runId?: string;
 }
