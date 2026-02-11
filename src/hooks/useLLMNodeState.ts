@@ -44,6 +44,35 @@ export function useLLMNodeState(setNodes: NodeSetter) {
     [updateNode],
   );
 
+  const setSendLock = useCallback(
+    (nodeId: string, sendLocked: boolean, sendLockHint?: string) => {
+      updateNode(nodeId, (data) => ({
+        ...data,
+        props: {
+          ...data.props,
+          sendLocked,
+          sendLockHint: sendLockHint ?? "",
+        },
+      }));
+    },
+    [updateNode],
+  );
+
+  const setMetaTitle = useCallback(
+    (nodeId: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+      updateNode(nodeId, (data) => ({
+        ...data,
+        meta: {
+          ...(data.meta ?? {}),
+          title: trimmed,
+        },
+      }));
+    },
+    [updateNode],
+  );
+
   const addMessage = useCallback(
     (nodeId: string, message: ChatMessage) => {
       updateNode(nodeId, (data) => ({
@@ -154,6 +183,8 @@ export function useLLMNodeState(setNodes: NodeSetter) {
     updateNode,
     setInput,
     setResponding,
+    setSendLock,
+    setMetaTitle,
     addMessage,
     updateLastAssistantMessage,
     ensureAssistantMessage,

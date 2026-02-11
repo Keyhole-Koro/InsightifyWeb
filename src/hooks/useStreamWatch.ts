@@ -1,19 +1,16 @@
 import { useCallback, useRef } from "react";
 
-import { watchRun } from "@/api/coreApi";
+import { watchChat } from "@/api/coreApi";
+import type { ChatNode } from "@/api/coreApi";
 
 const WATCH_RETRY_LIMIT = 3;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface StreamEvent {
   eventType?: string;
-  message?: string;
-  clientView?: {
-    llmResponse?: string;
-    graph?: {
-      nodes?: Array<{ uid?: string; description?: string }>;
-    };
-  };
+  text?: string;
+  interactionId?: string;
+  node?: ChatNode;
 }
 
 export interface StreamCallbacks {
@@ -21,43 +18,24 @@ export interface StreamCallbacks {
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
   onNeedUserInput: (inputRequestId: string) => void;
-}
-
-const INPUT_REQUIRED_PREFIX = "INPUT_REQUIRED:";
-
-export function parseInputRequiredMessage(message?: string): string {
-  const text = (message ?? "").trim();
-  if (!text.startsWith(INPUT_REQUIRED_PREFIX)) return "";
-  return text.slice(INPUT_REQUIRED_PREFIX.length).trim();
-}
-
-/**
- * Extract assistant message from clientView if available.
- */
-export function extractAssistantFromView(
-  event: StreamEvent,
-  assistantUid = "init-purpose-assistant",
-): string {
-  const directResponse = (event.clientView?.llmResponse ?? "").trim();
-  if (directResponse !== "") {
-    return directResponse;
-  }
-  const nodes = event.clientView?.graph?.nodes ?? [];
-  const match = nodes.find((node) => node.uid === assistantUid);
-  return (match?.description ?? "").trim();
+  onNode?: (node: ChatNode) => void;
 }
 
 /**
  * Unified hook for SSE streaming with retry logic.
  */
 export function useStreamWatch() {
-  const abortRef = useRef<AbortController | null>(null);
+  const abortByRunRef = useRef<Record<string, AbortController>>({});
 
   const stream = useCallback(
-    async (runId: string, callbacks: StreamCallbacks): Promise<void> => {
-      // Cancel any existing stream
-      abortRef.current?.abort();
-      abortRef.current = new AbortController();
+    async (
+      runId: string,
+      callbacks: StreamCallbacks,
+      sessionId?: string,
+    ): Promise<void> => {
+      // Cancel only the existing stream for the same run.
+      abortByRunRef.current[runId]?.abort();
+      abortByRunRef.current[runId] = new AbortController();
 
       let accumulated = "";
       let terminalReached = false;
@@ -70,36 +48,45 @@ export function useStreamWatch() {
         let sawAnyEvent = false;
 
         try {
-          for await (const event of watchRun({ runId })) {
+          for await (const event of watchChat({ runId, sessionId })) {
             sawAnyEvent = true;
+            if (event.node) {
+              callbacks.onNode?.(event.node);
+            }
 
-            if (event.eventType === "EVENT_TYPE_LOG" && event.message) {
-              accumulated += event.message;
+            if (
+              event.eventType === "EVENT_TYPE_ASSISTANT_CHUNK" &&
+              event.text
+            ) {
+              accumulated += event.text;
               callbacks.onChunk(accumulated);
             }
 
-            if (event.eventType === "EVENT_TYPE_PROGRESS") {
-              const inputRequestId = parseInputRequiredMessage(event.message);
-              if (inputRequestId) {
-                callbacks.onNeedUserInput(inputRequestId);
-                const assistant = extractAssistantFromView(event);
-                if (assistant) {
-                  callbacks.onChunk(assistant);
-                }
-                continue;
+            if (event.eventType === "EVENT_TYPE_ASSISTANT_FINAL" && event.text) {
+              accumulated = event.text;
+              callbacks.onChunk(accumulated);
+              continue;
+            }
+
+            if (event.eventType === "EVENT_TYPE_NEED_INPUT") {
+              callbacks.onNeedUserInput(event.interactionId ?? "");
+              if (event.text) {
+                accumulated = event.text;
+                callbacks.onChunk(accumulated);
               }
+              continue;
             }
 
             if (event.eventType === "EVENT_TYPE_COMPLETE") {
               terminalReached = true;
-              const finalText = extractAssistantFromView(event) || accumulated;
+              const finalText = (event.text ?? "").trim() || accumulated;
               callbacks.onComplete(finalText);
               break;
             }
 
             if (event.eventType === "EVENT_TYPE_ERROR") {
               terminalReached = true;
-              callbacks.onError(event.message || "Stream error");
+              callbacks.onError(event.text || "Stream error");
               break;
             }
           }
@@ -137,13 +124,17 @@ export function useStreamWatch() {
           await sleep(300 * (attempt + 1));
         }
       }
+      delete abortByRunRef.current[runId];
     },
     [],
   );
 
   const cancel = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
+    const controllers = Object.values(abortByRunRef.current);
+    for (const controller of controllers) {
+      controller.abort();
+    }
+    abortByRunRef.current = {};
   }, []);
 
   return { stream, cancel };

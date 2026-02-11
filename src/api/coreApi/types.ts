@@ -60,9 +60,103 @@ export interface RunEvent extends BaseRunEvent {}
 export interface NeedUserInputRequest {
   sessionId: string;
   runId?: string;
+  interactionId?: string;
   input: string;
 }
 
 export interface NeedUserInputResponse {
   runId?: string;
+  accepted?: boolean;
+  interactionId?: string;
+}
+
+export interface WatchChatRequest {
+  sessionId?: string;
+  runId: string;
+}
+
+export interface ChatEvent {
+  eventType:
+    | "EVENT_TYPE_UNSPECIFIED"
+    | "EVENT_TYPE_ASSISTANT_CHUNK"
+    | "EVENT_TYPE_ASSISTANT_FINAL"
+    | "EVENT_TYPE_NEED_INPUT"
+    | "EVENT_TYPE_COMPLETE"
+    | "EVENT_TYPE_ERROR";
+  sessionId?: string;
+  runId?: string;
+  workerKey?: string;
+  interactionId?: string;
+  seq?: number;
+  text?: string;
+  node?: ChatNode;
+}
+
+export type ChatNodeType =
+  | "UI_NODE_TYPE_UNSPECIFIED"
+  | "UI_NODE_TYPE_LLM_CHAT"
+  | "UI_NODE_TYPE_MARKDOWN"
+  | "UI_NODE_TYPE_IMAGE"
+  | "UI_NODE_TYPE_TABLE";
+
+export interface ChatNodeMeta {
+  title?: string;
+  description?: string;
+  tags?: string[];
+}
+
+export type ChatMessageRole =
+  | "ROLE_UNSPECIFIED"
+  | "ROLE_USER"
+  | "ROLE_ASSISTANT";
+
+export interface ChatNodeMessage {
+  id?: string;
+  role?: ChatMessageRole;
+  content?: string;
+}
+
+export interface ChatLlmState {
+  model?: string;
+  isResponding?: boolean;
+  sendLocked?: boolean;
+  sendLockHint?: string;
+  messages?: ChatNodeMessage[];
+}
+
+export interface ChatMarkdownState {
+  markdown?: string;
+}
+
+export interface ChatImageState {
+  src?: string;
+  alt?: string;
+}
+
+export interface ChatTableState {
+  columns?: string[];
+  rows?: string[][];
+}
+
+export interface ChatNode {
+  id?: string;
+  type?: ChatNodeType;
+  meta?: ChatNodeMeta;
+  llmChat?: ChatLlmState;
+  markdown?: ChatMarkdownState;
+  image?: ChatImageState;
+  table?: ChatTableState;
+}
+
+export interface SendChatMessageRequest {
+  sessionId: string;
+  runId: string;
+  interactionId?: string;
+  input: string;
+  clientMsgId?: string;
+}
+
+export interface SendChatMessageResponse {
+  accepted?: boolean;
+  interactionId?: string;
 }
