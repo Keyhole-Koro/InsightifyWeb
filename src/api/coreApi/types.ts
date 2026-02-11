@@ -72,7 +72,9 @@ export interface NeedUserInputResponse {
 
 export interface WatchChatRequest {
   sessionId?: string;
-  runId: string;
+  runId?: string;
+  conversationId?: string;
+  fromSeq?: number;
 }
 
 export interface ChatEvent {
@@ -85,6 +87,7 @@ export interface ChatEvent {
     | "EVENT_TYPE_ERROR";
   sessionId?: string;
   runId?: string;
+  conversationId?: string;
   workerKey?: string;
   interactionId?: string;
   seq?: number;
@@ -151,6 +154,7 @@ export interface ChatNode {
 export interface SendChatMessageRequest {
   sessionId: string;
   runId: string;
+  conversationId?: string;
   interactionId?: string;
   input: string;
   clientMsgId?: string;
@@ -159,4 +163,5 @@ export interface SendChatMessageRequest {
 export interface SendChatMessageResponse {
   accepted?: boolean;
   interactionId?: string;
+  conversationId?: string;
 }

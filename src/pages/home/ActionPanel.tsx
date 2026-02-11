@@ -1,31 +1,20 @@
-import { ActionButton } from "@/components/ui/ActionButton";
-
 interface ActionPanelProps {
   isInitialized: boolean;
   sessionId: string | null;
   initError: string | null;
-  onAddLLMChatNode: () => void;
 }
 
 export function ActionPanel({
   isInitialized,
   sessionId,
   initError,
-  onAddLLMChatNode,
 }: ActionPanelProps) {
   return (
     <>
-      <ActionButton
-        onClick={onAddLLMChatNode}
-        variant="secondary"
-        style={{ position: "absolute", top: 16, right: 24, zIndex: 10 }}
-      >
-        Add LLM Chat Node
-      </ActionButton>
       <div
         style={{
           position: "absolute",
-          top: 60,
+          top: 16,
           right: 24,
           zIndex: 10,
           background:
@@ -47,7 +36,7 @@ export function ActionPanel({
         <div
           style={{
             position: "absolute",
-            top: 96,
+            top: 52,
             right: 24,
             zIndex: 10,
             maxWidth: 360,

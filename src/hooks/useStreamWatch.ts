@@ -3,9 +3,6 @@ import { useCallback, useRef } from "react";
 import { watchChat } from "@/api/coreApi";
 import type { ChatNode } from "@/api/coreApi";
 
-const WATCH_RETRY_LIMIT = 3;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export interface StreamEvent {
   eventType?: string;
   text?: string;
@@ -18,123 +15,134 @@ export interface StreamCallbacks {
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
   onNeedUserInput: (inputRequestId: string) => void;
+  onConversationResolved?: (conversationId: string) => void;
   onNode?: (node: ChatNode) => void;
 }
 
 /**
- * Unified hook for SSE streaming with retry logic.
+ * One watch call handles exactly one stream lifecycle.
+ * Re-watching is controlled by callers (e.g. after SendMessage).
  */
 export function useStreamWatch() {
-  const abortByRunRef = useRef<Record<string, AbortController>>({});
+  const abortByConversationRef = useRef<Record<string, AbortController>>({});
+  const lastSeqByConversationRef = useRef<Record<string, number>>({});
 
   const stream = useCallback(
     async (
       runId: string,
+      conversationId: string,
       callbacks: StreamCallbacks,
       sessionId?: string,
     ): Promise<void> => {
-      // Cancel only the existing stream for the same run.
-      abortByRunRef.current[runId]?.abort();
-      abortByRunRef.current[runId] = new AbortController();
+      const watchKey = conversationId || runId;
+      if (!watchKey) {
+        callbacks.onError("runId or conversationId is required");
+        return;
+      }
+
+      // Replace only the existing watcher for the same conversation scope.
+      abortByConversationRef.current[watchKey]?.abort();
+      abortByConversationRef.current[watchKey] = new AbortController();
 
       let accumulated = "";
-      let terminalReached = false;
+      let resolvedConversationID = conversationId || watchKey;
+      const fromSeq = lastSeqByConversationRef.current[resolvedConversationID] ?? 0;
 
-      for (
-        let attempt = 0;
-        attempt <= WATCH_RETRY_LIMIT && !terminalReached;
-        attempt += 1
-      ) {
-        let sawAnyEvent = false;
+      try {
+        for await (const event of watchChat({ runId, sessionId, conversationId, fromSeq })) {
+          const eventConversationID = (event.conversationId ?? "").trim();
+          if (eventConversationID) {
+            resolvedConversationID = eventConversationID;
+            callbacks.onConversationResolved?.(eventConversationID);
+          }
+          if ((event.seq ?? 0) > 0 && resolvedConversationID) {
+            lastSeqByConversationRef.current[resolvedConversationID] = event.seq ?? 0;
+          }
 
-        try {
-          for await (const event of watchChat({ runId, sessionId })) {
-            sawAnyEvent = true;
-            if (event.node) {
-              callbacks.onNode?.(event.node);
-            }
+          if (event.node) {
+            callbacks.onNode?.(event.node);
+          }
 
-            if (
-              event.eventType === "EVENT_TYPE_ASSISTANT_CHUNK" &&
-              event.text
-            ) {
-              accumulated += event.text;
-              callbacks.onChunk(accumulated);
-            }
+          if (
+            event.eventType === "EVENT_TYPE_ASSISTANT_CHUNK" &&
+            event.text
+          ) {
+            accumulated += event.text;
+            callbacks.onChunk(accumulated);
+            continue;
+          }
 
-            if (event.eventType === "EVENT_TYPE_ASSISTANT_FINAL" && event.text) {
+          if (
+            event.eventType === "EVENT_TYPE_UNSPECIFIED" &&
+            event.text &&
+            !event.interactionId
+          ) {
+            // Backward-compatible fallback for unspecified chunk-like events.
+            accumulated += event.text;
+            callbacks.onChunk(accumulated);
+            continue;
+          }
+
+          if (event.eventType === "EVENT_TYPE_ASSISTANT_FINAL" && event.text) {
+            accumulated = event.text;
+            callbacks.onChunk(accumulated);
+            continue;
+          }
+
+          if (event.eventType === "EVENT_TYPE_NEED_INPUT") {
+            callbacks.onNeedUserInput(event.interactionId ?? "");
+            if (event.text) {
               accumulated = event.text;
               callbacks.onChunk(accumulated);
-              continue;
             }
-
-            if (event.eventType === "EVENT_TYPE_NEED_INPUT") {
-              callbacks.onNeedUserInput(event.interactionId ?? "");
-              if (event.text) {
-                accumulated = event.text;
-                callbacks.onChunk(accumulated);
-              }
-              continue;
-            }
-
-            if (event.eventType === "EVENT_TYPE_COMPLETE") {
-              terminalReached = true;
-              const finalText = (event.text ?? "").trim() || accumulated;
-              callbacks.onComplete(finalText);
-              break;
-            }
-
-            if (event.eventType === "EVENT_TYPE_ERROR") {
-              terminalReached = true;
-              callbacks.onError(event.text || "Stream error");
-              break;
-            }
+            return;
           }
 
-          // Stream ended without terminal event but we got data
-          if (!terminalReached && sawAnyEvent) {
-            terminalReached = true;
-            callbacks.onComplete(accumulated);
-            break;
+          if (event.eventType === "EVENT_TYPE_COMPLETE") {
+            const finalText = (event.text ?? "").trim() || accumulated;
+            callbacks.onComplete(finalText);
+            return;
           }
 
-          if (!terminalReached && !sawAnyEvent) {
-            throw new Error("Stream interrupted");
+          if (event.eventType === "EVENT_TYPE_ERROR") {
+            const message = event.text || "Stream error";
+            callbacks.onError(message);
+            return;
           }
-        } catch (err) {
-          if (terminalReached) break;
-
-          const message = err instanceof Error ? err.message : String(err);
-
-          // Server cleaned up the run - treat as success if we have content
-          if (
-            (message.includes("not found") || message.includes("session")) &&
-            accumulated.trim() !== ""
-          ) {
-            terminalReached = true;
-            callbacks.onComplete(accumulated);
-            break;
-          }
-
-          if (attempt >= WATCH_RETRY_LIMIT) {
-            callbacks.onError(`Reconnect failed: ${message}`);
-            break;
-          }
-
-          await sleep(300 * (attempt + 1));
         }
+
+        callbacks.onComplete(accumulated);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+
+        // watcher replacement and user cancellation should not surface as UI errors.
+        if (message.toLowerCase().includes("aborted")) {
+          return;
+        }
+
+        // Recover closed run streams when we already have accumulated content.
+        if (
+          (message.includes("not found") || message.includes("session")) &&
+          accumulated.trim() !== ""
+        ) {
+          callbacks.onComplete(accumulated);
+          return;
+        }
+
+        callbacks.onError(message);
+      } finally {
+        delete abortByConversationRef.current[watchKey];
       }
-      delete abortByRunRef.current[runId];
     },
     [],
   );
 
   const cancel = useCallback(() => {
-    const controllers = Object.values(abortByRunRef.current);
+    const controllers = Object.values(abortByConversationRef.current);
     for (const controller of controllers) {
       controller.abort();
     }
-    abortByRunRef.current = {};
+    abortByConversationRef.current = {};
   }, []);
 
   return { stream, cancel };

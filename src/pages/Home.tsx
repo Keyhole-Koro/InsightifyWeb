@@ -7,7 +7,7 @@ import { GraphLayers, WatchRunViewer } from "@/components/run";
 import { useRunManager } from "@/hooks/useRunManager";
 import type { LLMInputNodeData } from "@/types/graphTypes";
 import { ActionPanel } from "./home/ActionPanel";
-import { useInitPurposeNode } from "./home/useInitPurposeNode";
+import { useBootstrap } from "./home/useBootstrap";
 
 export const Home = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<LLMInputNodeData>([]);
@@ -21,12 +21,11 @@ export const Home = () => {
     onEdgesChange: setEdges,
   });
 
-  const { nodeTypes, sessionId, initError, handleAddLLMChatNode } =
-    useInitPurposeNode({
-      setNodes,
-      nodeSeq,
-      msgSeq,
-    });
+  const { nodeTypes, sessionId, initError } = useBootstrap({
+    setNodes,
+    nodeSeq,
+    msgSeq,
+  });
 
   const isInitialized = useMemo(() => Boolean(sessionId), [sessionId]);
 
@@ -47,7 +46,6 @@ export const Home = () => {
             isInitialized={isInitialized}
             sessionId={sessionId}
             initError={initError}
-            onAddLLMChatNode={handleAddLLMChatNode}
           />
         ),
         runOverlay: <WatchRunViewer runs={inProgress} />,

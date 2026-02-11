@@ -138,9 +138,16 @@ export async function respondNeedUserInput(
 export async function* watchChat(
   request: WatchChatRequest,
 ): AsyncGenerator<ChatEvent, void, unknown> {
+  const runId = (request.runId ?? "").trim();
+  const conversationId = (request.conversationId ?? "").trim();
+  if (!runId && !conversationId) {
+    throw new Error("watchChat requires runId or conversationId");
+  }
   const stream = llmChatClient.watchChat({
     sessionId: request.sessionId ?? "",
-    runId: request.runId,
+    runId,
+    conversationId,
+    fromSeq: request.fromSeq ?? 0,
   });
   for await (const event of stream) {
     const mapNodeType = (value: unknown): ChatNodeType => {
@@ -174,6 +181,7 @@ export async function* watchChat(
       eventType: toChatEventType(event.eventType),
       sessionId: event.sessionId,
       runId: event.runId,
+      conversationId: event.conversationId,
       workerKey: event.workerKey,
       interactionId: event.interactionId,
       seq: event.seq,
@@ -231,6 +239,7 @@ export async function sendChatMessage(
   const res = await llmChatClient.sendMessage({
     sessionId: request.sessionId,
     runId: request.runId,
+    conversationId: request.conversationId ?? "",
     interactionId: request.interactionId ?? "",
     input: request.input,
     clientMsgId: request.clientMsgId ?? "",
@@ -238,5 +247,6 @@ export async function sendChatMessage(
   return {
     accepted: res.accepted,
     interactionId: res.interactionId,
+    conversationId: res.conversationId,
   };
 }
