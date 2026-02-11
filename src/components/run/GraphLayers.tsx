@@ -77,7 +77,6 @@ export const GraphLayers = ({ runs, onCloseRun }: GraphLayersProps) => {
           {runs.map((run) => (
             <RunGraphPreview
               key={run.clientId}
-              run={run}
               isActive={run.clientId === activeId}
               onClick={() => setActiveId(run.clientId)}
               onClose={() => onCloseRun(run.clientId)}

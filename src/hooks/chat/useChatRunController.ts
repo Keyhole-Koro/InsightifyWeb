@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 
 import { sendChatMessage, startRun, type ChatNode } from "@/api/coreApi";
-import { useLLMNodeState } from "@/hooks/useLLMNodeState";
+import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
 import { useStreamWatch } from "@/hooks/useStreamWatch";
 
 interface UseChatRunControllerOptions {
-  sessionId: string | null;
-  setSessionId: (value: string | null) => void;
+  projectId: string | null;
+  setProjectId: (value: string | null) => void;
   setInitError: (value: string | null) => void;
-  reinitSession: () => Promise<{ sessionId?: string }>;
-  isSessionNotFoundError: (message: string) => boolean;
+  reinitProject: () => Promise<{ projectId?: string }>;
+  isProjectNotFoundError: (message: string) => boolean;
   msgSeq: MutableRefObject<number>;
   nodeState: ReturnType<typeof useLLMNodeState>;
   upsertNodeFromRpc: (targetNodeID: string, node: ChatNode) => void;
@@ -20,11 +20,11 @@ interface UseChatRunControllerOptions {
 }
 
 export function useChatRunController({
-  sessionId,
-  setSessionId,
+  projectId,
+  setProjectId,
   setInitError,
-  reinitSession,
-  isSessionNotFoundError,
+  reinitProject,
+  isProjectNotFoundError,
   msgSeq,
   nodeState,
   upsertNodeFromRpc,
@@ -37,11 +37,15 @@ export function useChatRunController({
   const { stream, cancel: cancelStream } = useStreamWatch();
 
   const streamToNode = useCallback(
-    async (runId: string, nodeId: string, activeSessionId?: string) => {
+    async (runId: string, nodeId: string, activeProjectId?: string) => {
+      const previousRunID = (runIdByNodeRef.current[nodeId] ?? "").trim();
       runIdByNodeRef.current[nodeId] = runId;
-      const targetConversationID = (
-        conversationIdByNodeRef.current[nodeId] ?? nodeId
-      ).trim();
+      // Reset node-scoped pending/conversation state when run changes to avoid stale interaction IDs.
+      if (previousRunID != "" && previousRunID !== runId) {
+        pendingInputIdByNodeRef.current[nodeId] = "";
+        conversationIdByNodeRef.current[nodeId] = "";
+      }
+      const targetConversationID = runId.trim();
       conversationIdByNodeRef.current[nodeId] = targetConversationID;
       pendingInputIdByNodeRef.current[nodeId] = "";
 
@@ -99,26 +103,29 @@ export function useChatRunController({
               nodeState.setResponding(nodeId, false);
             },
           },
-          activeSessionId ?? sessionId ?? undefined,
+          activeProjectId ?? projectId ?? undefined,
         );
       } finally {
       }
     },
-    [nodeState, sessionId, setInitError, stream, upsertNodeFromRpc],
+    [nodeState, projectId, setInitError, stream, upsertNodeFromRpc],
   );
 
-  const startWorkerRun = useCallback(async (workerKey: string, activeSessionId: string) => {
-    const startRes = await startRun({
-      sessionId: activeSessionId,
-      workerKey,
-      params: {},
-    });
-    const runId = (startRes.runId ?? "").trim();
-    if (!runId) {
-      throw new Error(`StartRun did not return run_id for ${workerKey}`);
-    }
-    return runId;
-  }, []);
+  const startWorkerRun = useCallback(
+    async (workerKey: string, activeProjectId: string) => {
+      const startRes = await startRun({
+        projectId: activeProjectId,
+        workerKey,
+        params: {},
+      });
+      const runId = (startRes.runId ?? "").trim();
+      if (!runId) {
+        throw new Error(`StartRun did not return run_id for ${workerKey}`);
+      }
+      return runId;
+    },
+    [],
+  );
 
   const handleInputChange = useCallback(
     (nodeId: string, value: string) => {
@@ -136,12 +143,12 @@ export function useChatRunController({
 
       void (async () => {
         try {
-          let activeSessionId = (sessionId ?? "").trim();
-          if (!activeSessionId) {
-            const reinit = await reinitSession();
-            activeSessionId = (reinit.sessionId ?? "").trim();
-            if (!activeSessionId) {
-              throw new Error("InitRun did not return session_id");
+          let activeProjectId = (projectId ?? "").trim();
+          if (!activeProjectId) {
+            const reinit = await reinitProject();
+            activeProjectId = (reinit.projectId ?? "").trim();
+            if (!activeProjectId) {
+              throw new Error("InitRun did not return project_id");
             }
           }
 
@@ -153,17 +160,14 @@ export function useChatRunController({
           const pendingInteractionId = (
             pendingInputIdByNodeRef.current[nodeId] ?? ""
           ).trim();
-          if (!pendingInteractionId) {
-            throw new Error("Run is not waiting for input yet.");
-          }
           const conversationId = (
-            conversationIdByNodeRef.current[nodeId] ?? nodeId
+            conversationIdByNodeRef.current[nodeId] ?? activeRunId
           ).trim();
 
           let res;
           try {
             res = await sendChatMessage({
-              sessionId: activeSessionId,
+              projectId: activeProjectId,
               runId: activeRunId,
               conversationId,
               interactionId: pendingInteractionId,
@@ -171,12 +175,21 @@ export function useChatRunController({
             });
           } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            if (!isSessionNotFoundError(message)) {
+            if (message.toLowerCase().includes("interaction_id mismatch")) {
+              // Retry once without interaction ID so backend can bind latest pending request.
+              res = await sendChatMessage({
+                projectId: activeProjectId,
+                runId: activeRunId,
+                conversationId,
+                interactionId: "",
+                input: submitted,
+              });
+            } else if (isProjectNotFoundError(message)) {
+              setProjectId(null);
+              throw new Error("Project expired. Please reload and try again.");
+            } else {
               throw err;
             }
-
-            setSessionId(null);
-            throw new Error("Session expired. Please reload and try again.");
           }
 
           if (!res.accepted) {
@@ -190,7 +203,7 @@ export function useChatRunController({
 
           pendingInputIdByNodeRef.current[nodeId] = "";
           nodeState.setResponding(nodeId, true);
-          void streamToNode(activeRunId, nodeId, activeSessionId);
+          void streamToNode(activeRunId, nodeId, activeProjectId);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           setInitError(message);
@@ -204,13 +217,13 @@ export function useChatRunController({
       })();
     },
     [
-      isSessionNotFoundError,
+      isProjectNotFoundError,
       msgSeq,
       nodeState,
-      reinitSession,
-      sessionId,
+      reinitProject,
+      projectId,
       setInitError,
-      setSessionId,
+      setProjectId,
       streamToNode,
     ],
   );

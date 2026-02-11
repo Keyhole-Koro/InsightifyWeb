@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { InitRunRequest, InitRunResponse, StartRunRequest, StartRunResponse, SubmitRunInputRequest, SubmitRunInputResponse, WatchRunRequest, WatchRunResponse } from "./pipeline_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, InitRunRequest, InitRunResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse, StartRunRequest, StartRunResponse, SubmitRunInputRequest, SubmitRunInputResponse, WatchRunRequest, WatchRunResponse } from "./pipeline_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -21,6 +21,39 @@ export const PipelineService = {
       name: "InitRun",
       I: InitRunRequest,
       O: InitRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * List projects owned by a user.
+     *
+     * @generated from rpc insightify.v1.PipelineService.ListProjects
+     */
+    listProjects: {
+      name: "ListProjects",
+      I: ListProjectsRequest,
+      O: ListProjectsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Create a new project for a user.
+     *
+     * @generated from rpc insightify.v1.PipelineService.CreateProject
+     */
+    createProject: {
+      name: "CreateProject",
+      I: CreateProjectRequest,
+      O: CreateProjectResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Set an existing project as the active project for a user.
+     *
+     * @generated from rpc insightify.v1.PipelineService.SelectProject
+     */
+    selectProject: {
+      name: "SelectProject",
+      I: SelectProjectRequest,
+      O: SelectProjectResponse,
       kind: MethodKind.Unary,
     },
     /**

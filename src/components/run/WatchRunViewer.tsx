@@ -102,13 +102,7 @@ export const WatchRunViewer = ({ runs }: WatchRunViewerProps) => {
               )}
             </Box>
 
-            {isExpanded && (
-              <RunGraphPreview
-                nodes={run.nodes}
-                edges={run.edges}
-                height={240}
-              />
-            )}
+            {isExpanded && <RunGraphPreview height={240} />}
           </Paper>
         );
       })}

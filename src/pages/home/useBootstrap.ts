@@ -4,14 +4,14 @@ import { type Node } from "reactflow";
 import { useChatRunController } from "@/hooks/chat/useChatRunController";
 import { useRpcChatNodeSync } from "@/hooks/chat/useRpcChatNodeSync";
 import { useRunSession } from "@/hooks/chat/useRunSession";
-import { useLLMNodeState } from "@/hooks/useLLMNodeState";
+import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
 import type { LLMInputNodeData } from "@/types/graphTypes";
 
 const BOOTSTRAP_NODE_ID = "init-purpose-node";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
 const DEFAULT_USER_ID = "demo-user";
 const DEFAULT_REPO_URL = "https://github.com/Keyhole-Koro/PoliTopics.git";
-const SESSION_STORAGE_KEY = "insightify.session_id";
+const PROJECT_STORAGE_KEY = "insightify.active_project_id";
 
 interface UseBootstrapOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -28,19 +28,22 @@ export function useBootstrap({
   const initializingRef = useRef(false);
 
   const {
-    sessionId,
-    setSessionId,
+    projectId,
+    setProjectId,
+    projects,
+    refreshProjects,
+    selectProjectById,
+    createProjectAndSelect,
     initError,
     setInitError,
-    isSessionNotFoundError,
-    reinitSession,
-  } = useRunSession(
-    {
-      storageKey: SESSION_STORAGE_KEY,
-      defaultUserId: DEFAULT_USER_ID,
-      defaultRepoUrl: DEFAULT_REPO_URL,
-    },
-  );
+    isProjectNotFoundError,
+    reinitProject,
+  } = useRunSession({
+    storageKey: PROJECT_STORAGE_KEY,
+    defaultUserId: DEFAULT_USER_ID,
+    defaultRepoUrl: DEFAULT_REPO_URL,
+    defaultProjectName: "Project",
+  });
 
   const nodeState = useLLMNodeState(setNodes);
   const { nodeTypes, bindHandlers, upsertNodeFromRpc } = useRpcChatNodeSync({
@@ -49,16 +52,34 @@ export function useBootstrap({
   });
 
   const { startWorkerRun, streamToNode, cancelStream } = useChatRunController({
-    sessionId,
-    setSessionId,
+    projectId,
+    setProjectId,
     setInitError,
-    reinitSession,
-    isSessionNotFoundError,
+    reinitProject,
+    isProjectNotFoundError,
     msgSeq,
     nodeState,
     upsertNodeFromRpc,
     bindHandlers,
   });
+
+  const runBootstrapForProject = async (targetProjectID?: string) => {
+    setNodes([]);
+    nodeSeq.current = 1;
+    msgSeq.current = 1;
+    const res = await reinitProject(targetProjectID);
+    const activeProjectID = (res.projectId ?? "").trim();
+    if (!activeProjectID) {
+      throw new Error("InitRun did not return project_id");
+    }
+    const bootstrapRunId = await startWorkerRun(
+      BOOTSTRAP_WORKER_KEY,
+      activeProjectID,
+    );
+    await streamToNode(bootstrapRunId, BOOTSTRAP_NODE_ID, activeProjectID);
+    await refreshProjects();
+    return activeProjectID;
+  };
 
   useEffect(() => {
     if (initializedRef.current || initializingRef.current) return;
@@ -67,16 +88,7 @@ export function useBootstrap({
 
     void (async () => {
       try {
-        const res = await reinitSession();
-        const activeSessionId = (res.sessionId ?? "").trim();
-        if (!activeSessionId) {
-          throw new Error("InitRun did not return session_id");
-        }
-        const bootstrapRunId = await startWorkerRun(
-          BOOTSTRAP_WORKER_KEY,
-          activeSessionId,
-        );
-        await streamToNode(bootstrapRunId, BOOTSTRAP_NODE_ID, activeSessionId);
+        await runBootstrapForProject(projectId ?? undefined);
       } catch (err) {
         setInitError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -87,11 +99,44 @@ export function useBootstrap({
     return () => {
       cancelStream();
     };
-  }, [cancelStream, reinitSession, sessionId, setInitError, startWorkerRun, streamToNode]);
+  }, [cancelStream, setInitError]);
+
+  const onSelectProject = async (targetProjectID: string) => {
+    const normalized = (targetProjectID ?? "").trim();
+    if (!normalized) return;
+    if (initializingRef.current) return;
+    initializingRef.current = true;
+    setInitError(null);
+    try {
+      await selectProjectById(normalized);
+      await runBootstrapForProject(normalized);
+    } catch (err) {
+      setInitError(err instanceof Error ? err.message : String(err));
+    } finally {
+      initializingRef.current = false;
+    }
+  };
+
+  const onCreateProject = async () => {
+    if (initializingRef.current) return;
+    initializingRef.current = true;
+    setInitError(null);
+    try {
+      const createdProjectID = await createProjectAndSelect();
+      await runBootstrapForProject(createdProjectID);
+    } catch (err) {
+      setInitError(err instanceof Error ? err.message : String(err));
+    } finally {
+      initializingRef.current = false;
+    }
+  };
 
   return {
     nodeTypes,
-    sessionId,
+    projectId,
+    projects,
     initError,
+    onSelectProject,
+    onCreateProject,
   };
 }

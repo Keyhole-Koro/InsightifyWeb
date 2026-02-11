@@ -2,20 +2,14 @@ import type { BaseRunEvent, ClientView } from "@/types/api";
 
 export interface StartRunRequest {
   /**
-   * Session ID created by InitRun.
+   * Project ID created by CreateProject / InitRun.
    */
-  sessionId: string;
+  projectId: string;
 
   /**
    * The worker key to start.
-   * Mapped to `pipeline_id` in proto for backward compatibility.
    */
   workerKey: string;
-
-  /**
-   * @deprecated Use workerKey.
-   */
-  pipelineId?: string;
 
   /**
    * Parameters for the worker run.
@@ -32,20 +26,55 @@ export interface StartRunResponse {
 export interface InitRunRequest {
   userId: string;
   repoUrl?: string;
+  projectId?: string;
 }
 
 export interface InitRunResponse {
-  sessionId?: string;
+  projectId?: string;
   repoName?: string;
   bootstrapRunId?: string;
 }
 
+export interface ProjectItem {
+  projectId: string;
+  userId: string;
+  name: string;
+  repoUrl?: string;
+  purpose?: string;
+  repoName?: string;
+  isActive?: boolean;
+}
+
+export interface ListProjectsRequest {
+  userId: string;
+}
+
+export interface ListProjectsResponse {
+  projects: ProjectItem[];
+  activeProjectId?: string;
+}
+
+export interface CreateProjectRequest {
+  userId: string;
+  name?: string;
+  repoUrl?: string;
+}
+
+export interface CreateProjectResponse {
+  project?: ProjectItem;
+}
+
+export interface SelectProjectRequest {
+  userId: string;
+  projectId: string;
+}
+
+export interface SelectProjectResponse {
+  project?: ProjectItem;
+}
+
 export interface StreamRunRequest {
   workerKey: string;
-  /**
-   * @deprecated Use workerKey.
-   */
-  pipelineId?: string;
   params?: Record<string, string>;
 }
 
@@ -58,7 +87,7 @@ export interface WatchRunRequest {
 export interface RunEvent extends BaseRunEvent {}
 
 export interface NeedUserInputRequest {
-  sessionId: string;
+  projectId: string;
   runId?: string;
   interactionId?: string;
   input: string;
@@ -71,7 +100,7 @@ export interface NeedUserInputResponse {
 }
 
 export interface WatchChatRequest {
-  sessionId?: string;
+  projectId: string;
   runId?: string;
   conversationId?: string;
   fromSeq?: number;
@@ -85,7 +114,7 @@ export interface ChatEvent {
     | "EVENT_TYPE_NEED_INPUT"
     | "EVENT_TYPE_COMPLETE"
     | "EVENT_TYPE_ERROR";
-  sessionId?: string;
+  projectId?: string;
   runId?: string;
   conversationId?: string;
   workerKey?: string;
@@ -152,7 +181,7 @@ export interface ChatNode {
 }
 
 export interface SendChatMessageRequest {
-  sessionId: string;
+  projectId: string;
   runId: string;
   conversationId?: string;
   interactionId?: string;

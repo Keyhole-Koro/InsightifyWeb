@@ -56,10 +56,13 @@ export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
 
       {/* Chat Area */}
       <div
-        className="nodrag"
+        className="nodrag llm-chat-scroll"
+        onWheelCapture={(event) => event.stopPropagation()}
+        onTouchMoveCapture={(event) => event.stopPropagation()}
         style={{
           height: 300,
           overflowY: "auto",
+          overscrollBehavior: "contain",
           padding: "16px",
           backgroundColor: "#f8fafc",
           display: "flex",
@@ -265,6 +268,30 @@ export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+
+        .llm-chat-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(100, 116, 139, 0.6) transparent;
+        }
+
+        .llm-chat-scroll::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .llm-chat-scroll::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 999px;
+        }
+
+        .llm-chat-scroll::-webkit-scrollbar-thumb {
+          background: rgba(100, 116, 139, 0.55);
+          border-radius: 999px;
+          border: 1px solid rgba(248, 250, 252, 0.8);
+        }
+
+        .llm-chat-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(100, 116, 139, 0.75);
         }
       `}</style>
     </div>

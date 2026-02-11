@@ -7,11 +7,18 @@ import type {
   ChatNodeMessage,
   ChatNodeMeta,
   ChatNodeType,
+  CreateProjectRequest,
+  CreateProjectResponse,
   InitRunRequest,
   InitRunResponse,
+  ListProjectsRequest,
+  ListProjectsResponse,
   NeedUserInputRequest,
   NeedUserInputResponse,
+  ProjectItem,
   RunEvent,
+  SelectProjectRequest,
+  SelectProjectResponse,
   SendChatMessageRequest,
   SendChatMessageResponse,
   StartRunRequest,
@@ -30,11 +37,18 @@ export type {
   ChatNodeMessage,
   ChatNodeMeta,
   ChatNodeType,
+  CreateProjectRequest,
+  CreateProjectResponse,
   InitRunRequest,
   InitRunResponse,
+  ListProjectsRequest,
+  ListProjectsResponse,
   NeedUserInputRequest,
   NeedUserInputResponse,
+  ProjectItem,
   RunEvent,
+  SelectProjectRequest,
+  SelectProjectResponse,
   SendChatMessageRequest,
   SendChatMessageResponse,
   StartRunRequest,
@@ -51,11 +65,59 @@ export async function initRun(
   const res = await pipelineClient.initRun({
     userId: request.userId,
     repoUrl: request.repoUrl ?? "",
+    projectId: request.projectId ?? "",
   });
   return {
-    sessionId: res.sessionId,
+    projectId: res.projectId,
     repoName: res.repoName,
     bootstrapRunId: res.bootstrapRunId,
+  };
+}
+
+const toProjectItem = (p: any): ProjectItem => ({
+  projectId: p?.projectId ?? "",
+  userId: p?.userId ?? "",
+  name: p?.name ?? "Project",
+  repoUrl: p?.repoUrl ?? "",
+  purpose: p?.purpose ?? "",
+  repoName: p?.repoName ?? "",
+  isActive: Boolean(p?.isActive),
+});
+
+export async function listProjects(
+  request: ListProjectsRequest,
+): Promise<ListProjectsResponse> {
+  const res = await pipelineClient.listProjects({
+    userId: request.userId,
+  });
+  return {
+    projects: (res.projects ?? []).map(toProjectItem),
+    activeProjectId: res.activeProjectId,
+  };
+}
+
+export async function createProject(
+  request: CreateProjectRequest,
+): Promise<CreateProjectResponse> {
+  const res = await pipelineClient.createProject({
+    userId: request.userId,
+    name: request.name ?? "",
+    repoUrl: request.repoUrl ?? "",
+  });
+  return {
+    project: res.project ? toProjectItem(res.project) : undefined,
+  };
+}
+
+export async function selectProject(
+  request: SelectProjectRequest,
+): Promise<SelectProjectResponse> {
+  const res = await pipelineClient.selectProject({
+    userId: request.userId,
+    projectId: request.projectId,
+  });
+  return {
+    project: res.project ? toProjectItem(res.project) : undefined,
   };
 }
 
@@ -65,12 +127,16 @@ export async function initRun(
 export async function startRun(
   request: StartRunRequest,
 ): Promise<StartRunResponse> {
-  const workerKey = (request.workerKey ?? request.pipelineId ?? "").trim();
+  const workerKey = request.workerKey.trim();
   if (!workerKey) {
     throw new Error("workerKey is required");
   }
+  const projectId = request.projectId.trim();
+  if (!projectId) {
+    throw new Error("projectId is required");
+  }
   const res = await pipelineClient.startRun({
-    sessionId: request.sessionId,
+    projectId,
     pipelineId: workerKey,
     params: request.params ?? {},
   });
@@ -83,12 +149,10 @@ export async function startRun(
 const STREAM_RUN_DUMMY_EVENT: StreamRunEvent = {
   eventType: "EVENT_TYPE_ERROR",
   message:
-    "[DUMMY] streamRun() is a placeholder and is not implemented. Use startRun() + watchRun() with Connect client.",
+    "[DUMMY] streamRun() is a placeholder and is not implemented. Use startRun() + watchRun().",
 };
 
 /**
- * DUMMY IMPLEMENTATION: kept only for backward compatibility.
- *
  * This function intentionally does not stream.
  */
 export async function* streamRun(
@@ -123,7 +187,7 @@ export async function respondNeedUserInput(
   request: NeedUserInputRequest,
 ): Promise<NeedUserInputResponse> {
   const res = await sendChatMessage({
-    sessionId: request.sessionId,
+    projectId: request.projectId,
     runId: request.runId ?? "",
     interactionId: request.interactionId ?? "",
     input: request.input,
@@ -144,7 +208,7 @@ export async function* watchChat(
     throw new Error("watchChat requires runId or conversationId");
   }
   const stream = llmChatClient.watchChat({
-    sessionId: request.sessionId ?? "",
+    projectId: request.projectId,
     runId,
     conversationId,
     fromSeq: request.fromSeq ?? 0,
@@ -179,7 +243,7 @@ export async function* watchChat(
 
     yield {
       eventType: toChatEventType(event.eventType),
-      sessionId: event.sessionId,
+      projectId: event.projectId,
       runId: event.runId,
       conversationId: event.conversationId,
       workerKey: event.workerKey,
@@ -237,7 +301,7 @@ export async function sendChatMessage(
   request: SendChatMessageRequest,
 ): Promise<SendChatMessageResponse> {
   const res = await llmChatClient.sendMessage({
-    sessionId: request.sessionId,
+    projectId: request.projectId,
     runId: request.runId,
     conversationId: request.conversationId ?? "",
     interactionId: request.interactionId ?? "",

@@ -9,7 +9,7 @@ import { file_pipeline_v1_client_view } from "../../pipeline/v1/client_view_pb";
  * Describes the file insightify/v1/pipeline.proto.
  */
 export const file_insightify_v1_pipeline = /*@__PURE__*/
-  fileDesc("ChxpbnNpZ2h0aWZ5L3YxL3BpcGVsaW5lLnByb3RvEg1pbnNpZ2h0aWZ5LnYxIjMKDkluaXRSdW5SZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkSEAoIcmVwb191cmwYAiABKAkiUgoPSW5pdFJ1blJlc3BvbnNlEhIKCnNlc3Npb25faWQYASABKAkSEQoJcmVwb19uYW1lGAIgASgJEhgKEGJvb3RzdHJhcF9ydW5faWQYAyABKAkipQEKD1N0YXJ0UnVuUmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJEhMKC3BpcGVsaW5lX2lkGAIgASgJEjoKBnBhcmFtcxgDIAMoCzIqLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXF1ZXN0LlBhcmFtc0VudHJ5Gi0KC1BhcmFtc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiUAoQU3RhcnRSdW5SZXNwb25zZRIOCgZydW5faWQYASABKAkSLAoLY2xpZW50X3ZpZXcYAiABKAsyFy5waXBlbGluZS52MS5DbGllbnRWaWV3IkoKFVN1Ym1pdFJ1bklucHV0UmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJEg4KBnJ1bl9pZBgCIAEoCRINCgVpbnB1dBgDIAEoCSIoChZTdWJtaXRSdW5JbnB1dFJlc3BvbnNlEg4KBnJ1bl9pZBgBIAEoCSIhCg9XYXRjaFJ1blJlcXVlc3QSDgoGcnVuX2lkGAEgASgJIrACChBXYXRjaFJ1blJlc3BvbnNlEj0KCmV2ZW50X3R5cGUYASABKA4yKS5pbnNpZ2h0aWZ5LnYxLldhdGNoUnVuUmVzcG9uc2UuRXZlbnRUeXBlEg8KB21lc3NhZ2UYAiABKAkSGAoQcHJvZ3Jlc3NfcGVyY2VudBgDIAEoBRIsCgtjbGllbnRfdmlldxgEIAEoCzIXLnBpcGVsaW5lLnYxLkNsaWVudFZpZXcigwEKCUV2ZW50VHlwZRIaChZFVkVOVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoORVZFTlRfVFlQRV9MT0cQARIXChNFVkVOVF9UWVBFX1BST0dSRVNTEAISFwoTRVZFTlRfVFlQRV9DT01QTEVURRADEhQKEEVWRU5UX1RZUEVfRVJST1IQBDLVAgoPUGlwZWxpbmVTZXJ2aWNlEkgKB0luaXRSdW4SHS5pbnNpZ2h0aWZ5LnYxLkluaXRSdW5SZXF1ZXN0Gh4uaW5zaWdodGlmeS52MS5Jbml0UnVuUmVzcG9uc2USSwoIU3RhcnRSdW4SHi5pbnNpZ2h0aWZ5LnYxLlN0YXJ0UnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXNwb25zZRJcCg1OZWVkVXNlcklucHV0EiQuaW5zaWdodGlmeS52MS5TdWJtaXRSdW5JbnB1dFJlcXVlc3QaJS5pbnNpZ2h0aWZ5LnYxLlN1Ym1pdFJ1bklucHV0UmVzcG9uc2USTQoIV2F0Y2hSdW4SHi5pbnNpZ2h0aWZ5LnYxLldhdGNoUnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuV2F0Y2hSdW5SZXNwb25zZTABQqUBChFjb20uaW5zaWdodGlmeS52MUINUGlwZWxpbmVQcm90b1ABWixpbnNpZ2h0aWZ5L2dlbi9nby9pbnNpZ2h0aWZ5L3YxO2luc2lnaHRpZnl2MaICA0lYWKoCDUluc2lnaHRpZnkuVjHKAg1JbnNpZ2h0aWZ5XFYx4gIZSW5zaWdodGlmeVxWMVxHUEJNZXRhZGF0YeoCDkluc2lnaHRpZnk6OlYxYgZwcm90bzM", [file_pipeline_v1_client_view]);
+  fileDesc("ChxpbnNpZ2h0aWZ5L3YxL3BpcGVsaW5lLnByb3RvEg1pbnNpZ2h0aWZ5LnYxIkcKDkluaXRSdW5SZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkSEAoIcmVwb191cmwYAiABKAkSEgoKcHJvamVjdF9pZBgDIAEoCSJmCg9Jbml0UnVuUmVzcG9uc2USEgoKc2Vzc2lvbl9pZBgBIAEoCRIRCglyZXBvX25hbWUYAiABKAkSGAoQYm9vdHN0cmFwX3J1bl9pZBgDIAEoCRISCgpwcm9qZWN0X2lkGAQgASgJIoUBCgdQcm9qZWN0EhIKCnByb2plY3RfaWQYASABKAkSDwoHdXNlcl9pZBgCIAEoCRIMCgRuYW1lGAMgASgJEhAKCHJlcG9fdXJsGAQgASgJEg8KB3B1cnBvc2UYBSABKAkSEQoJcmVwb19uYW1lGAYgASgJEhEKCWlzX2FjdGl2ZRgHIAEoCCImChNMaXN0UHJvamVjdHNSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiWwoUTGlzdFByb2plY3RzUmVzcG9uc2USKAoIcHJvamVjdHMYASADKAsyFi5pbnNpZ2h0aWZ5LnYxLlByb2plY3QSGQoRYWN0aXZlX3Byb2plY3RfaWQYAiABKAkiRwoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCRIMCgRuYW1lGAIgASgJEhAKCHJlcG9fdXJsGAMgASgJIkAKFUNyZWF0ZVByb2plY3RSZXNwb25zZRInCgdwcm9qZWN0GAEgASgLMhYuaW5zaWdodGlmeS52MS5Qcm9qZWN0IjsKFFNlbGVjdFByb2plY3RSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkSEgoKcHJvamVjdF9pZBgCIAEoCSJAChVTZWxlY3RQcm9qZWN0UmVzcG9uc2USJwoHcHJvamVjdBgBIAEoCzIWLmluc2lnaHRpZnkudjEuUHJvamVjdCK5AQoPU3RhcnRSdW5SZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEwoLcGlwZWxpbmVfaWQYAiABKAkSOgoGcGFyYW1zGAMgAygLMiouaW5zaWdodGlmeS52MS5TdGFydFJ1blJlcXVlc3QuUGFyYW1zRW50cnkSEgoKcHJvamVjdF9pZBgEIAEoCRotCgtQYXJhbXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlAKEFN0YXJ0UnVuUmVzcG9uc2USDgoGcnVuX2lkGAEgASgJEiwKC2NsaWVudF92aWV3GAIgASgLMhcucGlwZWxpbmUudjEuQ2xpZW50VmlldyJeChVTdWJtaXRSdW5JbnB1dFJlcXVlc3QSEgoKc2Vzc2lvbl9pZBgBIAEoCRIOCgZydW5faWQYAiABKAkSDQoFaW5wdXQYAyABKAkSEgoKcHJvamVjdF9pZBgEIAEoCSIoChZTdWJtaXRSdW5JbnB1dFJlc3BvbnNlEg4KBnJ1bl9pZBgBIAEoCSIhCg9XYXRjaFJ1blJlcXVlc3QSDgoGcnVuX2lkGAEgASgJIrACChBXYXRjaFJ1blJlc3BvbnNlEj0KCmV2ZW50X3R5cGUYASABKA4yKS5pbnNpZ2h0aWZ5LnYxLldhdGNoUnVuUmVzcG9uc2UuRXZlbnRUeXBlEg8KB21lc3NhZ2UYAiABKAkSGAoQcHJvZ3Jlc3NfcGVyY2VudBgDIAEoBRIsCgtjbGllbnRfdmlldxgEIAEoCzIXLnBpcGVsaW5lLnYxLkNsaWVudFZpZXcigwEKCUV2ZW50VHlwZRIaChZFVkVOVF9UWVBFX1VOU1BFQ0lGSUVEEAASEgoORVZFTlRfVFlQRV9MT0cQARIXChNFVkVOVF9UWVBFX1BST0dSRVNTEAISFwoTRVZFTlRfVFlQRV9DT01QTEVURRADEhQKEEVWRU5UX1RZUEVfRVJST1IQBDLmBAoPUGlwZWxpbmVTZXJ2aWNlEkgKB0luaXRSdW4SHS5pbnNpZ2h0aWZ5LnYxLkluaXRSdW5SZXF1ZXN0Gh4uaW5zaWdodGlmeS52MS5Jbml0UnVuUmVzcG9uc2USVwoMTGlzdFByb2plY3RzEiIuaW5zaWdodGlmeS52MS5MaXN0UHJvamVjdHNSZXF1ZXN0GiMuaW5zaWdodGlmeS52MS5MaXN0UHJvamVjdHNSZXNwb25zZRJaCg1DcmVhdGVQcm9qZWN0EiMuaW5zaWdodGlmeS52MS5DcmVhdGVQcm9qZWN0UmVxdWVzdBokLmluc2lnaHRpZnkudjEuQ3JlYXRlUHJvamVjdFJlc3BvbnNlEloKDVNlbGVjdFByb2plY3QSIy5pbnNpZ2h0aWZ5LnYxLlNlbGVjdFByb2plY3RSZXF1ZXN0GiQuaW5zaWdodGlmeS52MS5TZWxlY3RQcm9qZWN0UmVzcG9uc2USSwoIU3RhcnRSdW4SHi5pbnNpZ2h0aWZ5LnYxLlN0YXJ0UnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXNwb25zZRJcCg1OZWVkVXNlcklucHV0EiQuaW5zaWdodGlmeS52MS5TdWJtaXRSdW5JbnB1dFJlcXVlc3QaJS5pbnNpZ2h0aWZ5LnYxLlN1Ym1pdFJ1bklucHV0UmVzcG9uc2USTQoIV2F0Y2hSdW4SHi5pbnNpZ2h0aWZ5LnYxLldhdGNoUnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuV2F0Y2hSdW5SZXNwb25zZTABQqUBChFjb20uaW5zaWdodGlmeS52MUINUGlwZWxpbmVQcm90b1ABWixpbnNpZ2h0aWZ5L2dlbi9nby9pbnNpZ2h0aWZ5L3YxO2luc2lnaHRpZnl2MaICA0lYWKoCDUluc2lnaHRpZnkuVjHKAg1JbnNpZ2h0aWZ5XFYx4gIZSW5zaWdodGlmeVxWMVxHUEJNZXRhZGF0YeoCDkluc2lnaHRpZnk6OlYxYgZwcm90bzM", [file_pipeline_v1_client_view]);
 
 /**
  * Describes the message insightify.v1.InitRunRequest.
@@ -26,52 +26,101 @@ export const InitRunResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_pipeline, 1);
 
 /**
+ * Describes the message insightify.v1.Project.
+ * Use `create(ProjectSchema)` to create a new message.
+ */
+export const ProjectSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 2);
+
+/**
+ * Describes the message insightify.v1.ListProjectsRequest.
+ * Use `create(ListProjectsRequestSchema)` to create a new message.
+ */
+export const ListProjectsRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 3);
+
+/**
+ * Describes the message insightify.v1.ListProjectsResponse.
+ * Use `create(ListProjectsResponseSchema)` to create a new message.
+ */
+export const ListProjectsResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 4);
+
+/**
+ * Describes the message insightify.v1.CreateProjectRequest.
+ * Use `create(CreateProjectRequestSchema)` to create a new message.
+ */
+export const CreateProjectRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 5);
+
+/**
+ * Describes the message insightify.v1.CreateProjectResponse.
+ * Use `create(CreateProjectResponseSchema)` to create a new message.
+ */
+export const CreateProjectResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 6);
+
+/**
+ * Describes the message insightify.v1.SelectProjectRequest.
+ * Use `create(SelectProjectRequestSchema)` to create a new message.
+ */
+export const SelectProjectRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 7);
+
+/**
+ * Describes the message insightify.v1.SelectProjectResponse.
+ * Use `create(SelectProjectResponseSchema)` to create a new message.
+ */
+export const SelectProjectResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_pipeline, 8);
+
+/**
  * Describes the message insightify.v1.StartRunRequest.
  * Use `create(StartRunRequestSchema)` to create a new message.
  */
 export const StartRunRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 2);
+  messageDesc(file_insightify_v1_pipeline, 9);
 
 /**
  * Describes the message insightify.v1.StartRunResponse.
  * Use `create(StartRunResponseSchema)` to create a new message.
  */
 export const StartRunResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 3);
+  messageDesc(file_insightify_v1_pipeline, 10);
 
 /**
  * Describes the message insightify.v1.SubmitRunInputRequest.
  * Use `create(SubmitRunInputRequestSchema)` to create a new message.
  */
 export const SubmitRunInputRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 4);
+  messageDesc(file_insightify_v1_pipeline, 11);
 
 /**
  * Describes the message insightify.v1.SubmitRunInputResponse.
  * Use `create(SubmitRunInputResponseSchema)` to create a new message.
  */
 export const SubmitRunInputResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 5);
+  messageDesc(file_insightify_v1_pipeline, 12);
 
 /**
  * Describes the message insightify.v1.WatchRunRequest.
  * Use `create(WatchRunRequestSchema)` to create a new message.
  */
 export const WatchRunRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 6);
+  messageDesc(file_insightify_v1_pipeline, 13);
 
 /**
  * Describes the message insightify.v1.WatchRunResponse.
  * Use `create(WatchRunResponseSchema)` to create a new message.
  */
 export const WatchRunResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_pipeline, 7);
+  messageDesc(file_insightify_v1_pipeline, 14);
 
 /**
  * Describes the enum insightify.v1.WatchRunResponse.EventType.
  */
 export const WatchRunResponse_EventTypeSchema = /*@__PURE__*/
-  enumDesc(file_insightify_v1_pipeline, 7, 0);
+  enumDesc(file_insightify_v1_pipeline, 14, 0);
 
 /**
  * @generated from enum insightify.v1.WatchRunResponse.EventType

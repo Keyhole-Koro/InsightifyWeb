@@ -16,18 +16,22 @@ export const Home = () => {
   const nodeSeq = useRef(1);
   const msgSeq = useRef(1);
 
-  const { inProgress, completed, dismissCompleted } = useRunManager({
-    onNodesChange: setNodes,
-    onEdgesChange: setEdges,
-  });
+  const { inProgress, completed, dismissCompleted } = useRunManager();
 
-  const { nodeTypes, sessionId, initError } = useBootstrap({
+  const {
+    nodeTypes,
+    projectId,
+    projects,
+    initError,
+    onSelectProject,
+    onCreateProject,
+  } = useBootstrap({
     setNodes,
     nodeSeq,
     msgSeq,
   });
 
-  const isInitialized = useMemo(() => Boolean(sessionId), [sessionId]);
+  const isInitialized = useMemo(() => Boolean(projectId), [projectId]);
 
   return (
     <HomeShell
@@ -44,7 +48,10 @@ export const Home = () => {
         actions: (
           <ActionPanel
             isInitialized={isInitialized}
-            sessionId={sessionId}
+            projectId={projectId}
+            projects={projects}
+            onSelectProject={onSelectProject}
+            onCreateProject={onCreateProject}
             initError={initError}
           />
         ),

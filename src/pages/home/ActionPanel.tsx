@@ -1,12 +1,20 @@
+import type { ProjectItem } from "@/api/coreApi";
+
 interface ActionPanelProps {
   isInitialized: boolean;
-  sessionId: string | null;
+  projectId: string | null;
+  projects: ProjectItem[];
+  onSelectProject: (projectId: string) => void | Promise<void>;
+  onCreateProject: () => void | Promise<void>;
   initError: string | null;
 }
 
 export function ActionPanel({
   isInitialized,
-  sessionId,
+  projectId,
+  projects,
+  onSelectProject,
+  onCreateProject,
   initError,
 }: ActionPanelProps) {
   return (
@@ -29,14 +37,66 @@ export function ActionPanel({
         }}
       >
         {isInitialized
-          ? `Session Ready · ${sessionId}`
-          : "Session Not Initialized"}
+          ? `Project Ready · ${projectId}`
+          : "Project Not Initialized"}
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 52,
+          right: 24,
+          zIndex: 10,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          background: "rgba(255,255,255,0.9)",
+          border: "1px solid rgba(148,163,184,0.35)",
+          borderRadius: 10,
+          padding: "8px 10px",
+        }}
+      >
+        <select
+          value={projectId ?? ""}
+          onChange={(e) => void onSelectProject(e.target.value)}
+          style={{
+            minWidth: 180,
+            border: "1px solid rgba(148,163,184,0.4)",
+            borderRadius: 6,
+            padding: "4px 8px",
+            fontSize: 12,
+          }}
+        >
+          {projects.length === 0 ? (
+            <option value="">No Projects</option>
+          ) : null}
+          {projects.map((project) => (
+            <option key={project.projectId} value={project.projectId}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => void onCreateProject()}
+          style={{
+            border: "1px solid rgba(59,130,246,0.45)",
+            borderRadius: 6,
+            background: "rgba(239,246,255,0.95)",
+            color: "#1e3a8a",
+            padding: "4px 10px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          New Project
+        </button>
       </div>
       {initError ? (
         <div
           style={{
             position: "absolute",
-            top: 52,
+            top: 96,
             right: 24,
             zIndex: 10,
             maxWidth: 360,

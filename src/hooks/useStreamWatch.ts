@@ -32,7 +32,7 @@ export function useStreamWatch() {
       runId: string,
       conversationId: string,
       callbacks: StreamCallbacks,
-      sessionId?: string,
+      projectId?: string,
     ): Promise<void> => {
       const watchKey = conversationId || runId;
       if (!watchKey) {
@@ -49,7 +49,7 @@ export function useStreamWatch() {
       const fromSeq = lastSeqByConversationRef.current[resolvedConversationID] ?? 0;
 
       try {
-        for await (const event of watchChat({ runId, sessionId, conversationId, fromSeq })) {
+        for await (const event of watchChat({ runId, projectId: projectId ?? "", conversationId, fromSeq })) {
           const eventConversationID = (event.conversationId ?? "").trim();
           if (eventConversationID) {
             resolvedConversationID = eventConversationID;
@@ -67,17 +67,6 @@ export function useStreamWatch() {
             event.eventType === "EVENT_TYPE_ASSISTANT_CHUNK" &&
             event.text
           ) {
-            accumulated += event.text;
-            callbacks.onChunk(accumulated);
-            continue;
-          }
-
-          if (
-            event.eventType === "EVENT_TYPE_UNSPECIFIED" &&
-            event.text &&
-            !event.interactionId
-          ) {
-            // Backward-compatible fallback for unspecified chunk-like events.
             accumulated += event.text;
             callbacks.onChunk(accumulated);
             continue;
@@ -122,7 +111,7 @@ export function useStreamWatch() {
 
         // Recover closed run streams when we already have accumulated content.
         if (
-          (message.includes("not found") || message.includes("session")) &&
+          message.includes("not found") &&
           accumulated.trim() !== ""
         ) {
           callbacks.onComplete(accumulated);
