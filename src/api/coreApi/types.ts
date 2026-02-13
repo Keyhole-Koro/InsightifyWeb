@@ -1,20 +1,8 @@
 import type { BaseRunEvent, ClientView } from "@/types/api";
 
 export interface StartRunRequest {
-  /**
-   * Project ID created by CreateProject / InitRun.
-   */
   projectId: string;
-
-  /**
-   * The worker key to start.
-   */
   workerKey: string;
-
-  /**
-   * Parameters for the worker run.
-   * Corresponds to `params` map<string, string> in proto.
-   */
   params?: Record<string, string>;
 }
 
@@ -78,51 +66,36 @@ export interface StreamRunRequest {
   params?: Record<string, string>;
 }
 
-export interface StreamRunEvent extends BaseRunEvent {}
+export interface StreamRunEvent extends BaseRunEvent { }
 
 export interface WatchRunRequest {
   runId: string;
 }
 
-export interface RunEvent extends BaseRunEvent {}
+export interface RunEvent extends BaseRunEvent { }
 
-export interface NeedUserInputRequest {
+// ---------------------------------------------------------------------------
+// SubmitInput (merged NeedUserInput + SendMessage)
+// ---------------------------------------------------------------------------
+
+export interface SubmitInputRequest {
   projectId: string;
-  runId?: string;
-  interactionId?: string;
+  runId: string;
   input: string;
+  interactionId?: string;
+  conversationId?: string;
 }
 
-export interface NeedUserInputResponse {
-  runId?: string;
+export interface SubmitInputResponse {
   accepted?: boolean;
+  runId?: string;
   interactionId?: string;
+  conversationId?: string;
 }
 
-export interface WatchChatRequest {
-  projectId: string;
-  runId?: string;
-  conversationId?: string;
-  fromSeq?: number;
-}
-
-export interface ChatEvent {
-  eventType:
-    | "EVENT_TYPE_UNSPECIFIED"
-    | "EVENT_TYPE_ASSISTANT_CHUNK"
-    | "EVENT_TYPE_ASSISTANT_FINAL"
-    | "EVENT_TYPE_NEED_INPUT"
-    | "EVENT_TYPE_COMPLETE"
-    | "EVENT_TYPE_ERROR";
-  projectId?: string;
-  runId?: string;
-  conversationId?: string;
-  workerKey?: string;
-  interactionId?: string;
-  seq?: number;
-  text?: string;
-  node?: ChatNode;
-}
+// ---------------------------------------------------------------------------
+// UI node types (from llm_chat.proto — UI types only)
+// ---------------------------------------------------------------------------
 
 export type ChatNodeType =
   | "UI_NODE_TYPE_UNSPECIFIED"
@@ -178,19 +151,4 @@ export interface ChatNode {
   markdown?: ChatMarkdownState;
   image?: ChatImageState;
   table?: ChatTableState;
-}
-
-export interface SendChatMessageRequest {
-  projectId: string;
-  runId: string;
-  conversationId?: string;
-  interactionId?: string;
-  input: string;
-  clientMsgId?: string;
-}
-
-export interface SendChatMessageResponse {
-  accepted?: boolean;
-  interactionId?: string;
-  conversationId?: string;
 }

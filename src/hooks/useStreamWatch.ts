@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-import { watchChat } from "@/api/coreApi";
+import { watchRun } from "@/api/coreApi";
 import type { ChatNode } from "@/api/coreApi";
 
 export interface StreamEvent {
@@ -21,80 +21,68 @@ export interface StreamCallbacks {
 
 /**
  * One watch call handles exactly one stream lifecycle.
- * Re-watching is controlled by callers (e.g. after SendMessage).
+ * Re-watching is controlled by callers (e.g. after SubmitInput).
  */
 export function useStreamWatch() {
-  const abortByConversationRef = useRef<Record<string, AbortController>>({});
-  const lastSeqByConversationRef = useRef<Record<string, number>>({});
+  const abortByRunRef = useRef<Record<string, AbortController>>({});
 
   const stream = useCallback(
     async (
       runId: string,
-      conversationId: string,
+      _conversationId: string,
       callbacks: StreamCallbacks,
-      projectId?: string,
+      _projectId?: string,
     ): Promise<void> => {
-      const watchKey = conversationId || runId;
+      const watchKey = runId;
       if (!watchKey) {
-        callbacks.onError("runId or conversationId is required");
+        callbacks.onError("runId is required");
         return;
       }
 
-      // Replace only the existing watcher for the same conversation scope.
-      abortByConversationRef.current[watchKey]?.abort();
-      abortByConversationRef.current[watchKey] = new AbortController();
+      // Replace only the existing watcher for the same run.
+      abortByRunRef.current[watchKey]?.abort();
+      abortByRunRef.current[watchKey] = new AbortController();
 
       let accumulated = "";
-      let resolvedConversationID = conversationId || watchKey;
-      const fromSeq = lastSeqByConversationRef.current[resolvedConversationID] ?? 0;
 
       try {
-        for await (const event of watchChat({ runId, projectId: projectId ?? "", conversationId, fromSeq })) {
-          const eventConversationID = (event.conversationId ?? "").trim();
-          if (eventConversationID) {
-            resolvedConversationID = eventConversationID;
-            callbacks.onConversationResolved?.(eventConversationID);
-          }
-          if ((event.seq ?? 0) > 0 && resolvedConversationID) {
-            lastSeqByConversationRef.current[resolvedConversationID] = event.seq ?? 0;
-          }
-
+        for await (const event of watchRun({ runId })) {
+          // Forward UI node events.
           if (event.node) {
             callbacks.onNode?.(event.node);
           }
 
           if (
-            event.eventType === "EVENT_TYPE_ASSISTANT_CHUNK" &&
-            event.text
+            event.eventType === "EVENT_TYPE_LOG" &&
+            event.message
           ) {
-            accumulated += event.text;
+            accumulated += event.message;
             callbacks.onChunk(accumulated);
             continue;
           }
 
-          if (event.eventType === "EVENT_TYPE_ASSISTANT_FINAL" && event.text) {
-            accumulated = event.text;
-            callbacks.onChunk(accumulated);
+          if (event.eventType === "EVENT_TYPE_PROGRESS") {
             continue;
           }
 
-          if (event.eventType === "EVENT_TYPE_NEED_INPUT") {
-            callbacks.onNeedUserInput(event.interactionId ?? "");
-            if (event.text) {
-              accumulated = event.text;
-              callbacks.onChunk(accumulated);
-            }
+          if (event.eventType === "EVENT_TYPE_INPUT_REQUIRED") {
+            callbacks.onNeedUserInput(event.inputRequestId ?? "");
             return;
           }
 
+          if (event.eventType === "EVENT_TYPE_NODE_READY") {
+            // Node already forwarded above; no further action.
+            continue;
+          }
+
           if (event.eventType === "EVENT_TYPE_COMPLETE") {
-            const finalText = (event.text ?? "").trim() || accumulated;
+            const finalText = (event.message ?? "").trim() || accumulated;
             callbacks.onComplete(finalText);
             return;
           }
 
           if (event.eventType === "EVENT_TYPE_ERROR") {
-            const message = event.text || "Stream error";
+            const message = event.message || "Stream error";
             callbacks.onError(message);
             return;
           }
@@ -120,18 +108,18 @@ export function useStreamWatch() {
 
         callbacks.onError(message);
       } finally {
-        delete abortByConversationRef.current[watchKey];
+        delete abortByRunRef.current[watchKey];
       }
     },
     [],
   );
 
   const cancel = useCallback(() => {
-    const controllers = Object.values(abortByConversationRef.current);
+    const controllers = Object.values(abortByRunRef.current);
     for (const controller of controllers) {
       controller.abort();
     }
-    abortByConversationRef.current = {};
+    abortByRunRef.current = {};
   }, []);
 
   return { stream, cancel };

@@ -2,73 +2,33 @@
 // @generated from file insightify/v1/llm_chat.proto (package insightify.v1, syntax proto3)
 /* eslint-disable */
 
-import { enumDesc, fileDesc, messageDesc, serviceDesc, tsEnum } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, tsEnum } from "@bufbuild/protobuf/codegenv2";
 
 /**
  * Describes the file insightify/v1/llm_chat.proto.
  */
 export const file_insightify_v1_llm_chat = /*@__PURE__*/
-  fileDesc("ChxpbnNpZ2h0aWZ5L3YxL2xsbV9jaGF0LnByb3RvEg1pbnNpZ2h0aWZ5LnYxInUKEFdhdGNoQ2hhdFJlcXVlc3QSEgoKc2Vzc2lvbl9pZBgBIAEoCRIOCgZydW5faWQYAiABKAkSFwoPY29udmVyc2F0aW9uX2lkGAMgASgJEhAKCGZyb21fc2VxGAQgASgDEhIKCnByb2plY3RfaWQYBSABKAkiowEKElNlbmRNZXNzYWdlUmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJEg4KBnJ1bl9pZBgCIAEoCRIWCg5pbnRlcmFjdGlvbl9pZBgDIAEoCRINCgVpbnB1dBgEIAEoCRIVCg1jbGllbnRfbXNnX2lkGAUgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgGIAEoCRISCgpwcm9qZWN0X2lkGAcgASgJIlgKE1NlbmRNZXNzYWdlUmVzcG9uc2USEAoIYWNjZXB0ZWQYASABKAgSFgoOaW50ZXJhY3Rpb25faWQYAiABKAkSFwoPY29udmVyc2F0aW9uX2lkGAMgASgJIrQDCglDaGF0RXZlbnQSNgoKZXZlbnRfdHlwZRgBIAEoDjIiLmluc2lnaHRpZnkudjEuQ2hhdEV2ZW50LkV2ZW50VHlwZRISCgpzZXNzaW9uX2lkGAIgASgJEg4KBnJ1bl9pZBgDIAEoCRISCgp3b3JrZXJfa2V5GAQgASgJEhYKDmludGVyYWN0aW9uX2lkGAUgASgJEgsKA3NlcRgGIAEoAxIMCgR0ZXh0GAcgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgIIAEoCRISCgpwcm9qZWN0X2lkGAkgASgJEiMKBG5vZGUYFCABKAsyFS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZSKxAQoJRXZlbnRUeXBlEhoKFkVWRU5UX1RZUEVfVU5TUEVDSUZJRUQQABIeChpFVkVOVF9UWVBFX0FTU0lTVEFOVF9DSFVOSxABEh4KGkVWRU5UX1RZUEVfQVNTSVNUQU5UX0ZJTkFMEAISGQoVRVZFTlRfVFlQRV9ORUVEX0lOUFVUEAMSFAoQRVZFTlRfVFlQRV9FUlJPUhAEEhcKE0VWRU5UX1RZUEVfQ09NUExFVEUQBSI+CgpVaU5vZGVNZXRhEg0KBXRpdGxlGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEgwKBHRhZ3MYAyADKAkingEKDVVpQ2hhdE1lc3NhZ2USCgoCaWQYASABKAkSLwoEcm9sZRgCIAEoDjIhLmluc2lnaHRpZnkudjEuVWlDaGF0TWVzc2FnZS5Sb2xlEg8KB2NvbnRlbnQYAyABKAkiPwoEUm9sZRIUChBST0xFX1VOU1BFQ0lGSUVEEAASDQoJUk9MRV9VU0VSEAESEgoOUk9MRV9BU1NJU1RBTlQQAiKTAQoOVWlMbG1DaGF0U3RhdGUSDQoFbW9kZWwYASABKAkSFQoNaXNfcmVzcG9uZGluZxgCIAEoCBITCgtzZW5kX2xvY2tlZBgDIAEoCBIWCg5zZW5kX2xvY2tfaGludBgEIAEoCRIuCghtZXNzYWdlcxgFIAMoCzIcLmluc2lnaHRpZnkudjEuVWlDaGF0TWVzc2FnZSIjCg9VaU1hcmtkb3duU3RhdGUSEAoIbWFya2Rvd24YASABKAkiKAoMVWlJbWFnZVN0YXRlEgsKA3NyYxgBIAEoCRILCgNhbHQYAiABKAkiSAoMVWlUYWJsZVN0YXRlEg8KB2NvbHVtbnMYASADKAkSJwoEcm93cxgCIAMoCzIZLmluc2lnaHRpZnkudjEuVWlUYWJsZVJvdyIbCgpVaVRhYmxlUm93Eg0KBWNlbGxzGAEgAygJIqECCgZVaU5vZGUSCgoCaWQYASABKAkSJwoEdHlwZRgCIAEoDjIZLmluc2lnaHRpZnkudjEuVWlOb2RlVHlwZRInCgRtZXRhGAMgASgLMhkuaW5zaWdodGlmeS52MS5VaU5vZGVNZXRhEi8KCGxsbV9jaGF0GAogASgLMh0uaW5zaWdodGlmeS52MS5VaUxsbUNoYXRTdGF0ZRIwCghtYXJrZG93bhgLIAEoCzIeLmluc2lnaHRpZnkudjEuVWlNYXJrZG93blN0YXRlEioKBWltYWdlGAwgASgLMhsuaW5zaWdodGlmeS52MS5VaUltYWdlU3RhdGUSKgoFdGFibGUYDSABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpVGFibGVTdGF0ZSqQAQoKVWlOb2RlVHlwZRIcChhVSV9OT0RFX1RZUEVfVU5TUEVDSUZJRUQQABIZChVVSV9OT0RFX1RZUEVfTExNX0NIQVQQARIZChVVSV9OT0RFX1RZUEVfTUFSS0RPV04QAhIWChJVSV9OT0RFX1RZUEVfSU1BR0UQAxIWChJVSV9OT0RFX1RZUEVfVEFCTEUQBDKwAQoOTGxtQ2hhdFNlcnZpY2USSAoJV2F0Y2hDaGF0Eh8uaW5zaWdodGlmeS52MS5XYXRjaENoYXRSZXF1ZXN0GhguaW5zaWdodGlmeS52MS5DaGF0RXZlbnQwARJUCgtTZW5kTWVzc2FnZRIhLmluc2lnaHRpZnkudjEuU2VuZE1lc3NhZ2VSZXF1ZXN0GiIuaW5zaWdodGlmeS52MS5TZW5kTWVzc2FnZVJlc3BvbnNlQqQBChFjb20uaW5zaWdodGlmeS52MUIMTGxtQ2hhdFByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw");
-
-/**
- * Describes the message insightify.v1.WatchChatRequest.
- * Use `create(WatchChatRequestSchema)` to create a new message.
- */
-export const WatchChatRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 0);
-
-/**
- * Describes the message insightify.v1.SendMessageRequest.
- * Use `create(SendMessageRequestSchema)` to create a new message.
- */
-export const SendMessageRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 1);
-
-/**
- * Describes the message insightify.v1.SendMessageResponse.
- * Use `create(SendMessageResponseSchema)` to create a new message.
- */
-export const SendMessageResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 2);
-
-/**
- * Describes the message insightify.v1.ChatEvent.
- * Use `create(ChatEventSchema)` to create a new message.
- */
-export const ChatEventSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 3);
-
-/**
- * Describes the enum insightify.v1.ChatEvent.EventType.
- */
-export const ChatEvent_EventTypeSchema = /*@__PURE__*/
-  enumDesc(file_insightify_v1_llm_chat, 3, 0);
-
-/**
- * @generated from enum insightify.v1.ChatEvent.EventType
- */
-export const ChatEvent_EventType = /*@__PURE__*/
-  tsEnum(ChatEvent_EventTypeSchema);
+  fileDesc("ChxpbnNpZ2h0aWZ5L3YxL2xsbV9jaGF0LnByb3RvEg1pbnNpZ2h0aWZ5LnYxIj4KClVpTm9kZU1ldGESDQoFdGl0bGUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEdGFncxgDIAMoCSKeAQoNVWlDaGF0TWVzc2FnZRIKCgJpZBgBIAEoCRIvCgRyb2xlGAIgASgOMiEuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlLlJvbGUSDwoHY29udGVudBgDIAEoCSI/CgRSb2xlEhQKEFJPTEVfVU5TUEVDSUZJRUQQABINCglST0xFX1VTRVIQARISCg5ST0xFX0FTU0lTVEFOVBACIpMBCg5VaUxsbUNoYXRTdGF0ZRINCgVtb2RlbBgBIAEoCRIVCg1pc19yZXNwb25kaW5nGAIgASgIEhMKC3NlbmRfbG9ja2VkGAMgASgIEhYKDnNlbmRfbG9ja19oaW50GAQgASgJEi4KCG1lc3NhZ2VzGAUgAygLMhwuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlIiMKD1VpTWFya2Rvd25TdGF0ZRIQCghtYXJrZG93bhgBIAEoCSIoCgxVaUltYWdlU3RhdGUSCwoDc3JjGAEgASgJEgsKA2FsdBgCIAEoCSJICgxVaVRhYmxlU3RhdGUSDwoHY29sdW1ucxgBIAMoCRInCgRyb3dzGAIgAygLMhkuaW5zaWdodGlmeS52MS5VaVRhYmxlUm93IhsKClVpVGFibGVSb3cSDQoFY2VsbHMYASADKAkioQIKBlVpTm9kZRIKCgJpZBgBIAEoCRInCgR0eXBlGAIgASgOMhkuaW5zaWdodGlmeS52MS5VaU5vZGVUeXBlEicKBG1ldGEYAyABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZU1ldGESLwoIbGxtX2NoYXQYCiABKAsyHS5pbnNpZ2h0aWZ5LnYxLlVpTGxtQ2hhdFN0YXRlEjAKCG1hcmtkb3duGAsgASgLMh4uaW5zaWdodGlmeS52MS5VaU1hcmtkb3duU3RhdGUSKgoFaW1hZ2UYDCABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpSW1hZ2VTdGF0ZRIqCgV0YWJsZRgNIAEoCzIbLmluc2lnaHRpZnkudjEuVWlUYWJsZVN0YXRlKpABCgpVaU5vZGVUeXBlEhwKGFVJX05PREVfVFlQRV9VTlNQRUNJRklFRBAAEhkKFVVJX05PREVfVFlQRV9MTE1fQ0hBVBABEhkKFVVJX05PREVfVFlQRV9NQVJLRE9XThACEhYKElVJX05PREVfVFlQRV9JTUFHRRADEhYKElVJX05PREVfVFlQRV9UQUJMRRAEQqQBChFjb20uaW5zaWdodGlmeS52MUIMTGxtQ2hhdFByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw");
 
 /**
  * Describes the message insightify.v1.UiNodeMeta.
  * Use `create(UiNodeMetaSchema)` to create a new message.
  */
 export const UiNodeMetaSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 4);
+  messageDesc(file_insightify_v1_llm_chat, 0);
 
 /**
  * Describes the message insightify.v1.UiChatMessage.
  * Use `create(UiChatMessageSchema)` to create a new message.
  */
 export const UiChatMessageSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 5);
+  messageDesc(file_insightify_v1_llm_chat, 1);
 
 /**
  * Describes the enum insightify.v1.UiChatMessage.Role.
  */
 export const UiChatMessage_RoleSchema = /*@__PURE__*/
-  enumDesc(file_insightify_v1_llm_chat, 5, 0);
+  enumDesc(file_insightify_v1_llm_chat, 1, 0);
 
 /**
  * @generated from enum insightify.v1.UiChatMessage.Role
@@ -81,42 +41,42 @@ export const UiChatMessage_Role = /*@__PURE__*/
  * Use `create(UiLlmChatStateSchema)` to create a new message.
  */
 export const UiLlmChatStateSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 6);
+  messageDesc(file_insightify_v1_llm_chat, 2);
 
 /**
  * Describes the message insightify.v1.UiMarkdownState.
  * Use `create(UiMarkdownStateSchema)` to create a new message.
  */
 export const UiMarkdownStateSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 7);
+  messageDesc(file_insightify_v1_llm_chat, 3);
 
 /**
  * Describes the message insightify.v1.UiImageState.
  * Use `create(UiImageStateSchema)` to create a new message.
  */
 export const UiImageStateSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 8);
+  messageDesc(file_insightify_v1_llm_chat, 4);
 
 /**
  * Describes the message insightify.v1.UiTableState.
  * Use `create(UiTableStateSchema)` to create a new message.
  */
 export const UiTableStateSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 9);
+  messageDesc(file_insightify_v1_llm_chat, 5);
 
 /**
  * Describes the message insightify.v1.UiTableRow.
  * Use `create(UiTableRowSchema)` to create a new message.
  */
 export const UiTableRowSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 10);
+  messageDesc(file_insightify_v1_llm_chat, 6);
 
 /**
  * Describes the message insightify.v1.UiNode.
  * Use `create(UiNodeSchema)` to create a new message.
  */
 export const UiNodeSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_llm_chat, 11);
+  messageDesc(file_insightify_v1_llm_chat, 7);
 
 /**
  * Describes the enum insightify.v1.UiNodeType.
@@ -129,10 +89,4 @@ export const UiNodeTypeSchema = /*@__PURE__*/
  */
 export const UiNodeType = /*@__PURE__*/
   tsEnum(UiNodeTypeSchema);
-
-/**
- * @generated from service insightify.v1.LlmChatService
- */
-export const LlmChatService = /*@__PURE__*/
-  serviceDesc(file_insightify_v1_llm_chat, 0);
 

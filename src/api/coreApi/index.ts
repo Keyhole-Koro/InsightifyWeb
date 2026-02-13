@@ -1,6 +1,5 @@
-import { llmChatClient, pipelineClient, toChatEventType, toEventType } from "./client";
+import { projectClient, runClient, toEventType } from "./client";
 import type {
-  ChatEvent,
   ChatLlmState,
   ChatMessageRole,
   ChatNode,
@@ -13,24 +12,20 @@ import type {
   InitRunResponse,
   ListProjectsRequest,
   ListProjectsResponse,
-  NeedUserInputRequest,
-  NeedUserInputResponse,
   ProjectItem,
   RunEvent,
   SelectProjectRequest,
   SelectProjectResponse,
-  SendChatMessageRequest,
-  SendChatMessageResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
   StreamRunRequest,
-  WatchChatRequest,
+  SubmitInputRequest,
+  SubmitInputResponse,
   WatchRunRequest,
 } from "./types";
 
 export type {
-  ChatEvent,
   ChatLlmState,
   ChatMessageRole,
   ChatNode,
@@ -43,26 +38,27 @@ export type {
   InitRunResponse,
   ListProjectsRequest,
   ListProjectsResponse,
-  NeedUserInputRequest,
-  NeedUserInputResponse,
   ProjectItem,
   RunEvent,
   SelectProjectRequest,
   SelectProjectResponse,
-  SendChatMessageRequest,
-  SendChatMessageResponse,
   StartRunRequest,
   StartRunResponse,
   StreamRunEvent,
   StreamRunRequest,
-  WatchChatRequest,
+  SubmitInputRequest,
+  SubmitInputResponse,
   WatchRunRequest,
 };
+
+// ---------------------------------------------------------------------------
+// ProjectService RPCs
+// ---------------------------------------------------------------------------
 
 export async function initRun(
   request: InitRunRequest,
 ): Promise<InitRunResponse> {
-  const res = await pipelineClient.initRun({
+  const res = await projectClient.initRun({
     userId: request.userId,
     repoUrl: request.repoUrl ?? "",
     projectId: request.projectId ?? "",
@@ -87,7 +83,7 @@ const toProjectItem = (p: any): ProjectItem => ({
 export async function listProjects(
   request: ListProjectsRequest,
 ): Promise<ListProjectsResponse> {
-  const res = await pipelineClient.listProjects({
+  const res = await projectClient.listProjects({
     userId: request.userId,
   });
   return {
@@ -99,7 +95,7 @@ export async function listProjects(
 export async function createProject(
   request: CreateProjectRequest,
 ): Promise<CreateProjectResponse> {
-  const res = await pipelineClient.createProject({
+  const res = await projectClient.createProject({
     userId: request.userId,
     name: request.name ?? "",
     repoUrl: request.repoUrl ?? "",
@@ -112,7 +108,7 @@ export async function createProject(
 export async function selectProject(
   request: SelectProjectRequest,
 ): Promise<SelectProjectResponse> {
-  const res = await pipelineClient.selectProject({
+  const res = await projectClient.selectProject({
     userId: request.userId,
     projectId: request.projectId,
   });
@@ -121,9 +117,10 @@ export async function selectProject(
   };
 }
 
-/**
- * Starts a worker run using the Connect protocol.
- */
+// ---------------------------------------------------------------------------
+// RunService RPCs
+// ---------------------------------------------------------------------------
+
 export async function startRun(
   request: StartRunRequest,
 ): Promise<StartRunResponse> {
@@ -135,7 +132,7 @@ export async function startRun(
   if (!projectId) {
     throw new Error("projectId is required");
   }
-  const res = await pipelineClient.startRun({
+  const res = await runClient.startRun({
     projectId,
     pipelineId: workerKey,
     params: request.params ?? {},
@@ -164,12 +161,84 @@ export async function* streamRun(
 }
 
 /**
+ * Helper to map raw node type enum to typed string.
+ */
+const mapNodeType = (value: unknown): ChatNodeType => {
+  if (typeof value === "string") return value as ChatNodeType;
+  switch (value) {
+    case 1:
+      return "UI_NODE_TYPE_LLM_CHAT";
+    case 2:
+      return "UI_NODE_TYPE_MARKDOWN";
+    case 3:
+      return "UI_NODE_TYPE_IMAGE";
+    case 4:
+      return "UI_NODE_TYPE_TABLE";
+    default:
+      return "UI_NODE_TYPE_UNSPECIFIED";
+  }
+};
+
+const mapRole = (value: unknown): ChatMessageRole => {
+  if (typeof value === "string") return value as ChatMessageRole;
+  switch (value) {
+    case 1:
+      return "ROLE_USER";
+    case 2:
+      return "ROLE_ASSISTANT";
+    default:
+      return "ROLE_UNSPECIFIED";
+  }
+};
+
+const mapNode = (raw: any): ChatNode | undefined => {
+  if (!raw) return undefined;
+  return {
+    id: raw.id,
+    type: mapNodeType(raw.type),
+    meta: raw.meta
+      ? {
+        title: raw.meta.title,
+        description: raw.meta.description,
+        tags: raw.meta.tags,
+      }
+      : undefined,
+    llmChat: raw.llmChat
+      ? {
+        model: raw.llmChat.model,
+        isResponding: raw.llmChat.isResponding,
+        sendLocked: raw.llmChat.sendLocked,
+        sendLockHint: raw.llmChat.sendLockHint,
+        messages: (raw.llmChat.messages ?? []).map((m: any) => ({
+          id: m.id,
+          role: mapRole(m.role),
+          content: m.content,
+        })),
+      }
+      : undefined,
+    markdown: raw.markdown
+      ? { markdown: raw.markdown.markdown }
+      : undefined,
+    image: raw.image
+      ? { src: raw.image.src, alt: raw.image.alt }
+      : undefined,
+    table: raw.table
+      ? {
+        columns: raw.table.columns,
+        rows: (raw.table.rows ?? []).map((r: any) => r.cells ?? []),
+      }
+      : undefined,
+  };
+};
+
+/**
  * Watch a running worker run for streaming events.
+ * Now returns inputRequestId and node fields from WatchRunResponse.
  */
 export async function* watchRun(
   request: WatchRunRequest,
 ): AsyncGenerator<RunEvent, void, unknown> {
-  const stream = pipelineClient.watchRun({
+  const stream = runClient.watchRun({
     runId: request.runId,
   });
 
@@ -179,137 +248,29 @@ export async function* watchRun(
       message: event.message,
       progressPercent: event.progressPercent,
       clientView: event.clientView,
+      inputRequestId: event.inputRequestId,
+      node: mapNode(event.node),
     };
   }
 }
 
-export async function respondNeedUserInput(
-  request: NeedUserInputRequest,
-): Promise<NeedUserInputResponse> {
-  const res = await sendChatMessage({
+/**
+ * Submit user input for a pending run interaction.
+ * Merges the former NeedUserInput + SendMessage RPCs.
+ */
+export async function submitInput(
+  request: SubmitInputRequest,
+): Promise<SubmitInputResponse> {
+  const res = await runClient.submitInput({
     projectId: request.projectId,
-    runId: request.runId ?? "",
-    interactionId: request.interactionId ?? "",
+    runId: request.runId,
     input: request.input,
-  });
-  return {
-    runId: request.runId,
-    accepted: res.accepted,
-    interactionId: res.interactionId,
-  };
-}
-
-export async function* watchChat(
-  request: WatchChatRequest,
-): AsyncGenerator<ChatEvent, void, unknown> {
-  const runId = (request.runId ?? "").trim();
-  const conversationId = (request.conversationId ?? "").trim();
-  if (!runId && !conversationId) {
-    throw new Error("watchChat requires runId or conversationId");
-  }
-  const stream = llmChatClient.watchChat({
-    projectId: request.projectId,
-    runId,
-    conversationId,
-    fromSeq: request.fromSeq ?? 0,
-  });
-  for await (const event of stream) {
-    const mapNodeType = (value: unknown): ChatNodeType => {
-      if (typeof value === "string") return value as ChatNodeType;
-      switch (value) {
-        case 1:
-          return "UI_NODE_TYPE_LLM_CHAT";
-        case 2:
-          return "UI_NODE_TYPE_MARKDOWN";
-        case 3:
-          return "UI_NODE_TYPE_IMAGE";
-        case 4:
-          return "UI_NODE_TYPE_TABLE";
-        default:
-          return "UI_NODE_TYPE_UNSPECIFIED";
-      }
-    };
-    const mapRole = (value: unknown): ChatMessageRole => {
-      if (typeof value === "string") return value as ChatMessageRole;
-      switch (value) {
-        case 1:
-          return "ROLE_USER";
-        case 2:
-          return "ROLE_ASSISTANT";
-        default:
-          return "ROLE_UNSPECIFIED";
-      }
-    };
-
-    yield {
-      eventType: toChatEventType(event.eventType),
-      projectId: event.projectId,
-      runId: event.runId,
-      conversationId: event.conversationId,
-      workerKey: event.workerKey,
-      interactionId: event.interactionId,
-      seq: event.seq,
-      text: event.text,
-      node: event.node
-        ? {
-            id: event.node.id,
-            type: mapNodeType(event.node.type),
-            meta: event.node.meta
-              ? {
-                  title: event.node.meta.title,
-                  description: event.node.meta.description,
-                  tags: event.node.meta.tags,
-                }
-              : undefined,
-            llmChat: event.node.llmChat
-              ? {
-                  model: event.node.llmChat.model,
-                  isResponding: event.node.llmChat.isResponding,
-                  sendLocked: event.node.llmChat.sendLocked,
-                  sendLockHint: event.node.llmChat.sendLockHint,
-                  messages: (event.node.llmChat.messages ?? []).map((m: any) => ({
-                    id: m.id,
-                    role: mapRole(m.role),
-                    content: m.content,
-                  })),
-                }
-              : undefined,
-            markdown: event.node.markdown
-              ? {
-                  markdown: event.node.markdown.markdown,
-                }
-              : undefined,
-            image: event.node.image
-              ? {
-                  src: event.node.image.src,
-                  alt: event.node.image.alt,
-                }
-              : undefined,
-            table: event.node.table
-              ? {
-                  columns: event.node.table.columns,
-                  rows: (event.node.table.rows ?? []).map((r: any) => r.cells ?? []),
-                }
-              : undefined,
-          }
-        : undefined,
-    };
-  }
-}
-
-export async function sendChatMessage(
-  request: SendChatMessageRequest,
-): Promise<SendChatMessageResponse> {
-  const res = await llmChatClient.sendMessage({
-    projectId: request.projectId,
-    runId: request.runId,
+    interactionId: request.interactionId ?? "",
     conversationId: request.conversationId ?? "",
-    interactionId: request.interactionId ?? "",
-    input: request.input,
-    clientMsgId: request.clientMsgId ?? "",
   });
   return {
     accepted: res.accepted,
+    runId: res.runId,
     interactionId: res.interactionId,
     conversationId: res.conversationId,
   };

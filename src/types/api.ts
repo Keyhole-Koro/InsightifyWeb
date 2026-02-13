@@ -1,18 +1,12 @@
-// Common event type used across pipeline APIs
+// Common event type used across run APIs.
 export type EventType =
   | "EVENT_TYPE_UNSPECIFIED"
   | "EVENT_TYPE_LOG"
   | "EVENT_TYPE_PROGRESS"
   | "EVENT_TYPE_COMPLETE"
-  | "EVENT_TYPE_ERROR";
-
-export type ChatEventType =
-  | "EVENT_TYPE_UNSPECIFIED"
-  | "EVENT_TYPE_ASSISTANT_CHUNK"
-  | "EVENT_TYPE_ASSISTANT_FINAL"
-  | "EVENT_TYPE_NEED_INPUT"
-  | "EVENT_TYPE_COMPLETE"
-  | "EVENT_TYPE_ERROR";
+  | "EVENT_TYPE_ERROR"
+  | "EVENT_TYPE_INPUT_REQUIRED"
+  | "EVENT_TYPE_NODE_READY";
 
 export interface ClientView {
   llmResponse?: string;
@@ -42,4 +36,6 @@ export interface BaseRunEvent {
   message?: string;
   progressPercent?: number;
   clientView?: ClientView;
+  inputRequestId?: string;
+  node?: import("@/api/coreApi/types").ChatNode;
 }

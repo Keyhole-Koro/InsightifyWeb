@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 
-import { sendChatMessage, startRun, type ChatNode } from "@/api/coreApi";
+import { submitInput, startRun, type ChatNode } from "@/api/coreApi";
 import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
 import { useStreamWatch } from "@/hooks/useStreamWatch";
 
@@ -166,7 +166,7 @@ export function useChatRunController({
 
           let res;
           try {
-            res = await sendChatMessage({
+            res = await submitInput({
               projectId: activeProjectId,
               runId: activeRunId,
               conversationId,
@@ -177,7 +177,7 @@ export function useChatRunController({
             const message = err instanceof Error ? err.message : String(err);
             if (message.toLowerCase().includes("interaction_id mismatch")) {
               // Retry once without interaction ID so backend can bind latest pending request.
-              res = await sendChatMessage({
+              res = await submitInput({
                 projectId: activeProjectId,
                 runId: activeRunId,
                 conversationId,
