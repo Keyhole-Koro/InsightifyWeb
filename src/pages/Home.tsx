@@ -25,6 +25,7 @@ export const Home = () => {
     initError,
     onSelectProject,
     onCreateProject,
+    onCreateChatNode,
   } = useBootstrap({
     setNodes,
     nodeSeq,
@@ -52,6 +53,7 @@ export const Home = () => {
             projects={projects}
             onSelectProject={onSelectProject}
             onCreateProject={onCreateProject}
+            onCreateChatNode={onCreateChatNode}
             initError={initError}
           />
         ),
@@ -59,7 +61,11 @@ export const Home = () => {
         runSidebar: (
           <GraphLayers runs={completed} onCloseRun={dismissCompleted} />
         ),
-        floating: <FloatingNodeSamples />,
+        floating: (
+          <>
+            <FloatingNodeSamples />
+          </>
+        ),
       }}
     />
   );

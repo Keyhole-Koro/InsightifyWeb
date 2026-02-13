@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 
 import { watchRun } from "@/api/coreApi";
 import type { ChatNode } from "@/api/coreApi";
+import { traceFrontend } from "@/debug/runTrace";
 
 export interface StreamEvent {
   eventType?: string;
@@ -38,6 +39,7 @@ export function useStreamWatch() {
         callbacks.onError("runId is required");
         return;
       }
+      traceFrontend("stream_open", { runId: watchKey });
 
       // Replace only the existing watcher for the same run.
       abortByRunRef.current[watchKey]?.abort();
@@ -47,6 +49,13 @@ export function useStreamWatch() {
 
       try {
         for await (const event of watchRun({ runId })) {
+          traceFrontend("stream_event", {
+            runId: watchKey,
+            eventType: event.eventType,
+            hasNode: Boolean(event.node),
+            inputRequestId: event.inputRequestId ?? "",
+            messageLen: (event.message ?? "").trim().length,
+          });
           // Forward UI node events.
           if (event.node) {
             callbacks.onNode?.(event.node);
@@ -66,6 +75,10 @@ export function useStreamWatch() {
           }
 
           if (event.eventType === "EVENT_TYPE_INPUT_REQUIRED") {
+            traceFrontend("stream_input_required", {
+              runId: watchKey,
+              inputRequestId: event.inputRequestId ?? "",
+            });
             callbacks.onNeedUserInput(event.inputRequestId ?? "");
             return;
           }
@@ -77,23 +90,40 @@ export function useStreamWatch() {
 
           if (event.eventType === "EVENT_TYPE_COMPLETE") {
             const finalText = (event.message ?? "").trim() || accumulated;
+            traceFrontend("stream_complete", {
+              runId: watchKey,
+              finalTextLen: finalText.length,
+            });
             callbacks.onComplete(finalText);
             return;
           }
 
           if (event.eventType === "EVENT_TYPE_ERROR") {
             const message = event.message || "Stream error";
+            traceFrontend(
+              "stream_error_event",
+              {
+                runId: watchKey,
+                message,
+              },
+              "error",
+            );
             callbacks.onError(message);
             return;
           }
         }
 
+        traceFrontend("stream_finished_without_terminal", {
+          runId: watchKey,
+          accumulatedLen: accumulated.length,
+        });
         callbacks.onComplete(accumulated);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
 
         // watcher replacement and user cancellation should not surface as UI errors.
         if (message.toLowerCase().includes("aborted")) {
+          traceFrontend("stream_aborted", { runId: watchKey });
           return;
         }
 
@@ -102,12 +132,22 @@ export function useStreamWatch() {
           message.includes("not found") &&
           accumulated.trim() !== ""
         ) {
+          traceFrontend(
+            "stream_not_found_recovered",
+            {
+              runId: watchKey,
+              accumulatedLen: accumulated.length,
+            },
+            "warn",
+          );
           callbacks.onComplete(accumulated);
           return;
         }
 
+        traceFrontend("stream_catch_error", { runId: watchKey, message }, "error");
         callbacks.onError(message);
       } finally {
+        traceFrontend("stream_close", { runId: watchKey });
         delete abortByRunRef.current[watchKey];
       }
     },

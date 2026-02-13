@@ -9,6 +9,7 @@ import type { LLMInputNodeData } from "@/types/graphTypes";
 
 const BOOTSTRAP_NODE_ID = "init-purpose-node";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
+const TEST_CHAT_WORKER_KEY = "testllmChatNode";
 const DEFAULT_USER_ID = "demo-user";
 const DEFAULT_REPO_URL = "https://github.com/Keyhole-Koro/PoliTopics.git";
 const PROJECT_STORAGE_KEY = "insightify.active_project_id";
@@ -131,6 +132,26 @@ export function useBootstrap({
     }
   };
 
+  const onCreateChatNode = async () => {
+    if (initializingRef.current) return;
+    setInitError(null);
+    try {
+      let activeProjectID = (projectId ?? "").trim();
+      if (!activeProjectID) {
+        const res = await reinitProject();
+        activeProjectID = (res.projectId ?? "").trim();
+      }
+      if (!activeProjectID) {
+        throw new Error("InitRun did not return project_id");
+      }
+      const runID = await startWorkerRun(TEST_CHAT_WORKER_KEY, activeProjectID);
+      const nodeID = `test-llm-chat-node-${runID}`;
+      await streamToNode(runID, nodeID, activeProjectID);
+    } catch (err) {
+      setInitError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
   return {
     nodeTypes,
     projectId,
@@ -138,5 +159,6 @@ export function useBootstrap({
     initError,
     onSelectProject,
     onCreateProject,
+    onCreateChatNode,
   };
 }

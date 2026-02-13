@@ -13,6 +13,7 @@ const defaultBase =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   "http://localhost:8080";
 const base = defaultBase.replace(/\/$/, "");
+export const apiBaseUrl = base;
 
 const transport = createConnectTransport({
   baseUrl: base,

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 
 import { submitInput, startRun, type ChatNode } from "@/api/coreApi";
+import { traceFrontend } from "@/debug/runTrace";
 import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
 import { useStreamWatch } from "@/hooks/useStreamWatch";
 
@@ -38,6 +39,11 @@ export function useChatRunController({
 
   const streamToNode = useCallback(
     async (runId: string, nodeId: string, activeProjectId?: string) => {
+      traceFrontend("stream_to_node_start", {
+        runId,
+        nodeId,
+        projectId: activeProjectId ?? projectId ?? "",
+      });
       const previousRunID = (runIdByNodeRef.current[nodeId] ?? "").trim();
       runIdByNodeRef.current[nodeId] = runId;
       // Reset node-scoped pending/conversation state when run changes to avoid stale interaction IDs.
@@ -73,9 +79,19 @@ export function useChatRunController({
           targetConversationID,
           {
             onChunk: (text) => {
+              traceFrontend("on_chunk", {
+                runId,
+                nodeId,
+                textLen: text.length,
+              });
               nodeState.updateLastAssistantMessage(nodeId, text);
             },
             onComplete: (finalText) => {
+              traceFrontend("on_complete", {
+                runId,
+                nodeId,
+                finalTextLen: finalText.length,
+              });
               if (finalText) {
                 nodeState.updateLastAssistantMessage(nodeId, finalText);
               }
@@ -83,16 +99,33 @@ export function useChatRunController({
               nodeState.setResponding(nodeId, false);
             },
             onNeedUserInput: (inputRequestId) => {
+              traceFrontend("on_need_user_input", {
+                runId,
+                nodeId,
+                inputRequestId,
+              });
               pendingInputIdByNodeRef.current[nodeId] = inputRequestId;
               nodeState.setResponding(nodeId, false);
             },
             onConversationResolved: (conversationId) => {
+              traceFrontend("on_conversation_resolved", {
+                runId,
+                nodeId,
+                conversationId,
+              });
               conversationIdByNodeRef.current[nodeId] = conversationId;
             },
             onNode: (node) => {
+              traceFrontend("on_node", {
+                runId,
+                nodeId,
+                rpcNodeId: node.id ?? "",
+                title: node.meta?.title ?? "",
+              });
               upsertNodeFromRpc(nodeId, node);
             },
             onError: (message) => {
+              traceFrontend("stream_callback_error", { runId, nodeId, message }, "error");
               setInitError(message);
               pendingInputIdByNodeRef.current[nodeId] = "";
               nodeState.addMessage(nodeId, {
@@ -106,6 +139,7 @@ export function useChatRunController({
           activeProjectId ?? projectId ?? undefined,
         );
       } finally {
+        traceFrontend("stream_to_node_end", { runId, nodeId });
       }
     },
     [nodeState, projectId, setInitError, stream, upsertNodeFromRpc],
@@ -113,6 +147,10 @@ export function useChatRunController({
 
   const startWorkerRun = useCallback(
     async (workerKey: string, activeProjectId: string) => {
+      traceFrontend("start_worker_run_request", {
+        workerKey,
+        projectId: activeProjectId,
+      });
       const startRes = await startRun({
         projectId: activeProjectId,
         workerKey,
@@ -122,6 +160,11 @@ export function useChatRunController({
       if (!runId) {
         throw new Error(`StartRun did not return run_id for ${workerKey}`);
       }
+      traceFrontend("start_worker_run_response", {
+        workerKey,
+        projectId: activeProjectId,
+        runId,
+      });
       return runId;
     },
     [],
@@ -143,6 +186,7 @@ export function useChatRunController({
 
       void (async () => {
         try {
+          traceFrontend("handle_send_begin", { nodeId });
           let activeProjectId = (projectId ?? "").trim();
           if (!activeProjectId) {
             const reinit = await reinitProject();
@@ -163,6 +207,14 @@ export function useChatRunController({
           const conversationId = (
             conversationIdByNodeRef.current[nodeId] ?? activeRunId
           ).trim();
+          traceFrontend("submit_input_request", {
+            nodeId,
+            projectId: activeProjectId,
+            runId: activeRunId,
+            conversationId,
+            interactionId: pendingInteractionId,
+            inputLen: submitted.length,
+          });
 
           let res;
           try {
@@ -177,6 +229,15 @@ export function useChatRunController({
             const message = err instanceof Error ? err.message : String(err);
             if (message.toLowerCase().includes("interaction_id mismatch")) {
               // Retry once without interaction ID so backend can bind latest pending request.
+              traceFrontend(
+                "submit_input_retry_without_interaction",
+                {
+                  nodeId,
+                  runId: activeRunId,
+                  message,
+                },
+                "warn",
+              );
               res = await submitInput({
                 projectId: activeProjectId,
                 runId: activeRunId,
@@ -193,9 +254,16 @@ export function useChatRunController({
           }
 
           if (!res.accepted) {
+            traceFrontend("submit_input_not_accepted", { nodeId, runId: activeRunId }, "warn");
             nodeState.setResponding(nodeId, false);
             return;
           }
+          traceFrontend("submit_input_accepted", {
+            nodeId,
+            runId: activeRunId,
+            interactionId: res.interactionId ?? "",
+            conversationId: res.conversationId ?? "",
+          });
           const nextConversationId = (res.conversationId ?? "").trim();
           if (nextConversationId) {
             conversationIdByNodeRef.current[nodeId] = nextConversationId;
@@ -206,6 +274,7 @@ export function useChatRunController({
           void streamToNode(activeRunId, nodeId, activeProjectId);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
+          traceFrontend("handle_send_error", { nodeId, message }, "error");
           setInitError(message);
           nodeState.addMessage(nodeId, {
             id: `msg-${Date.now()}`,
