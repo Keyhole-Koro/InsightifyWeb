@@ -7,6 +7,10 @@ declare module "@/gen/insightify/v1/run_pb.js" {
   export const WatchRunResponse_EventType: any;
 }
 
-declare module "@/gen/insightify/v1/llm_chat_pb.js" {
+declare module "@/gen/insightify/v1/user_interaction_pb.js" {
+  export const UserInteractionService: any;
+}
+
+declare module "@/gen/insightify/v1/ui_pb.js" {
   // UI types only — no service.
 }

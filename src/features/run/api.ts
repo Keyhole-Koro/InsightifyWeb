@@ -1,4 +1,4 @@
-import { runClient } from "@/rpc/clients";
+import { interactionClient, runClient } from "@/rpc/clients";
 import { type StartRunRequest, type StartRunResponse, type WaitForInputRequest, type WaitForInputResponse, type SendMessageRequest, type SendMessageResponse, type CloseInteractionRequest, type CloseInteractionResponse, type InitRunRequest, type InitRunResponse, type WatchRunRequest } from "@/shared/types/core";
 import { type ConnectError } from "@connectrpc/connect";
 
@@ -10,15 +10,15 @@ export const startRun = async (req: StartRunRequest): Promise<StartRunResponse> 
 };
 
 export const waitForInput = async (req: WaitForInputRequest): Promise<WaitForInputResponse> => {
-    return await runClient.waitForInput(req);
+    return await interactionClient.waitForInput(req);
 };
 
 export const sendMessage = async (req: SendMessageRequest): Promise<SendMessageResponse> => {
-    return await runClient.sendUserMessage(req);
+    return await interactionClient.sendUserMessage(req);
 };
 
 export const closeInteraction = async (req: CloseInteractionRequest): Promise<CloseInteractionResponse> => {
-    return await runClient.closeInteraction(req);
+    return await interactionClient.closeInteraction(req);
 };
 
 export const initRun = async (req: InitRunRequest): Promise<InitRunResponse> => {

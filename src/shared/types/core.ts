@@ -133,7 +133,7 @@ export interface CloseInteractionResponse {
 }
 
 // ---------------------------------------------------------------------------
-// UI node types (from llm_chat.proto — UI types only)
+// UI node types (from ui.proto — UI types only)
 // ---------------------------------------------------------------------------
 
 export type ChatNodeType =
