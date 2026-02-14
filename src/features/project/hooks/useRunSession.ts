@@ -2,14 +2,11 @@ import { useCallback, useState } from "react";
 
 import {
   createProject,
+  initRun,
   listProjects,
   selectProject,
   type ProjectItem,
 } from "@/features/project/api";
-import {
-  initRun,
-  type InitRunRequest,
-} from "@/features/run/api";
 import { useStringStorage } from "@/shared/hooks/useSessionStorage";
 
 export interface RunSessionConfig {

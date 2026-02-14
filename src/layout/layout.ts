@@ -1,5 +1,5 @@
-import { Node } from 'reactflow';
-import { CustomNodeData } from '@/features/run/types/graphTypes';
+import { Node } from "reactflow";
+import { CustomNodeData } from "@/features/worker/types/graphTypes";
 
 const PADDING = 30; // Minimum spacing we try to retain between nodes
 
@@ -57,11 +57,19 @@ export function resolveNodeOverlaps(
         hasOverlap = true;
 
         // Move the node a bit toward the direction that clears the overlap
-        const dx = (draggedRect.left + draggedRect.width / 2) - (otherRect.left + otherRect.width / 2);
-        const dy = (draggedRect.top + draggedRect.height / 2) - (otherRect.top + otherRect.height / 2);
+        const dx =
+          draggedRect.left +
+          draggedRect.width / 2 -
+          (otherRect.left + otherRect.width / 2);
+        const dy =
+          draggedRect.top +
+          draggedRect.height / 2 -
+          (otherRect.top + otherRect.height / 2);
 
-        const overlapX = (draggedRect.width + otherRect.width) / 2 - Math.abs(dx);
-        const overlapY = (draggedRect.height + otherRect.height) / 2 - Math.abs(dy);
+        const overlapX =
+          (draggedRect.width + otherRect.width) / 2 - Math.abs(dx);
+        const overlapY =
+          (draggedRect.height + otherRect.height) / 2 - Math.abs(dy);
 
         if (overlapX > 0 && overlapY > 0) {
           if (overlapX < overlapY) {

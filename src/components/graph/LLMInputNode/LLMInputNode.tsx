@@ -1,12 +1,14 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
 
-import type { LLMInputNodeData } from "@/features/run/types/graphTypes";
+import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
 
 export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
   const { props, meta } = data;
   const sendDisabled =
-    props.isResponding || Boolean(props.sendLocked) || props.input.trim().length === 0;
+    props.isResponding ||
+    Boolean(props.sendLocked) ||
+    props.input.trim().length === 0;
 
   return (
     <div

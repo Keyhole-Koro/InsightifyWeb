@@ -8,7 +8,10 @@ import React, {
   useState,
 } from "react";
 import { Handle, Position, NodeProps } from "reactflow";
-import { CustomNodeData, NodeHandleConfig } from "@/features/run/types/graphTypes";
+import {
+  CustomNodeData,
+  NodeHandleConfig,
+} from "@/features/worker/types/graphTypes";
 import { GraphEditor } from "@/components/graph/GraphEditor/GraphEditor";
 
 import "./CustomNode.css";

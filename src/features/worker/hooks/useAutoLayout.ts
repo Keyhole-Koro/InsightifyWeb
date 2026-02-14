@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { Node, useReactFlow } from "reactflow";
-import { CustomNodeData } from "@/features/run/types/graphTypes";
+import { CustomNodeData } from "@/features/worker/types/graphTypes";
 import { resolveGraphOverlaps } from "@/layout/layout";
 import ELK from "elkjs/lib/elk.bundled.js";
 
@@ -98,7 +98,10 @@ export const useAutoLayout = () => {
 
         setNodes(laidOutNodes);
       } catch (err) {
-        console.warn("ELK layout failed, falling back to overlap resolver.", err);
+        console.warn(
+          "ELK layout failed, falling back to overlap resolver.",
+          err,
+        );
         resolveAllOverlaps(() => false);
       }
     },

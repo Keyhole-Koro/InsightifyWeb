@@ -1,5 +1,4 @@
 import type { ProjectItem } from "@/shared/types/core";
-import { useRunSession } from "@/features/run/hooks/chat/useRunSession";
 
 interface ActionPanelProps {
   isInitialized: boolean;
@@ -69,9 +68,7 @@ export function ActionPanel({
             fontSize: 12,
           }}
         >
-          {projects.length === 0 ? (
-            <option value="">No Projects</option>
-          ) : null}
+          {projects.length === 0 ? <option value="">No Projects</option> : null}
           {projects.map((project) => (
             <option key={project.projectId} value={project.projectId}>
               {project.name}

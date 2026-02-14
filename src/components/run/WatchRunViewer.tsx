@@ -6,7 +6,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import { RunItem } from "@/features/run/hooks/useRunManager";
+import { RunItem } from "@/features/worker/hooks/useRunManager";
 import { RunGraphPreview } from "@/components/run/RunGraphPreview";
 import { ExpandIcon, CollapseIcon } from "@/components/icons";
 

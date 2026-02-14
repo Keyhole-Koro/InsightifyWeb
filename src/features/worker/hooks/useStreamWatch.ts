@@ -1,11 +1,6 @@
 import { useCallback, useRef } from "react";
 
-import {
-  runClient,
-  watchRun,
-} from "@/features/run/api";
-import { toEventType } from "@/features/run/utils";
-import { type ApiGraph } from "@/shared/types/api";
+import { watchRun } from "@/features/worker/api";
 import type { ChatNode } from "@/shared/types/core";
 import { traceFrontend } from "@/debug/runTrace";
 
@@ -20,7 +15,6 @@ export interface StreamCallbacks {
   onChunk: (text: string) => void;
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
-  onConversationResolved?: (conversationId: string) => void;
   onNode?: (node: ChatNode) => void;
 }
 
@@ -31,12 +25,7 @@ export function useStreamWatch() {
   const abortByRunRef = useRef<Record<string, AbortController>>({});
 
   const stream = useCallback(
-    async (
-      runId: string,
-      _conversationId: string,
-      callbacks: StreamCallbacks,
-      _projectId?: string,
-    ): Promise<void> => {
+    async (runId: string, callbacks: StreamCallbacks): Promise<void> => {
       const watchKey = runId;
       if (!watchKey) {
         callbacks.onError("runId is required");
@@ -64,10 +53,7 @@ export function useStreamWatch() {
             callbacks.onNode?.(event.node);
           }
 
-          if (
-            event.eventType === "EVENT_TYPE_LOG" &&
-            event.message
-          ) {
+          if (event.eventType === "EVENT_TYPE_LOG" && event.message) {
             accumulated += event.message;
             callbacks.onChunk(accumulated);
             continue;
@@ -122,10 +108,7 @@ export function useStreamWatch() {
         }
 
         // Recover closed run streams when we already have accumulated content.
-        if (
-          message.includes("not found") &&
-          accumulated.trim() !== ""
-        ) {
+        if (message.includes("not found") && accumulated.trim() !== "") {
           traceFrontend(
             "stream_not_found_recovered",
             {
@@ -138,7 +121,11 @@ export function useStreamWatch() {
           return;
         }
 
-        traceFrontend("stream_catch_error", { runId: watchKey, message }, "error");
+        traceFrontend(
+          "stream_catch_error",
+          { runId: watchKey, message },
+          "error",
+        );
         callbacks.onError(message);
       } finally {
         traceFrontend("stream_close", { runId: watchKey });

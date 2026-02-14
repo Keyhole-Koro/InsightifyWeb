@@ -74,42 +74,35 @@ export interface WatchRunRequest {
 
 export interface RunEvent extends BaseRunEvent { }
 
-export interface WaitForInputRequest {
-  projectId: string;
+export interface WaitRequest {
   runId: string;
-  conversationId?: string;
   timeoutMs?: number;
 }
 
-export interface WaitForInputResponse {
+export interface WaitResponse {
   waiting?: boolean;
   interactionId?: string;
   closed?: boolean;
 }
 
-export interface SendMessageRequest {
-  projectId: string;
+export interface SendRequest {
   runId: string;
   input: string;
   interactionId?: string;
-  conversationId?: string;
 }
 
-export interface SendMessageResponse {
+export interface SendResponse {
   accepted?: boolean;
   interactionId?: string;
-  conversationId?: string;
 }
 
-export interface CloseInteractionRequest {
-  projectId: string;
+export interface CloseRequest {
   runId: string;
   interactionId?: string;
-  conversationId?: string;
   reason?: string;
 }
 
-export interface CloseInteractionResponse {
+export interface CloseResponse {
   closed?: boolean;
 }
 

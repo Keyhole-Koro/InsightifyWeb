@@ -1,7 +1,10 @@
 import { useCallback } from "react";
 import type { Node } from "reactflow";
 
-import type { LLMInputNodeData, ChatMessage } from "@/features/run/types/graphTypes";
+import type {
+  LLMInputNodeData,
+  ChatMessage,
+} from "@/features/worker/types/graphTypes";
 
 type NodeSetter = React.Dispatch<
   React.SetStateAction<Node<LLMInputNodeData>[]>
@@ -10,7 +13,7 @@ type NodeSetter = React.Dispatch<
 /**
  * Hook for managing LLM chat node state updates.
  */
-export function useLLMNodeState(setNodes: NodeSetter) {
+export function useUiNodeState(setNodes: NodeSetter) {
   const updateNode = useCallback(
     (nodeId: string, updater: (data: LLMInputNodeData) => LLMInputNodeData) => {
       setNodes((current) =>

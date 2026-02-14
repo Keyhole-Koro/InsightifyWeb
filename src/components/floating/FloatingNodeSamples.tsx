@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Paper, IconButton, Box } from "@mui/material";
 import { GraphEditor } from "@/components/graph/GraphEditor/GraphEditor";
-import { Graph } from "@/features/run/types/graphTypes";
+import { Graph } from "@/features/worker/types/graphTypes";
 import { PaletteIcon, CloseIcon } from "@/components/icons";
 
 export const FloatingNodeSamples = () => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Paper } from "@mui/material";
 import ViewSidebarIcon from "@mui/icons-material/ViewSidebar";
-import { RunItem } from "@/features/run/hooks/useRunManager";
+import { RunItem } from "@/features/worker/hooks/useRunManager";
 import { RunGraphPreview } from "@/components/run/RunGraphPreview";
 
 interface GraphLayersProps {
