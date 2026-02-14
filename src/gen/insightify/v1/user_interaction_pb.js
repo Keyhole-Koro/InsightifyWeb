@@ -8,63 +8,49 @@ import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2
  * Describes the file insightify/v1/user_interaction.proto.
  */
 export const file_insightify_v1_user_interaction = /*@__PURE__*/
-  fileDesc("CiRpbnNpZ2h0aWZ5L3YxL3VzZXJfaW50ZXJhY3Rpb24ucHJvdG8SDWluc2lnaHRpZnkudjEiZgoTV2FpdEZvcklucHV0UmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJEg4KBnJ1bl9pZBgCIAEoCRIXCg9jb252ZXJzYXRpb25faWQYAyABKAkSEgoKdGltZW91dF9tcxgEIAEoBSKIAQoUV2FpdEZvcklucHV0UmVzcG9uc2USDwoHd2FpdGluZxgBIAEoCBIOCgZydW5faWQYAiABKAkSFgoOaW50ZXJhY3Rpb25faWQYAyABKAkSFwoPY29udmVyc2F0aW9uX2lkGAQgASgJEg4KBnByb21wdBgFIAEoCRIOCgZjbG9zZWQYBiABKAgifAoWU2VuZFVzZXJNZXNzYWdlUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJEg4KBnJ1bl9pZBgCIAEoCRINCgVpbnB1dBgDIAEoCRIWCg5pbnRlcmFjdGlvbl9pZBgEIAEoCRIXCg9jb252ZXJzYXRpb25faWQYBSABKAkibAoXU2VuZFVzZXJNZXNzYWdlUmVzcG9uc2USEAoIYWNjZXB0ZWQYASABKAgSDgoGcnVuX2lkGAIgASgJEhYKDmludGVyYWN0aW9uX2lkGAMgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgEIAEoCSJXChhTZW5kU2VydmVyTWVzc2FnZVJlcXVlc3QSEgoKcHJvamVjdF9pZBgBIAEoCRIOCgZydW5faWQYAiABKAkSFwoPY29udmVyc2F0aW9uX2lkGAMgASgJIn8KGVNlbmRTZXJ2ZXJNZXNzYWdlUmVzcG9uc2USDgoGcnVuX2lkGAEgASgJEhYKDmludGVyYWN0aW9uX2lkGAIgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgDIAEoCRIPCgdtZXNzYWdlGAQgASgJEhAKCHRlcm1pbmFsGAUgASgIImYKF0Nsb3NlSW50ZXJhY3Rpb25SZXF1ZXN0EhIKCnByb2plY3RfaWQYASABKAkSDgoGcnVuX2lkGAIgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkiUwoYQ2xvc2VJbnRlcmFjdGlvblJlc3BvbnNlEg4KBmNsb3NlZBgBIAEoCBIOCgZydW5faWQYAiABKAkSFwoPY29udmVyc2F0aW9uX2lkGAMgASgJMqADChZVc2VySW50ZXJhY3Rpb25TZXJ2aWNlElcKDFdhaXRGb3JJbnB1dBIiLmluc2lnaHRpZnkudjEuV2FpdEZvcklucHV0UmVxdWVzdBojLmluc2lnaHRpZnkudjEuV2FpdEZvcklucHV0UmVzcG9uc2USYAoPU2VuZFVzZXJNZXNzYWdlEiUuaW5zaWdodGlmeS52MS5TZW5kVXNlck1lc3NhZ2VSZXF1ZXN0GiYuaW5zaWdodGlmeS52MS5TZW5kVXNlck1lc3NhZ2VSZXNwb25zZRJmChFTZW5kU2VydmVyTWVzc2FnZRInLmluc2lnaHRpZnkudjEuU2VuZFNlcnZlck1lc3NhZ2VSZXF1ZXN0GiguaW5zaWdodGlmeS52MS5TZW5kU2VydmVyTWVzc2FnZVJlc3BvbnNlEmMKEENsb3NlSW50ZXJhY3Rpb24SJi5pbnNpZ2h0aWZ5LnYxLkNsb3NlSW50ZXJhY3Rpb25SZXF1ZXN0GicuaW5zaWdodGlmeS52MS5DbG9zZUludGVyYWN0aW9uUmVzcG9uc2VCrAEKEWNvbS5pbnNpZ2h0aWZ5LnYxQhRVc2VySW50ZXJhY3Rpb25Qcm90b1ABWixpbnNpZ2h0aWZ5L2dlbi9nby9pbnNpZ2h0aWZ5L3YxO2luc2lnaHRpZnl2MaICA0lYWKoCDUluc2lnaHRpZnkuVjHKAg1JbnNpZ2h0aWZ5XFYx4gIZSW5zaWdodGlmeVxWMVxHUEJNZXRhZGF0YeoCDkluc2lnaHRpZnk6OlYxYgZwcm90bzM");
+  fileDesc("CiRpbnNpZ2h0aWZ5L3YxL3VzZXJfaW50ZXJhY3Rpb24ucHJvdG8SDWluc2lnaHRpZnkudjEiSgoLV2FpdFJlcXVlc3QSDgoGcnVuX2lkGAEgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgCIAEoCRISCgp0aW1lb3V0X21zGAMgASgFIkcKDFdhaXRSZXNwb25zZRIPCgd3YWl0aW5nGAEgASgIEhYKDmludGVyYWN0aW9uX2lkGAIgASgJEg4KBmNsb3NlZBgDIAEoCCJECgtTZW5kUmVxdWVzdBIOCgZydW5faWQYASABKAkSFgoOaW50ZXJhY3Rpb25faWQYAiABKAkSDQoFaW5wdXQYAyABKAkiUQoMU2VuZFJlc3BvbnNlEhAKCGFjY2VwdGVkGAEgASgIEhYKDmludGVyYWN0aW9uX2lkGAIgASgJEhcKD2NvbnZlcnNhdGlvbl9pZBgDIAEoCSJGCgxDbG9zZVJlcXVlc3QSDgoGcnVuX2lkGAEgASgJEhYKDmludGVyYWN0aW9uX2lkGAIgASgJEg4KBnJlYXNvbhgDIAEoCSIfCg1DbG9zZVJlc3BvbnNlEg4KBmNsb3NlZBgBIAEoCDLeAQoWVXNlckludGVyYWN0aW9uU2VydmljZRI/CgRXYWl0EhouaW5zaWdodGlmeS52MS5XYWl0UmVxdWVzdBobLmluc2lnaHRpZnkudjEuV2FpdFJlc3BvbnNlEj8KBFNlbmQSGi5pbnNpZ2h0aWZ5LnYxLlNlbmRSZXF1ZXN0GhsuaW5zaWdodGlmeS52MS5TZW5kUmVzcG9uc2USQgoFQ2xvc2USGy5pbnNpZ2h0aWZ5LnYxLkNsb3NlUmVxdWVzdBocLmluc2lnaHRpZnkudjEuQ2xvc2VSZXNwb25zZUKsAQoRY29tLmluc2lnaHRpZnkudjFCFFVzZXJJbnRlcmFjdGlvblByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw");
 
 /**
- * Describes the message insightify.v1.WaitForInputRequest.
- * Use `create(WaitForInputRequestSchema)` to create a new message.
+ * Describes the message insightify.v1.WaitRequest.
+ * Use `create(WaitRequestSchema)` to create a new message.
  */
-export const WaitForInputRequestSchema = /*@__PURE__*/
+export const WaitRequestSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 0);
 
 /**
- * Describes the message insightify.v1.WaitForInputResponse.
- * Use `create(WaitForInputResponseSchema)` to create a new message.
+ * Describes the message insightify.v1.WaitResponse.
+ * Use `create(WaitResponseSchema)` to create a new message.
  */
-export const WaitForInputResponseSchema = /*@__PURE__*/
+export const WaitResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 1);
 
 /**
- * Describes the message insightify.v1.SendUserMessageRequest.
- * Use `create(SendUserMessageRequestSchema)` to create a new message.
+ * Describes the message insightify.v1.SendRequest.
+ * Use `create(SendRequestSchema)` to create a new message.
  */
-export const SendUserMessageRequestSchema = /*@__PURE__*/
+export const SendRequestSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 2);
 
 /**
- * Describes the message insightify.v1.SendUserMessageResponse.
- * Use `create(SendUserMessageResponseSchema)` to create a new message.
+ * Describes the message insightify.v1.SendResponse.
+ * Use `create(SendResponseSchema)` to create a new message.
  */
-export const SendUserMessageResponseSchema = /*@__PURE__*/
+export const SendResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 3);
 
 /**
- * Describes the message insightify.v1.SendServerMessageRequest.
- * Use `create(SendServerMessageRequestSchema)` to create a new message.
+ * Describes the message insightify.v1.CloseRequest.
+ * Use `create(CloseRequestSchema)` to create a new message.
  */
-export const SendServerMessageRequestSchema = /*@__PURE__*/
+export const CloseRequestSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 4);
 
 /**
- * Describes the message insightify.v1.SendServerMessageResponse.
- * Use `create(SendServerMessageResponseSchema)` to create a new message.
+ * Describes the message insightify.v1.CloseResponse.
+ * Use `create(CloseResponseSchema)` to create a new message.
  */
-export const SendServerMessageResponseSchema = /*@__PURE__*/
+export const CloseResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_user_interaction, 5);
-
-/**
- * Describes the message insightify.v1.CloseInteractionRequest.
- * Use `create(CloseInteractionRequestSchema)` to create a new message.
- */
-export const CloseInteractionRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_user_interaction, 6);
-
-/**
- * Describes the message insightify.v1.CloseInteractionResponse.
- * Use `create(CloseInteractionResponseSchema)` to create a new message.
- */
-export const CloseInteractionResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_user_interaction, 7);
 
 /**
  * UserInteractionService manages user/server message interaction for a run.

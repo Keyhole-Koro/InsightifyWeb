@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CloseInteractionRequest, CloseInteractionResponse, SendServerMessageRequest, SendServerMessageResponse, SendUserMessageRequest, SendUserMessageResponse, WaitForInputRequest, WaitForInputResponse } from "./user_interaction_pb.js";
+import { CloseRequest, CloseResponse, SendRequest, SendResponse, WaitRequest, WaitResponse } from "./user_interaction_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -15,39 +15,30 @@ export const UserInteractionService = {
   typeName: "insightify.v1.UserInteractionService",
   methods: {
     /**
-     * @generated from rpc insightify.v1.UserInteractionService.WaitForInput
+     * @generated from rpc insightify.v1.UserInteractionService.Wait
      */
-    waitForInput: {
-      name: "WaitForInput",
-      I: WaitForInputRequest,
-      O: WaitForInputResponse,
+    wait: {
+      name: "Wait",
+      I: WaitRequest,
+      O: WaitResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc insightify.v1.UserInteractionService.SendUserMessage
+     * @generated from rpc insightify.v1.UserInteractionService.Send
      */
-    sendUserMessage: {
-      name: "SendUserMessage",
-      I: SendUserMessageRequest,
-      O: SendUserMessageResponse,
+    send: {
+      name: "Send",
+      I: SendRequest,
+      O: SendResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc insightify.v1.UserInteractionService.SendServerMessage
+     * @generated from rpc insightify.v1.UserInteractionService.Close
      */
-    sendServerMessage: {
-      name: "SendServerMessage",
-      I: SendServerMessageRequest,
-      O: SendServerMessageResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc insightify.v1.UserInteractionService.CloseInteraction
-     */
-    closeInteraction: {
-      name: "CloseInteraction",
-      I: CloseInteractionRequest,
-      O: CloseInteractionResponse,
+    close: {
+      name: "Close",
+      I: CloseRequest,
+      O: CloseResponse,
       kind: MethodKind.Unary,
     },
   }

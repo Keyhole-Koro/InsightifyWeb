@@ -10,15 +10,27 @@ export const startRun = async (req: StartRunRequest): Promise<StartRunResponse> 
 };
 
 export const waitForInput = async (req: WaitForInputRequest): Promise<WaitForInputResponse> => {
-    return await interactionClient.waitForInput(req);
+    return await interactionClient.wait({
+        runId: req.runId,
+        conversationId: req.conversationId,
+        timeoutMs: req.timeoutMs,
+    });
 };
 
 export const sendMessage = async (req: SendMessageRequest): Promise<SendMessageResponse> => {
-    return await interactionClient.sendUserMessage(req);
+    return await interactionClient.send({
+        runId: req.runId,
+        interactionId: req.interactionId,
+        input: req.input,
+    });
 };
 
 export const closeInteraction = async (req: CloseInteractionRequest): Promise<CloseInteractionResponse> => {
-    return await interactionClient.closeInteraction(req);
+    return await interactionClient.close({
+        runId: req.runId,
+        interactionId: req.interactionId,
+        reason: req.reason,
+    });
 };
 
 export const initRun = async (req: InitRunRequest): Promise<InitRunResponse> => {

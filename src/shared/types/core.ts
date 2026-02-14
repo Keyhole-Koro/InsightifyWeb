@@ -83,10 +83,7 @@ export interface WaitForInputRequest {
 
 export interface WaitForInputResponse {
   waiting?: boolean;
-  runId?: string;
   interactionId?: string;
-  conversationId?: string;
-  prompt?: string;
   closed?: boolean;
 }
 
@@ -100,36 +97,20 @@ export interface SendMessageRequest {
 
 export interface SendMessageResponse {
   accepted?: boolean;
-  runId?: string;
   interactionId?: string;
   conversationId?: string;
-}
-
-export interface SendServerMessageRequest {
-  projectId: string;
-  runId: string;
-  conversationId?: string;
-}
-
-export interface SendServerMessageResponse {
-  runId?: string;
-  interactionId?: string;
-  conversationId?: string;
-  message?: string;
-  terminal?: boolean;
 }
 
 export interface CloseInteractionRequest {
   projectId: string;
   runId: string;
+  interactionId?: string;
   conversationId?: string;
   reason?: string;
 }
 
 export interface CloseInteractionResponse {
   closed?: boolean;
-  runId?: string;
-  conversationId?: string;
 }
 
 // ---------------------------------------------------------------------------
