@@ -12,7 +12,6 @@ import { useStringStorage } from "@/shared/hooks/useSessionStorage";
 export interface RunSessionConfig {
   storageKey: string;
   defaultUserId: string;
-  defaultRepoUrl?: string;
   defaultProjectName?: string;
 }
 
@@ -53,11 +52,10 @@ export function useRunSession(
   );
 
   const createProjectAndSelect = useCallback(
-    async (name?: string, repoUrl?: string) => {
+    async (name?: string) => {
       const created = await createProject({
         userId: config.defaultUserId,
         name: (name ?? "").trim() || config.defaultProjectName || "",
-        repoUrl: repoUrl ?? config.defaultRepoUrl ?? "",
       });
       const createdProjectID = (created.project?.projectId ?? "").trim();
       if (!createdProjectID) {
@@ -69,7 +67,6 @@ export function useRunSession(
     },
     [
       config.defaultProjectName,
-      config.defaultRepoUrl,
       config.defaultUserId,
       refreshProjects,
       selectProjectById,
@@ -88,7 +85,6 @@ export function useRunSession(
       if (!activeProjectID) {
         activeProjectID = await createProjectAndSelect(
           config.defaultProjectName,
-          config.defaultRepoUrl,
         );
       } else {
         await selectProjectById(activeProjectID);
@@ -98,7 +94,6 @@ export function useRunSession(
     const res = await initRun({
       userId: config.defaultUserId,
       projectId: activeProjectID,
-      repoUrl: config.defaultRepoUrl ?? "",
     });
     const resolvedProjectID = (res.projectId ?? "").trim();
     if (!resolvedProjectID) {
@@ -108,7 +103,6 @@ export function useRunSession(
     return { ...res, projectId: resolvedProjectID };
   }, [
     config.defaultProjectName,
-    config.defaultRepoUrl,
     config.defaultUserId,
     createProjectAndSelect,
     projectId,

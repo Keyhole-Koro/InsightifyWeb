@@ -12,5 +12,6 @@ declare module "@/gen/insightify/v1/user_interaction_pb.js" {
 }
 
 declare module "@/gen/insightify/v1/ui_pb.js" {
-  // UI types only — no service.
+  export const UiService: any;
 }
+

@@ -11,7 +11,6 @@ const BOOTSTRAP_NODE_ID = "init-purpose-node";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
 const TEST_CHAT_WORKER_KEY = "testllmChatNode";
 const DEFAULT_USER_ID = "demo-user";
-const DEFAULT_REPO_URL = "https://github.com/Keyhole-Koro/PoliTopics.git";
 const PROJECT_STORAGE_KEY = "insightify.active_project_id";
 
 interface UseBootstrapOptions {
@@ -42,7 +41,6 @@ export function useBootstrap({
   } = useRunSession({
     storageKey: PROJECT_STORAGE_KEY,
     defaultUserId: DEFAULT_USER_ID,
-    defaultRepoUrl: DEFAULT_REPO_URL,
     defaultProjectName: "Project",
   });
 

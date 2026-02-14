@@ -1,4 +1,5 @@
-// Common event type used across run APIs.
+import type { UiNode } from "@/contracts/ui";
+
 export type EventType =
   | "EVENT_TYPE_UNSPECIFIED"
   | "EVENT_TYPE_LOG"
@@ -35,5 +36,6 @@ export interface BaseRunEvent {
   message?: string;
   progressPercent?: number;
   clientView?: ClientView;
-  node?: import("@/shared/types/core").ChatNode;
+  node?: UiNode;
 }
+

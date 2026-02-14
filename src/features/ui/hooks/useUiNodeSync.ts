@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
 import { LLMInputNode } from "@/components/graph/LLMInputNode/LLMInputNode";
-import type { ChatNode } from "@/shared/types/core";
+import type { UiNode } from "@/contracts/ui";
 import type {
   ChatMessage,
   GraphNodeRegistry,
@@ -63,7 +63,7 @@ export function useUiNodeSync({
   );
 
   const upsertNodeFromRpc = useCallback(
-    (targetNodeID: string, node: ChatNode) => {
+    (targetNodeID: string, node: UiNode) => {
       const llm = node.llmChat;
       if (!llm) {
         return;

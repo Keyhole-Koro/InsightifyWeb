@@ -1,5 +1,5 @@
 import { WatchRunResponse_EventType } from "@/gen/insightify/v1/run_pb";
-import type { EventType } from "@/shared/types/api";
+import type { EventType } from "@/contracts/common";
 
 export const toEventType = (value: unknown): EventType => {
     if (typeof value === "string") {

@@ -1,5 +1,12 @@
 import { interactionClient } from "@/rpc/clients";
-import { type CloseRequest, type CloseResponse, type SendRequest, type SendResponse, type WaitRequest, type WaitResponse } from "@/shared/types/core";
+import {
+  type CloseRequest,
+  type CloseResponse,
+  type SendRequest,
+  type SendResponse,
+  type WaitRequest,
+  type WaitResponse,
+} from "@/contracts/interaction";
 
 export { interactionClient };
 export type { CloseRequest, CloseResponse, SendRequest, SendResponse, WaitRequest, WaitResponse };

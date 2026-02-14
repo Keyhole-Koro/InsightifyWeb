@@ -6,7 +6,7 @@ import { startRun } from "@/features/worker/api";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import { useStreamWatch } from "@/features/worker/hooks/useStreamWatch";
 import { traceFrontend } from "@/debug/runTrace";
-import type { ChatNode } from "@/shared/types/core";
+import type { UiNode } from "@/contracts/ui";
 
 interface UseInteractionFlowOptions {
   projectId: string | null;
@@ -16,7 +16,7 @@ interface UseInteractionFlowOptions {
   isProjectNotFoundError: (message: string) => boolean;
   msgSeq: MutableRefObject<number>;
   nodeState: ReturnType<typeof useUiNodeState>;
-  upsertNodeFromRpc: (targetNodeID: string, node: ChatNode) => void;
+  upsertNodeFromRpc: (targetNodeID: string, node: UiNode) => void;
   bindHandlers: (
     onInputChange: (nodeId: string, value: string) => void,
     onSend: (nodeId: string) => void,

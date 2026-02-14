@@ -1,4 +1,4 @@
-import type { ProjectItem } from "@/shared/types/core";
+import type { ProjectItem } from "@/contracts/project";
 
 interface ActionPanelProps {
   isInitialized: boolean;

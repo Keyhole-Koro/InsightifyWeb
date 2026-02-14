@@ -1,5 +1,9 @@
 import { runClient } from "@/rpc/clients";
-import { type StartRunRequest, type StartRunResponse, type WatchRunRequest } from "@/shared/types/core";
+import {
+  type StartRunRequest,
+  type StartRunResponse,
+  type WatchRunRequest,
+} from "@/contracts/worker";
 import { type ConnectError } from "@connectrpc/connect";
 
 export { runClient };

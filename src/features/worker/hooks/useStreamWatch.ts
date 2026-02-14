@@ -1,21 +1,21 @@
 import { useCallback, useRef } from "react";
 
 import { watchRun } from "@/features/worker/api";
-import type { ChatNode } from "@/shared/types/core";
+import type { UiNode } from "@/contracts/ui";
 import { traceFrontend } from "@/debug/runTrace";
 
 export interface StreamEvent {
   eventType?: string;
   text?: string;
   interactionId?: string;
-  node?: ChatNode;
+  node?: UiNode;
 }
 
 export interface StreamCallbacks {
   onChunk: (text: string) => void;
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
-  onNode?: (node: ChatNode) => void;
+  onNode?: (node: UiNode) => void;
 }
 
 /**

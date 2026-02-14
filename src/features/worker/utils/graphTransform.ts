@@ -1,6 +1,6 @@
 import { Node, Edge } from "reactflow";
 import { nodeStyles } from "@/styles/nodeStyles";
-import type { ApiGraph } from "@/shared/types/api";
+import type { ApiGraph } from "@/contracts/common";
 
 export function transformApiGraphToReactFlow(
   data: ApiGraph,

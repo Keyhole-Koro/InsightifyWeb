@@ -1,5 +1,15 @@
 import { projectClient } from "@/rpc/clients";
-import { type CreateProjectRequest, type CreateProjectResponse, type InitRunRequest, type InitRunResponse, type ListProjectsRequest, type ListProjectsResponse, type SelectProjectRequest, type SelectProjectResponse, type ProjectItem } from "@/shared/types/core";
+import {
+  type CreateProjectRequest,
+  type CreateProjectResponse,
+  type InitRunRequest,
+  type InitRunResponse,
+  type ListProjectsRequest,
+  type ListProjectsResponse,
+  type SelectProjectRequest,
+  type SelectProjectResponse,
+  type ProjectItem,
+} from "@/contracts/project";
 
 export { projectClient };
 export type { CreateProjectRequest, CreateProjectResponse, InitRunRequest, InitRunResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse, ProjectItem };
