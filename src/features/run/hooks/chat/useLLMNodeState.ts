@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Node } from "reactflow";
 
-import type { LLMInputNodeData, ChatMessage } from "@/types/graphTypes";
+import type { LLMInputNodeData, ChatMessage } from "@/features/run/types/graphTypes";
 
 type NodeSetter = React.Dispatch<
   React.SetStateAction<Node<LLMInputNodeData>[]>
@@ -86,7 +86,7 @@ export function useLLMNodeState(setNodes: NodeSetter) {
     [updateNode],
   );
 
-  const updateLastAssistantMessage = useCallback(
+  const updateLastServerMessage = useCallback(
     (nodeId: string, content: string) => {
       updateNode(nodeId, (data) => {
         const messages = [...data.props.messages];
@@ -111,7 +111,7 @@ export function useLLMNodeState(setNodes: NodeSetter) {
     [updateNode],
   );
 
-  const ensureAssistantMessage = useCallback(
+  const ensureServerMessage = useCallback(
     (nodeId: string) => {
       updateNode(nodeId, (data) => {
         const messages = data.props.messages;
@@ -186,8 +186,8 @@ export function useLLMNodeState(setNodes: NodeSetter) {
     setSendLock,
     setMetaTitle,
     addMessage,
-    updateLastAssistantMessage,
-    ensureAssistantMessage,
+    updateLastServerMessage,
+    ensureServerMessage,
     clearInputAndAddUserMessage,
   };
 }

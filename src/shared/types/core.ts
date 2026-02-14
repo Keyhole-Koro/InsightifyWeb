@@ -1,4 +1,4 @@
-import type { BaseRunEvent, ClientView } from "@/types/api";
+import type { BaseRunEvent, ClientView } from "@/shared/types/api";
 
 export interface StartRunRequest {
   projectId: string;
@@ -74,11 +74,23 @@ export interface WatchRunRequest {
 
 export interface RunEvent extends BaseRunEvent { }
 
-// ---------------------------------------------------------------------------
-// SubmitInput (merged NeedUserInput + SendMessage)
-// ---------------------------------------------------------------------------
+export interface WaitForInputRequest {
+  projectId: string;
+  runId: string;
+  conversationId?: string;
+  timeoutMs?: number;
+}
 
-export interface SubmitInputRequest {
+export interface WaitForInputResponse {
+  waiting?: boolean;
+  runId?: string;
+  interactionId?: string;
+  conversationId?: string;
+  prompt?: string;
+  closed?: boolean;
+}
+
+export interface SendMessageRequest {
   projectId: string;
   runId: string;
   input: string;
@@ -86,10 +98,37 @@ export interface SubmitInputRequest {
   conversationId?: string;
 }
 
-export interface SubmitInputResponse {
+export interface SendMessageResponse {
   accepted?: boolean;
   runId?: string;
   interactionId?: string;
+  conversationId?: string;
+}
+
+export interface SendServerMessageRequest {
+  projectId: string;
+  runId: string;
+  conversationId?: string;
+}
+
+export interface SendServerMessageResponse {
+  runId?: string;
+  interactionId?: string;
+  conversationId?: string;
+  message?: string;
+  terminal?: boolean;
+}
+
+export interface CloseInteractionRequest {
+  projectId: string;
+  runId: string;
+  conversationId?: string;
+  reason?: string;
+}
+
+export interface CloseInteractionResponse {
+  closed?: boolean;
+  runId?: string;
   conversationId?: string;
 }
 

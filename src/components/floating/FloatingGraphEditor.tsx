@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { GraphEditor } from "@/components/graph/GraphEditor/GraphEditor";
-import { Graph } from "@/types/graphTypes";
+import { Graph } from "@/features/run/types/graphTypes";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 
 interface FloatingGraphEditorProps {

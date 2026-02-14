@@ -23,9 +23,9 @@ import {
   Graph,
   CustomNodeData,
   transformToReactFlow,
-} from "@/types/graphTypes";
+} from "@/features/run/types/graphTypes";
 import { CustomNode } from "@/components/graph/CustomNode/CustomNode";
-import { useAutoLayout } from "@/hooks/useAutoLayout";
+import { useAutoLayout } from "@/features/run/hooks/useAutoLayout";
 
 interface GraphEditorProps {
   initialGraph: Graph;
@@ -64,9 +64,9 @@ function GraphView({ initialGraph, parentPath = "" }: GraphEditorProps) {
         currentNodes.map((node) =>
           node.data.path === nodePath
             ? {
-                ...node,
-                data: { ...node.data, isExpanded: !node.data.isExpanded },
-              }
+              ...node,
+              data: { ...node.data, isExpanded: !node.data.isExpanded },
+            }
             : node,
         ),
       );

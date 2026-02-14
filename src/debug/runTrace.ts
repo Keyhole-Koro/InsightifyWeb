@@ -1,4 +1,4 @@
-import { apiBaseUrl } from "@/api/coreApi/client";
+import { apiBaseUrl } from "@/shared/env";
 
 export interface FrontendRunTraceEvent {
   timestamp: string;

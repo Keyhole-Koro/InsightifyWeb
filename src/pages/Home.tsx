@@ -4,8 +4,8 @@ import { useEdgesState, useNodesState } from "reactflow";
 import { FloatingNodeSamples } from "@/components/floating";
 import { HomeShell } from "@/components/home/HomeShell";
 import { GraphLayers, WatchRunViewer } from "@/components/run";
-import { useRunManager } from "@/hooks/useRunManager";
-import type { LLMInputNodeData } from "@/types/graphTypes";
+import { useRunManager } from "@/features/run/hooks/useRunManager";
+import type { LLMInputNodeData } from "@/features/run/types/graphTypes";
 import { ActionPanel } from "./home/ActionPanel";
 import { useBootstrap } from "./home/useBootstrap";
 

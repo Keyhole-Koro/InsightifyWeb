@@ -1,14 +1,17 @@
 import { useCallback, useMemo, useRef, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
-
-import type { ChatNode } from "@/api/coreApi";
+import {
+  runClient,
+} from "@/features/run/api";
+import { toEventType } from "@/features/run/utils";
 import { LLMInputNode } from "@/components/graph/LLMInputNode/LLMInputNode";
+import type { ChatNode } from "@/shared/types/core";
 import type {
   ChatMessage,
   GraphNodeRegistry,
   LLMInputNodeData,
   RuntimeGraphNode,
-} from "@/types/graphTypes";
+} from "@/features/run/types/graphTypes";
 
 interface UseRpcChatNodeSyncOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -43,9 +46,9 @@ export function useRpcChatNodeSync({
   );
 
   const onInputChangeRef = useRef<(nodeId: string, value: string) => void>(
-    () => {},
+    () => { },
   );
-  const onSendRef = useRef<(nodeId: string) => void>(() => {});
+  const onSendRef = useRef<(nodeId: string) => void>(() => { });
 
   const bindHandlers = useCallback(
     (

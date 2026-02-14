@@ -1,5 +1,5 @@
 import { Node } from 'reactflow';
-import { CustomNodeData } from '@/types/graphTypes';
+import { CustomNodeData } from '@/features/run/types/graphTypes';
 
 const PADDING = 30; // Minimum spacing we try to retain between nodes
 

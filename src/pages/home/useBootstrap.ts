@@ -1,11 +1,11 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
 
-import { useChatRunController } from "@/hooks/chat/useChatRunController";
-import { useRpcChatNodeSync } from "@/hooks/chat/useRpcChatNodeSync";
-import { useRunSession } from "@/hooks/chat/useRunSession";
-import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
-import type { LLMInputNodeData } from "@/types/graphTypes";
+import { useChatRunController } from "@/features/run/hooks/chat/useChatRunController";
+import { useRpcChatNodeSync } from "@/features/run/hooks/chat/useRpcChatNodeSync";
+import { useRunSession } from "@/features/run/hooks/chat/useRunSession";
+import { useLLMNodeState } from "@/features/run/hooks/chat/useLLMNodeState";
+import type { LLMInputNodeData } from "@/features/run/types/graphTypes";
 
 const BOOTSTRAP_NODE_ID = "init-purpose-node";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";

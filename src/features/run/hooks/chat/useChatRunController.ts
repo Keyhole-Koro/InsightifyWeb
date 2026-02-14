@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 
-import { submitInput, startRun, type ChatNode } from "@/api/coreApi";
+import {
+  runClient,
+  startRun,
+  waitForInput,
+  sendMessage,
+  closeInteraction,
+} from "@/features/run/api";
+import { toEventType } from "@/features/run/utils";
+import type { EventType } from "@/shared/types/api";
+import type { ChatNode } from "@/shared/types/core";
+
 import { traceFrontend } from "@/debug/runTrace";
-import { useLLMNodeState } from "@/hooks/chat/useLLMNodeState";
-import { useStreamWatch } from "@/hooks/useStreamWatch";
+import { useLLMNodeState } from "@/features/run/hooks/chat/useLLMNodeState";
+import { useStreamWatch } from "@/features/run/hooks/useStreamWatch";
 
 interface UseChatRunControllerOptions {
   projectId: string | null;
@@ -35,7 +45,35 @@ export function useChatRunController({
   const conversationIdByNodeRef = useRef<Record<string, string>>({});
   const pendingInputIdByNodeRef = useRef<Record<string, string>>({});
 
-  const { stream, cancel: cancelStream } = useStreamWatch();
+  const { stream, cancel: cancelStream, cancelRun } = useStreamWatch();
+
+  const applyServerMessage = useCallback(
+    (nodeId: string, text: string, terminal: boolean) => {
+      nodeState.updateLastServerMessage(nodeId, text);
+      if (terminal) {
+        nodeState.setResponding(nodeId, false);
+      }
+    },
+    [nodeState],
+  );
+
+  const sendUserMessage = useCallback(
+    async (args: {
+      projectId: string;
+      runId: string;
+      conversationId: string;
+      interactionId: string;
+      input: string;
+    }) =>
+      sendMessage({
+        projectId: args.projectId,
+        runId: args.runId,
+        conversationId: args.conversationId,
+        interactionId: args.interactionId,
+        input: args.input,
+      }),
+    [],
+  );
 
   const streamToNode = useCallback(
     async (runId: string, nodeId: string, activeProjectId?: string) => {
@@ -71,10 +109,37 @@ export function useChatRunController({
       });
 
       nodeState.setResponding(nodeId, true);
-      nodeState.ensureAssistantMessage(nodeId);
+      nodeState.ensureServerMessage(nodeId);
 
+      const waitForInputPromise = waitForInput({
+        projectId: activeProjectId ?? projectId ?? "",
+        runId,
+        conversationId: targetConversationID,
+        timeoutMs: 600_000,
+      })
+        .then((res) => {
+          traceFrontend("wait_for_input_response", {
+            runId,
+            nodeId,
+            waiting: Boolean(res.waiting),
+            closed: Boolean(res.closed),
+            interactionId: res.interactionId ?? "",
+          });
+          return res;
+        })
+        .catch((err) => {
+          const message = err instanceof Error ? err.message : String(err);
+          traceFrontend("wait_for_input_error", { runId, nodeId, message }, "error");
+          return {
+            waiting: false,
+            closed: false,
+            interactionId: "",
+          };
+        });
+
+      let streamFinished = false;
       try {
-        await stream(
+        const streamPromise = stream(
           runId,
           targetConversationID,
           {
@@ -84,7 +149,7 @@ export function useChatRunController({
                 nodeId,
                 textLen: text.length,
               });
-              nodeState.updateLastAssistantMessage(nodeId, text);
+              applyServerMessage(nodeId, text, false);
             },
             onComplete: (finalText) => {
               traceFrontend("on_complete", {
@@ -93,19 +158,12 @@ export function useChatRunController({
                 finalTextLen: finalText.length,
               });
               if (finalText) {
-                nodeState.updateLastAssistantMessage(nodeId, finalText);
+                applyServerMessage(nodeId, finalText, true);
+              } else {
+                nodeState.setResponding(nodeId, false);
               }
               pendingInputIdByNodeRef.current[nodeId] = "";
-              nodeState.setResponding(nodeId, false);
-            },
-            onNeedUserInput: (inputRequestId) => {
-              traceFrontend("on_need_user_input", {
-                runId,
-                nodeId,
-                inputRequestId,
-              });
-              pendingInputIdByNodeRef.current[nodeId] = inputRequestId;
-              nodeState.setResponding(nodeId, false);
+              streamFinished = true;
             },
             onConversationResolved: (conversationId) => {
               traceFrontend("on_conversation_resolved", {
@@ -128,21 +186,36 @@ export function useChatRunController({
               traceFrontend("stream_callback_error", { runId, nodeId, message }, "error");
               setInitError(message);
               pendingInputIdByNodeRef.current[nodeId] = "";
+              streamFinished = true;
               nodeState.addMessage(nodeId, {
                 id: `msg-${Date.now()}`,
                 role: "assistant",
                 content: message,
               });
-              nodeState.setResponding(nodeId, false);
+              applyServerMessage(nodeId, message, true);
             },
           },
           activeProjectId ?? projectId ?? undefined,
         );
+
+        const first = await Promise.race([
+          streamPromise.then(() => "stream"),
+          waitForInputPromise.then((res) => (res.waiting ? "waiting" : "idle")),
+        ]);
+        if (first === "waiting" && !streamFinished) {
+          const waitingState = await waitForInputPromise;
+          pendingInputIdByNodeRef.current[nodeId] = (waitingState.interactionId ?? "").trim();
+          nodeState.setResponding(nodeId, false);
+          cancelRun(runId);
+          await streamPromise.catch(() => undefined);
+        } else {
+          await streamPromise;
+        }
       } finally {
         traceFrontend("stream_to_node_end", { runId, nodeId });
       }
     },
-    [nodeState, projectId, setInitError, stream, upsertNodeFromRpc],
+    [cancelRun, nodeState, projectId, setInitError, stream, upsertNodeFromRpc],
   );
 
   const startWorkerRun = useCallback(
@@ -207,7 +280,7 @@ export function useChatRunController({
           const conversationId = (
             conversationIdByNodeRef.current[nodeId] ?? activeRunId
           ).trim();
-          traceFrontend("submit_input_request", {
+          traceFrontend("send_message_request", {
             nodeId,
             projectId: activeProjectId,
             runId: activeRunId,
@@ -218,7 +291,7 @@ export function useChatRunController({
 
           let res;
           try {
-            res = await submitInput({
+            res = await sendUserMessage({
               projectId: activeProjectId,
               runId: activeRunId,
               conversationId,
@@ -229,16 +302,12 @@ export function useChatRunController({
             const message = err instanceof Error ? err.message : String(err);
             if (message.toLowerCase().includes("interaction_id mismatch")) {
               // Retry once without interaction ID so backend can bind latest pending request.
-              traceFrontend(
-                "submit_input_retry_without_interaction",
-                {
-                  nodeId,
-                  runId: activeRunId,
-                  message,
-                },
-                "warn",
-              );
-              res = await submitInput({
+              traceFrontend("send_message_retry_without_interaction", {
+                nodeId,
+                runId: activeRunId,
+                message,
+              }, "warn");
+              res = await sendUserMessage({
                 projectId: activeProjectId,
                 runId: activeRunId,
                 conversationId,
@@ -254,11 +323,11 @@ export function useChatRunController({
           }
 
           if (!res.accepted) {
-            traceFrontend("submit_input_not_accepted", { nodeId, runId: activeRunId }, "warn");
+            traceFrontend("send_message_not_accepted", { nodeId, runId: activeRunId }, "warn");
             nodeState.setResponding(nodeId, false);
             return;
           }
-          traceFrontend("submit_input_accepted", {
+          traceFrontend("send_message_accepted", {
             nodeId,
             runId: activeRunId,
             interactionId: res.interactionId ?? "",
@@ -291,6 +360,7 @@ export function useChatRunController({
       nodeState,
       reinitProject,
       projectId,
+      sendUserMessage,
       setInitError,
       setProjectId,
       streamToNode,
@@ -302,6 +372,8 @@ export function useChatRunController({
   }, [bindHandlers, handleInputChange, handleSend]);
 
   return {
+    sendUserMessage,
+    applyServerMessage,
     startWorkerRun,
     streamToNode,
     cancelStream,

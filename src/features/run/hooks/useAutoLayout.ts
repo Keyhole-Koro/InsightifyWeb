@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { Node, useReactFlow } from "reactflow";
-import { CustomNodeData } from "@/types/graphTypes";
+import { CustomNodeData } from "@/features/run/types/graphTypes";
 import { resolveGraphOverlaps } from "@/layout/layout";
 import ELK from "elkjs/lib/elk.bundled.js";
 

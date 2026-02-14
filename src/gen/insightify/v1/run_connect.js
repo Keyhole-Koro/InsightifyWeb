@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { StartRunRequest, StartRunResponse, SubmitInputRequest, SubmitInputResponse, WatchRunRequest, WatchRunResponse } from "./run_pb.js";
+import { CloseInteractionRequest, CloseInteractionResponse, SendServerMessageRequest, SendServerMessageResponse, SendUserMessageRequest, SendUserMessageResponse, StartRunRequest, StartRunResponse, WaitForInputRequest, WaitForInputResponse, WatchRunRequest, WatchRunResponse } from "./run_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -33,12 +33,39 @@ export const RunService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * @generated from rpc insightify.v1.RunService.SubmitInput
+     * @generated from rpc insightify.v1.RunService.WaitForInput
      */
-    submitInput: {
-      name: "SubmitInput",
-      I: SubmitInputRequest,
-      O: SubmitInputResponse,
+    waitForInput: {
+      name: "WaitForInput",
+      I: WaitForInputRequest,
+      O: WaitForInputResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.RunService.SendUserMessage
+     */
+    sendUserMessage: {
+      name: "SendUserMessage",
+      I: SendUserMessageRequest,
+      O: SendUserMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.RunService.SendServerMessage
+     */
+    sendServerMessage: {
+      name: "SendServerMessage",
+      I: SendServerMessageRequest,
+      O: SendServerMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.RunService.CloseInteraction
+     */
+    closeInteraction: {
+      name: "CloseInteraction",
+      I: CloseInteractionRequest,
+      O: CloseInteractionResponse,
       kind: MethodKind.Unary,
     },
   }

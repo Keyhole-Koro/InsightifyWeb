@@ -5,7 +5,6 @@ export type EventType =
   | "EVENT_TYPE_PROGRESS"
   | "EVENT_TYPE_COMPLETE"
   | "EVENT_TYPE_ERROR"
-  | "EVENT_TYPE_INPUT_REQUIRED"
   | "EVENT_TYPE_NODE_READY";
 
 export interface ClientView {
@@ -36,6 +35,5 @@ export interface BaseRunEvent {
   message?: string;
   progressPercent?: number;
   clientView?: ClientView;
-  inputRequestId?: string;
-  node?: import("@/api/coreApi/types").ChatNode;
+  node?: import("@/shared/types/core").ChatNode;
 }

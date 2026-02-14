@@ -1,4 +1,4 @@
-import { Graph } from "@/types/graphTypes";
+import { Graph } from "@/features/run/types/graphTypes";
 import { Position } from 'reactflow';
 
 export const sampleGraph: Graph = {

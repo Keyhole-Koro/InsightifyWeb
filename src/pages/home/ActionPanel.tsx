@@ -1,4 +1,5 @@
-import type { ProjectItem } from "@/api/coreApi";
+import type { ProjectItem } from "@/shared/types/core";
+import { useRunSession } from "@/features/run/hooks/chat/useRunSession";
 
 interface ActionPanelProps {
   isInitialized: boolean;

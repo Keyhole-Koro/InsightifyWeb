@@ -1,7 +1,12 @@
 import { useCallback, useRef } from "react";
 
-import { watchRun } from "@/api/coreApi";
-import type { ChatNode } from "@/api/coreApi";
+import {
+  runClient,
+  watchRun,
+} from "@/features/run/api";
+import { toEventType } from "@/features/run/utils";
+import { type ApiGraph } from "@/shared/types/api";
+import type { ChatNode } from "@/shared/types/core";
 import { traceFrontend } from "@/debug/runTrace";
 
 export interface StreamEvent {
@@ -15,14 +20,12 @@ export interface StreamCallbacks {
   onChunk: (text: string) => void;
   onComplete: (finalText: string) => void;
   onError: (message: string) => void;
-  onNeedUserInput: (inputRequestId: string) => void;
   onConversationResolved?: (conversationId: string) => void;
   onNode?: (node: ChatNode) => void;
 }
 
 /**
  * One watch call handles exactly one stream lifecycle.
- * Re-watching is controlled by callers (e.g. after SubmitInput).
  */
 export function useStreamWatch() {
   const abortByRunRef = useRef<Record<string, AbortController>>({});
@@ -43,17 +46,17 @@ export function useStreamWatch() {
 
       // Replace only the existing watcher for the same run.
       abortByRunRef.current[watchKey]?.abort();
-      abortByRunRef.current[watchKey] = new AbortController();
+      const controller = new AbortController();
+      abortByRunRef.current[watchKey] = controller;
 
       let accumulated = "";
 
       try {
-        for await (const event of watchRun({ runId })) {
+        for await (const event of watchRun({ runId }, controller.signal)) {
           traceFrontend("stream_event", {
             runId: watchKey,
             eventType: event.eventType,
             hasNode: Boolean(event.node),
-            inputRequestId: event.inputRequestId ?? "",
             messageLen: (event.message ?? "").trim().length,
           });
           // Forward UI node events.
@@ -72,15 +75,6 @@ export function useStreamWatch() {
 
           if (event.eventType === "EVENT_TYPE_PROGRESS") {
             continue;
-          }
-
-          if (event.eventType === "EVENT_TYPE_INPUT_REQUIRED") {
-            traceFrontend("stream_input_required", {
-              runId: watchKey,
-              inputRequestId: event.inputRequestId ?? "",
-            });
-            callbacks.onNeedUserInput(event.inputRequestId ?? "");
-            return;
           }
 
           if (event.eventType === "EVENT_TYPE_NODE_READY") {
@@ -162,5 +156,14 @@ export function useStreamWatch() {
     abortByRunRef.current = {};
   }, []);
 
-  return { stream, cancel };
+  const cancelRun = useCallback((runId: string) => {
+    const watchKey = (runId ?? "").trim();
+    if (!watchKey) {
+      return;
+    }
+    abortByRunRef.current[watchKey]?.abort();
+    delete abortByRunRef.current[watchKey];
+  }, []);
+
+  return { stream, cancel, cancelRun };
 }
