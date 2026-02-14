@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { StartRunRequest, StartRunResponse, WatchRunRequest, WatchRunResponse } from "./run_pb.js";
+import { StartRunRequest, StartRunResponse } from "./run_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -22,15 +22,6 @@ export const RunService = {
       I: StartRunRequest,
       O: StartRunResponse,
       kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc insightify.v1.RunService.WatchRun
-     */
-    watchRun: {
-      name: "WatchRun",
-      I: WatchRunRequest,
-      O: WatchRunResponse,
-      kind: MethodKind.ServerStreaming,
     },
   }
 };

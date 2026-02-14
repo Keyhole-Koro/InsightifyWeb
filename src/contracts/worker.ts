@@ -1,8 +1,8 @@
-import type { BaseRunEvent, ClientView } from "@/contracts/common";
+import type { ClientView } from "@/contracts/common";
 
 export interface StartRunRequest {
   projectId: string;
-  workerKey: string;
+  workerId: string;
   params?: Record<string, string>;
 }
 
@@ -12,15 +12,6 @@ export interface StartRunResponse {
 }
 
 export interface StreamRunRequest {
-  workerKey: string;
+  workerId: string;
   params?: Record<string, string>;
 }
-
-export interface StreamRunEvent extends BaseRunEvent {}
-
-export interface WatchRunRequest {
-  runId: string;
-}
-
-export interface RunEvent extends BaseRunEvent {}
-

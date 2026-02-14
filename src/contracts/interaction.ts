@@ -18,6 +18,7 @@ export interface SendRequest {
 export interface SendResponse {
   accepted?: boolean;
   interactionId?: string;
+  assistantMessage?: string;
 }
 
 export interface CloseRequest {
@@ -29,4 +30,3 @@ export interface CloseRequest {
 export interface CloseResponse {
   closed?: boolean;
 }
-

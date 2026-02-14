@@ -1,9 +1,9 @@
-export interface InitRunRequest {
+export interface EnsureProjectRequest {
   userId: string;
   projectId?: string;
 }
 
-export interface InitRunResponse {
+export interface EnsureProjectResponse {
   projectId?: string;
 }
 

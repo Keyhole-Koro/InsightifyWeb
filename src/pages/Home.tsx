@@ -3,8 +3,6 @@ import { useEdgesState, useNodesState } from "reactflow";
 
 import { FloatingNodeSamples } from "@/components/floating";
 import { HomeShell } from "@/components/home/HomeShell";
-import { GraphLayers, WatchRunViewer } from "@/components/run";
-import { useRunManager } from "@/features/worker/hooks/useRunManager";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
 import { ActionPanel } from "./home/ActionPanel";
 import { useBootstrap } from "./home/useBootstrap";
@@ -15,8 +13,6 @@ export const Home = () => {
 
   const nodeSeq = useRef(1);
   const msgSeq = useRef(1);
-
-  const { inProgress, completed, dismissCompleted } = useRunManager();
 
   const {
     nodeTypes,
@@ -56,10 +52,6 @@ export const Home = () => {
             onCreateChatNode={onCreateChatNode}
             initError={initError}
           />
-        ),
-        runOverlay: <WatchRunViewer runs={inProgress} />,
-        runSidebar: (
-          <GraphLayers runs={completed} onCloseRun={dismissCompleted} />
         ),
         floating: (
           <>

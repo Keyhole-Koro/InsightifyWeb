@@ -7,6 +7,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 12345,
+    proxy: {
+      "/insightify.v1": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+        ws: true,
+      },
+      "/debug": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {

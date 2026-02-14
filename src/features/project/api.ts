@@ -2,8 +2,8 @@ import { projectClient } from "@/rpc/clients";
 import {
   type CreateProjectRequest,
   type CreateProjectResponse,
-  type InitRunRequest,
-  type InitRunResponse,
+  type EnsureProjectRequest,
+  type EnsureProjectResponse,
   type ListProjectsRequest,
   type ListProjectsResponse,
   type SelectProjectRequest,
@@ -12,7 +12,7 @@ import {
 } from "@/contracts/project";
 
 export { projectClient };
-export type { CreateProjectRequest, CreateProjectResponse, InitRunRequest, InitRunResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse, ProjectItem };
+export type { CreateProjectRequest, CreateProjectResponse, EnsureProjectRequest, EnsureProjectResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse, ProjectItem };
 
 export const createProject = async (req: CreateProjectRequest): Promise<CreateProjectResponse> => {
     return await projectClient.createProject(req);
@@ -26,6 +26,6 @@ export const selectProject = async (req: SelectProjectRequest): Promise<SelectPr
     return await projectClient.selectProject(req);
 };
 
-export const initRun = async (req: InitRunRequest): Promise<InitRunResponse> => {
-    return await projectClient.initRun(req);
+export const ensureProject = async (req: EnsureProjectRequest): Promise<EnsureProjectResponse> => {
+    return await projectClient.ensureProject(req);
 };

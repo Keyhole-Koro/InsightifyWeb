@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import {
   createProject,
-  initRun,
+  ensureProject,
   listProjects,
   selectProject,
   type ProjectItem,
@@ -73,7 +73,7 @@ export function useRunSession(
     ],
   );
 
-  const reinitProject = useCallback(async (forceProjectID?: string) => {
+  const ensureActiveProject = useCallback(async (forceProjectID?: string) => {
     let activeProjectID = (forceProjectID ?? projectId ?? "").trim();
     if (!activeProjectID) {
       const listed = await refreshProjects();
@@ -91,13 +91,13 @@ export function useRunSession(
       }
     }
 
-    const res = await initRun({
+    const res = await ensureProject({
       userId: config.defaultUserId,
       projectId: activeProjectID,
     });
     const resolvedProjectID = (res.projectId ?? "").trim();
     if (!resolvedProjectID) {
-      throw new Error("InitRun did not return project_id");
+      throw new Error("EnsureProject did not return project_id");
     }
     setProjectId(resolvedProjectID);
     return { ...res, projectId: resolvedProjectID };
@@ -106,6 +106,7 @@ export function useRunSession(
     config.defaultUserId,
     createProjectAndSelect,
     projectId,
+    ensureProject,
     refreshProjects,
     selectProjectById,
     setProjectId,
@@ -121,6 +122,6 @@ export function useRunSession(
     initError,
     setInitError,
     isProjectNotFoundError,
-    reinitProject,
+    ensureActiveProject,
   };
 }

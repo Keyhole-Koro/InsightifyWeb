@@ -2,15 +2,14 @@
 // @generated from file insightify/v1/run.proto (package insightify.v1, syntax proto3)
 /* eslint-disable */
 
-import { enumDesc, fileDesc, messageDesc, serviceDesc, tsEnum } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_worker_v1_client_view } from "../../worker/v1/client_view_pb";
-import { file_insightify_v1_ui } from "./ui_pb";
 
 /**
  * Describes the file insightify/v1/run.proto.
  */
 export const file_insightify_v1_run = /*@__PURE__*/
-  fileDesc("ChdpbnNpZ2h0aWZ5L3YxL3J1bi5wcm90bxINaW5zaWdodGlmeS52MSK3AQoPU3RhcnRSdW5SZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEQoJd29ya2VyX2lkGAIgASgJEjoKBnBhcmFtcxgDIAMoCzIqLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXF1ZXN0LlBhcmFtc0VudHJ5EhIKCnByb2plY3RfaWQYBCABKAkaLQoLUGFyYW1zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJOChBTdGFydFJ1blJlc3BvbnNlEg4KBnJ1bl9pZBgBIAEoCRIqCgtjbGllbnRfdmlldxgCIAEoCzIVLndvcmtlci52MS5DbGllbnRWaWV3IiEKD1dhdGNoUnVuUmVxdWVzdBIOCgZydW5faWQYASABKAki7gIKEFdhdGNoUnVuUmVzcG9uc2USPQoKZXZlbnRfdHlwZRgBIAEoDjIpLmluc2lnaHRpZnkudjEuV2F0Y2hSdW5SZXNwb25zZS5FdmVudFR5cGUSDwoHbWVzc2FnZRgCIAEoCRIYChBwcm9ncmVzc19wZXJjZW50GAMgASgFEioKC2NsaWVudF92aWV3GAQgASgLMhUud29ya2VyLnYxLkNsaWVudFZpZXcSIwoEbm9kZRgFIAEoCzIVLmluc2lnaHRpZnkudjEuVWlOb2RlIp4BCglFdmVudFR5cGUSGgoWRVZFTlRfVFlQRV9VTlNQRUNJRklFRBAAEhIKDkVWRU5UX1RZUEVfTE9HEAESFwoTRVZFTlRfVFlQRV9QUk9HUkVTUxACEhcKE0VWRU5UX1RZUEVfQ09NUExFVEUQAxIUChBFVkVOVF9UWVBFX0VSUk9SEAQSGQoVRVZFTlRfVFlQRV9OT0RFX1JFQURZEAUyqAEKClJ1blNlcnZpY2USSwoIU3RhcnRSdW4SHi5pbnNpZ2h0aWZ5LnYxLlN0YXJ0UnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXNwb25zZRJNCghXYXRjaFJ1bhIeLmluc2lnaHRpZnkudjEuV2F0Y2hSdW5SZXF1ZXN0Gh8uaW5zaWdodGlmeS52MS5XYXRjaFJ1blJlc3BvbnNlMAFCoAEKEWNvbS5pbnNpZ2h0aWZ5LnYxQghSdW5Qcm90b1ABWixpbnNpZ2h0aWZ5L2dlbi9nby9pbnNpZ2h0aWZ5L3YxO2luc2lnaHRpZnl2MaICA0lYWKoCDUluc2lnaHRpZnkuVjHKAg1JbnNpZ2h0aWZ5XFYx4gIZSW5zaWdodGlmeVxWMVxHUEJNZXRhZGF0YeoCDkluc2lnaHRpZnk6OlYxYgZwcm90bzM", [file_worker_v1_client_view, file_insightify_v1_ui]);
+  fileDesc("ChdpbnNpZ2h0aWZ5L3YxL3J1bi5wcm90bxINaW5zaWdodGlmeS52MSK3AQoPU3RhcnRSdW5SZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEQoJd29ya2VyX2lkGAIgASgJEjoKBnBhcmFtcxgDIAMoCzIqLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXF1ZXN0LlBhcmFtc0VudHJ5EhIKCnByb2plY3RfaWQYBCABKAkaLQoLUGFyYW1zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJOChBTdGFydFJ1blJlc3BvbnNlEg4KBnJ1bl9pZBgBIAEoCRIqCgtjbGllbnRfdmlldxgCIAEoCzIVLndvcmtlci52MS5DbGllbnRWaWV3MlkKClJ1blNlcnZpY2USSwoIU3RhcnRSdW4SHi5pbnNpZ2h0aWZ5LnYxLlN0YXJ0UnVuUmVxdWVzdBofLmluc2lnaHRpZnkudjEuU3RhcnRSdW5SZXNwb25zZUKgAQoRY29tLmluc2lnaHRpZnkudjFCCFJ1blByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw", [file_worker_v1_client_view]);
 
 /**
  * Describes the message insightify.v1.StartRunRequest.
@@ -25,32 +24,6 @@ export const StartRunRequestSchema = /*@__PURE__*/
  */
 export const StartRunResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_run, 1);
-
-/**
- * Describes the message insightify.v1.WatchRunRequest.
- * Use `create(WatchRunRequestSchema)` to create a new message.
- */
-export const WatchRunRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_run, 2);
-
-/**
- * Describes the message insightify.v1.WatchRunResponse.
- * Use `create(WatchRunResponseSchema)` to create a new message.
- */
-export const WatchRunResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_run, 3);
-
-/**
- * Describes the enum insightify.v1.WatchRunResponse.EventType.
- */
-export const WatchRunResponse_EventTypeSchema = /*@__PURE__*/
-  enumDesc(file_insightify_v1_run, 3, 0);
-
-/**
- * @generated from enum insightify.v1.WatchRunResponse.EventType
- */
-export const WatchRunResponse_EventType = /*@__PURE__*/
-  tsEnum(WatchRunResponse_EventTypeSchema);
 
 /**
  * RunService manages run execution.

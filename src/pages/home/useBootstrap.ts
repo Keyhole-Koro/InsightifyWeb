@@ -1,17 +1,9 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
 
-import { useInteractionFlow } from "@/features/interaction/hooks/useInteractionFlow";
-import { useUiNodeSync } from "@/features/ui/hooks/useUiNodeSync";
-import { useRunSession } from "@/features/project/hooks/useRunSession";
-import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
-
-const BOOTSTRAP_NODE_ID = "init-purpose-node";
-const BOOTSTRAP_WORKER_KEY = "bootstrap";
-const TEST_CHAT_WORKER_KEY = "testllmChatNode";
-const DEFAULT_USER_ID = "demo-user";
-const PROJECT_STORAGE_KEY = "insightify.active_project_id";
+import { useHomeBootstrapRunner } from "./useHomeBootstrapRunner";
+import { useHomeProject } from "./useHomeProject";
 
 interface UseBootstrapOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -37,47 +29,46 @@ export function useBootstrap({
     initError,
     setInitError,
     isProjectNotFoundError,
-    reinitProject,
-  } = useRunSession({
-    storageKey: PROJECT_STORAGE_KEY,
-    defaultUserId: DEFAULT_USER_ID,
-    defaultProjectName: "Project",
-  });
+    ensureActiveProject,
+  } = useHomeProject();
 
-  const nodeState = useUiNodeState(setNodes);
-  const { nodeTypes, bindHandlers, upsertNodeFromRpc } = useUiNodeSync({
-    setNodes,
-    nodeSeq,
-  });
+  const { nodeTypes, runBootstrap, runTestChatNode, cancelStream } =
+    useHomeBootstrapRunner({
+      setNodes,
+      nodeSeq,
+      msgSeq,
+      projectId,
+      setProjectId,
+      setInitError,
+      isProjectNotFoundError,
+      ensureActiveProject,
+    });
 
-  const { startWorkerRun, streamToNode, cancelStream } = useInteractionFlow({
-    projectId,
-    setProjectId,
-    setInitError,
-    reinitProject,
-    isProjectNotFoundError,
-    msgSeq,
-    nodeState,
-    upsertNodeFromRpc,
-    bindHandlers,
-  });
+  const ensureProjectID = async (targetProjectID?: string) => {
+    const ensured = await ensureActiveProject(targetProjectID);
+    const activeProjectID = (ensured.projectId ?? "").trim();
+    if (!activeProjectID) {
+      throw new Error("EnsureProject did not return project_id");
+    }
+    return activeProjectID;
+  };
 
-  const runBootstrapForProject = async (targetProjectID?: string) => {
+  const bootstrapProject = async (targetProjectID?: string) => {
+    const activeProjectID = await ensureProjectID(targetProjectID);
+    await runBootstrap(activeProjectID);
+    await refreshProjects();
+    return activeProjectID;
+  };
+
+  const resetBootstrapScene = () => {
     setNodes([]);
     nodeSeq.current = 1;
     msgSeq.current = 1;
-    const res = await reinitProject(targetProjectID);
-    const activeProjectID = (res.projectId ?? "").trim();
-    if (!activeProjectID) {
-      throw new Error("InitRun did not return project_id");
-    }
-    const bootstrapRunId = await startWorkerRun(
-      BOOTSTRAP_WORKER_KEY,
-      activeProjectID,
-    );
-    await streamToNode(bootstrapRunId, BOOTSTRAP_NODE_ID, activeProjectID);
-    await refreshProjects();
-    return activeProjectID;
+  };
+
+  const runBootstrapForProject = async (targetProjectID?: string) => {
+    resetBootstrapScene();
+    return await bootstrapProject(targetProjectID);
   };
 
   useEffect(() => {
@@ -134,17 +125,8 @@ export function useBootstrap({
     if (initializingRef.current) return;
     setInitError(null);
     try {
-      let activeProjectID = (projectId ?? "").trim();
-      if (!activeProjectID) {
-        const res = await reinitProject();
-        activeProjectID = (res.projectId ?? "").trim();
-      }
-      if (!activeProjectID) {
-        throw new Error("InitRun did not return project_id");
-      }
-      const runID = await startWorkerRun(TEST_CHAT_WORKER_KEY, activeProjectID);
-      const nodeID = `test-llm-chat-node-${runID}`;
-      await streamToNode(runID, nodeID, activeProjectID);
+      const activeProjectID = await ensureProjectID(projectId ?? undefined);
+      await runTestChatNode(activeProjectID);
     } catch (err) {
       setInitError(err instanceof Error ? err.message : String(err));
     }

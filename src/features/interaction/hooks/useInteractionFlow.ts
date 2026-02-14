@@ -1,18 +1,16 @@
-import { useCallback, useEffect, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 
-import { send, wait } from "@/features/interaction/api";
+import { onAssistantMessage, send, wait } from "@/features/interaction/api";
 import { useInteractionState } from "@/features/interaction/hooks/useInteractionState";
 import { startRun } from "@/features/worker/api";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
-import { useStreamWatch } from "@/features/worker/hooks/useStreamWatch";
-import { traceFrontend } from "@/debug/runTrace";
 import type { UiNode } from "@/contracts/ui";
 
 interface UseInteractionFlowOptions {
   projectId: string | null;
   setProjectId: (value: string | null) => void;
   setInitError: (value: string | null) => void;
-  reinitProject: () => Promise<{ projectId?: string }>;
+  ensureActiveProject: () => Promise<{ projectId?: string }>;
   isProjectNotFoundError: (message: string) => boolean;
   msgSeq: MutableRefObject<number>;
   nodeState: ReturnType<typeof useUiNodeState>;
@@ -27,7 +25,7 @@ export function useInteractionFlow({
   projectId,
   setProjectId,
   setInitError,
-  reinitProject,
+  ensureActiveProject,
   isProjectNotFoundError,
   msgSeq,
   nodeState,
@@ -35,7 +33,7 @@ export function useInteractionFlow({
   bindHandlers,
 }: UseInteractionFlowOptions) {
   const interactionSession = useInteractionState();
-  const { stream, cancel: cancelStream, cancelRun } = useStreamWatch();
+  const offByNodeRef = useRef<Record<string, () => void>>({});
 
   const ensureNodeShell = useCallback(
     (nodeId: string) => {
@@ -56,116 +54,45 @@ export function useInteractionFlow({
     [nodeState, upsertNodeFromRpc],
   );
 
-  const applyServerMessage = useCallback(
-    (nodeId: string, text: string, terminal: boolean) => {
-      nodeState.updateLastServerMessage(nodeId, text);
-      if (terminal) {
-        nodeState.setResponding(nodeId, false);
-      }
-    },
-    [nodeState],
-  );
-
-  const streamToNode = useCallback(
-    async (runId: string, nodeId: string, activeProjectId?: string) => {
-      traceFrontend("stream_to_node_start", {
-        runId,
-        nodeId,
-        projectId: activeProjectId ?? projectId ?? "",
-      });
-
+  const initInteractionNode = useCallback(
+    async (runId: string, nodeId: string) => {
       const prevRunId = interactionSession.getRunId(nodeId);
       interactionSession.setRunId(nodeId, runId);
       if (prevRunId !== "" && prevRunId !== runId) {
         interactionSession.clearPendingInteractionId(nodeId);
       }
-      interactionSession.clearPendingInteractionId(nodeId);
 
       ensureNodeShell(nodeId);
-
-      const waitPromise = wait({ runId, timeoutMs: 600_000 })
-        .then((res) => {
-          traceFrontend("wait_response", {
-            runId,
-            nodeId,
-            waiting: Boolean(res.waiting),
-            closed: Boolean(res.closed),
-            interactionId: res.interactionId ?? "",
-          });
-          return res;
-        })
-        .catch((err) => {
-          const message = err instanceof Error ? err.message : String(err);
-          traceFrontend("wait_error", { runId, nodeId, message }, "error");
-          return { waiting: false, closed: false, interactionId: "" };
-        });
-
-      let streamFinished = false;
-      try {
-        const streamPromise = stream(runId, {
-          onChunk: (text) => applyServerMessage(nodeId, text, false),
-          onComplete: (finalText) => {
-            if (finalText) {
-              applyServerMessage(nodeId, finalText, true);
-            } else {
-              nodeState.setResponding(nodeId, false);
-            }
-            interactionSession.clearPendingInteractionId(nodeId);
-            streamFinished = true;
-          },
-          onNode: (node) => upsertNodeFromRpc(nodeId, node),
-          onError: (message) => {
-            traceFrontend("stream_error", { runId, nodeId, message }, "error");
-            setInitError(message);
-            interactionSession.clearPendingInteractionId(nodeId);
-            streamFinished = true;
-            nodeState.addMessage(nodeId, {
-              id: `msg-${Date.now()}`,
-              role: "assistant",
-              content: message,
-            });
-            applyServerMessage(nodeId, message, true);
-          },
-        });
-
-        const first = await Promise.race([
-          streamPromise.then(() => "stream"),
-          waitPromise.then((res) => (res.waiting ? "wait" : "idle")),
-        ]);
-
-        if (first === "wait" && !streamFinished) {
-          const waiting = await waitPromise;
-          interactionSession.setPendingInteractionId(nodeId, (waiting.interactionId ?? "").trim());
-          nodeState.setResponding(nodeId, false);
-          cancelRun(runId);
-          await streamPromise.catch(() => undefined);
-        } else {
-          await streamPromise;
+      offByNodeRef.current[nodeId]?.();
+      offByNodeRef.current[nodeId] = onAssistantMessage(runId, ({ interactionId, assistantMessage }) => {
+        // First assistant message can arrive before React commits node creation.
+        // Ensure the node exists before mutating chat messages.
+        ensureNodeShell(nodeId);
+        nodeState.updateLastServerMessage(nodeId, assistantMessage);
+        if (interactionId !== "") {
+          interactionSession.setPendingInteractionId(nodeId, interactionId);
         }
-      } finally {
-        traceFrontend("stream_to_node_end", { runId, nodeId });
-      }
+        nodeState.setResponding(nodeId, false);
+      });
+      const waiting = await wait({ runId, timeoutMs: 5_000 });
+      interactionSession.setPendingInteractionId(
+        nodeId,
+        (waiting.interactionId ?? "").trim(),
+      );
+      nodeState.setResponding(nodeId, false);
     },
-    [
-      applyServerMessage,
-      cancelRun,
-      ensureNodeShell,
-      nodeState,
-      projectId,
-      setInitError,
-      stream,
-      upsertNodeFromRpc,
-    ],
+    [ensureNodeShell, interactionSession, nodeState],
   );
 
   const startWorkerRun = useCallback(async (workerKey: string, activeProjectId: string) => {
-    const res = await startRun({ projectId: activeProjectId, workerKey, params: {} });
+    const res = await startRun({ projectId: activeProjectId, workerId: workerKey, params: {} });
     const runId = (res.runId ?? "").trim();
     if (!runId) {
       throw new Error(`StartRun did not return run_id for ${workerKey}`);
     }
     return runId;
   }, []);
+  const cancelStream = useCallback(() => undefined, []);
 
   const handleInputChange = useCallback(
     (nodeId: string, value: string) => nodeState.setInput(nodeId, value),
@@ -183,10 +110,10 @@ export function useInteractionFlow({
         try {
           let activeProjectId = (projectId ?? "").trim();
           if (!activeProjectId) {
-            const reinit = await reinitProject();
-            activeProjectId = (reinit.projectId ?? "").trim();
+            const ensuredProject = await ensureActiveProject();
+            activeProjectId = (ensuredProject.projectId ?? "").trim();
             if (!activeProjectId) {
-              throw new Error("InitRun did not return project_id");
+              throw new Error("EnsureProject did not return project_id");
             }
           }
 
@@ -207,9 +134,21 @@ export function useInteractionFlow({
             return;
           }
 
+          const assistant = (res.assistantMessage ?? "").trim();
+          if (assistant) {
+            nodeState.addMessage(nodeId, {
+              id: `msg-${Date.now()}`,
+              role: "assistant",
+              content: assistant,
+            });
+            nodeState.updateLastServerMessage(nodeId, assistant);
+          }
           interactionSession.clearPendingInteractionId(nodeId);
+          interactionSession.setPendingInteractionId(
+            nodeId,
+            (res.interactionId ?? interactionId ?? "").trim(),
+          );
           nodeState.setResponding(nodeId, true);
-          void streamToNode(runId, nodeId, activeProjectId);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           if (isProjectNotFoundError(message)) {
@@ -230,11 +169,10 @@ export function useInteractionFlow({
       msgSeq,
       nodeState,
       projectId,
-      reinitProject,
+      ensureActiveProject,
       setInitError,
       setProjectId,
       interactionSession,
-      streamToNode,
     ],
   );
 
@@ -242,9 +180,19 @@ export function useInteractionFlow({
     bindHandlers(handleInputChange, handleSend);
   }, [bindHandlers, handleInputChange, handleSend]);
 
+  useEffect(() => {
+    return () => {
+      const entries = Object.entries(offByNodeRef.current);
+      for (const [, off] of entries) {
+        off();
+      }
+      offByNodeRef.current = {};
+    };
+  }, []);
+
   return {
     startWorkerRun,
-    streamToNode,
+    initInteractionNode,
     cancelStream,
   };
 }

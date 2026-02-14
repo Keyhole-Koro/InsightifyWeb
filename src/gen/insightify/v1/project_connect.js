@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, InitRunRequest, InitRunResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, EnsureProjectRequest, EnsureProjectResponse, ListProjectsRequest, ListProjectsResponse, SelectProjectRequest, SelectProjectResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -15,12 +15,12 @@ export const ProjectService = {
   typeName: "insightify.v1.ProjectService",
   methods: {
     /**
-     * @generated from rpc insightify.v1.ProjectService.InitRun
+     * @generated from rpc insightify.v1.ProjectService.EnsureProject
      */
-    initRun: {
-      name: "InitRun",
-      I: InitRunRequest,
-      O: InitRunResponse,
+    ensureProject: {
+      name: "EnsureProject",
+      I: EnsureProjectRequest,
+      O: EnsureProjectResponse,
       kind: MethodKind.Unary,
     },
     /**
