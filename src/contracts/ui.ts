@@ -70,6 +70,75 @@ export interface GetUiDocumentResponse {
   document?: UiDocument;
 }
 
+export interface GetProjectUiDocumentRequest {
+  projectId: string;
+  tabId?: string;
+}
+
+export interface GetProjectUiDocumentResponse {
+  found?: boolean;
+  projectId?: string;
+  tabId?: string;
+  runId?: string;
+  document?: UiDocument;
+}
+
+export interface UiWorkspace {
+  workspaceId?: string;
+  projectId?: string;
+  name?: string;
+  activeTabId?: string;
+}
+
+export interface UiWorkspaceTab {
+  tabId?: string;
+  workspaceId?: string;
+  title?: string;
+  runId?: string;
+  orderIndex?: number;
+  isPinned?: boolean;
+  createdAtUnixMs?: number;
+}
+
+export interface GetUiWorkspaceRequest {
+  projectId: string;
+}
+
+export interface GetUiWorkspaceResponse {
+  workspace?: UiWorkspace;
+  tabs?: UiWorkspaceTab[];
+}
+
+export interface ListUiTabsRequest {
+  projectId: string;
+}
+
+export interface ListUiTabsResponse {
+  workspace?: UiWorkspace;
+  tabs?: UiWorkspaceTab[];
+}
+
+export interface CreateUiTabRequest {
+  projectId: string;
+  title?: string;
+}
+
+export interface CreateUiTabResponse {
+  workspace?: UiWorkspace;
+  tab?: UiWorkspaceTab;
+  tabs?: UiWorkspaceTab[];
+}
+
+export interface SelectUiTabRequest {
+  projectId: string;
+  tabId: string;
+}
+
+export interface SelectUiTabResponse {
+  workspace?: UiWorkspace;
+  tabs?: UiWorkspaceTab[];
+}
+
 export interface UiOpUpsertNode {
   upsertNode: {
     node: UiNode;
@@ -101,4 +170,3 @@ export interface ApplyUiOpsResponse {
   currentVersion?: number;
   conflictMessage?: string;
 }
-

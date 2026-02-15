@@ -32,7 +32,7 @@ export function useBootstrap({
     ensureActiveProject,
   } = useHomeProject();
 
-  const { nodeTypes, runBootstrap, runTestChatNode, cancelStream } =
+  const { nodeTypes, runBootstrap, runTestChatNode, restoreLatestTab, cancelStream } =
     useHomeBootstrapRunner({
       setNodes,
       nodeSeq,
@@ -55,7 +55,10 @@ export function useBootstrap({
 
   const bootstrapProject = async (targetProjectID?: string) => {
     const activeProjectID = await ensureProjectID(targetProjectID);
-    await runBootstrap(activeProjectID);
+    const restored = await restoreLatestTab(activeProjectID);
+    if (!restored) {
+      await runBootstrap(activeProjectID);
+    }
     await refreshProjects();
     return activeProjectID;
   };

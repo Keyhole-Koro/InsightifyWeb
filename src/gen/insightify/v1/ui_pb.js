@@ -8,7 +8,7 @@ import { enumDesc, fileDesc, messageDesc, serviceDesc, tsEnum } from "@bufbuild/
  * Describes the file insightify/v1/ui.proto.
  */
 export const file_insightify_v1_ui = /*@__PURE__*/
-  fileDesc("ChZpbnNpZ2h0aWZ5L3YxL3VpLnByb3RvEg1pbnNpZ2h0aWZ5LnYxIj4KClVpTm9kZU1ldGESDQoFdGl0bGUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEdGFncxgDIAMoCSKeAQoNVWlDaGF0TWVzc2FnZRIKCgJpZBgBIAEoCRIvCgRyb2xlGAIgASgOMiEuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlLlJvbGUSDwoHY29udGVudBgDIAEoCSI/CgRSb2xlEhQKEFJPTEVfVU5TUEVDSUZJRUQQABINCglST0xFX1VTRVIQARISCg5ST0xFX0FTU0lTVEFOVBACIpMBCg5VaUxsbUNoYXRTdGF0ZRINCgVtb2RlbBgBIAEoCRIVCg1pc19yZXNwb25kaW5nGAIgASgIEhMKC3NlbmRfbG9ja2VkGAMgASgIEhYKDnNlbmRfbG9ja19oaW50GAQgASgJEi4KCG1lc3NhZ2VzGAUgAygLMhwuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlIiMKD1VpTWFya2Rvd25TdGF0ZRIQCghtYXJrZG93bhgBIAEoCSIoCgxVaUltYWdlU3RhdGUSCwoDc3JjGAEgASgJEgsKA2FsdBgCIAEoCSJICgxVaVRhYmxlU3RhdGUSDwoHY29sdW1ucxgBIAMoCRInCgRyb3dzGAIgAygLMhkuaW5zaWdodGlmeS52MS5VaVRhYmxlUm93IhsKClVpVGFibGVSb3cSDQoFY2VsbHMYASADKAkioQIKBlVpTm9kZRIKCgJpZBgBIAEoCRInCgR0eXBlGAIgASgOMhkuaW5zaWdodGlmeS52MS5VaU5vZGVUeXBlEicKBG1ldGEYAyABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZU1ldGESLwoIbGxtX2NoYXQYCiABKAsyHS5pbnNpZ2h0aWZ5LnYxLlVpTGxtQ2hhdFN0YXRlEjAKCG1hcmtkb3duGAsgASgLMh4uaW5zaWdodGlmeS52MS5VaU1hcmtkb3duU3RhdGUSKgoFaW1hZ2UYDCABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpSW1hZ2VTdGF0ZRIqCgV0YWJsZRgNIAEoCzIbLmluc2lnaHRpZnkudjEuVWlUYWJsZVN0YXRlIlMKClVpRG9jdW1lbnQSDgoGcnVuX2lkGAEgASgJEg8KB3ZlcnNpb24YAiABKAMSJAoFbm9kZXMYAyADKAsyFS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZSImChRHZXRVaURvY3VtZW50UmVxdWVzdBIOCgZydW5faWQYASABKAkiRAoVR2V0VWlEb2N1bWVudFJlc3BvbnNlEisKCGRvY3VtZW50GAEgASgLMhkuaW5zaWdodGlmeS52MS5VaURvY3VtZW50ImoKEUFwcGx5VWlPcHNSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIUCgxiYXNlX3ZlcnNpb24YAiABKAMSIAoDb3BzGAMgAygLMhMuaW5zaWdodGlmeS52MS5VaU9wEg0KBWFjdG9yGAQgASgJIoYBChJBcHBseVVpT3BzUmVzcG9uc2USKwoIZG9jdW1lbnQYASABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpRG9jdW1lbnQSEAoIY29uZmxpY3QYAiABKAgSFwoPY3VycmVudF92ZXJzaW9uGAMgASgDEhgKEGNvbmZsaWN0X21lc3NhZ2UYBCABKAkirAEKBFVpT3ASMgoLdXBzZXJ0X25vZGUYASABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpVXBzZXJ0Tm9kZUgAEjIKC2RlbGV0ZV9ub2RlGAIgASgLMhsuaW5zaWdodGlmeS52MS5VaURlbGV0ZU5vZGVIABIyCgtjbGVhcl9ub2RlcxgDIAEoCzIbLmluc2lnaHRpZnkudjEuVWlDbGVhck5vZGVzSABCCAoGYWN0aW9uIjMKDFVpVXBzZXJ0Tm9kZRIjCgRub2RlGAEgASgLMhUuaW5zaWdodGlmeS52MS5VaU5vZGUiHwoMVWlEZWxldGVOb2RlEg8KB25vZGVfaWQYASABKAkiDgoMVWlDbGVhck5vZGVzKpABCgpVaU5vZGVUeXBlEhwKGFVJX05PREVfVFlQRV9VTlNQRUNJRklFRBAAEhkKFVVJX05PREVfVFlQRV9MTE1fQ0hBVBABEhkKFVVJX05PREVfVFlQRV9NQVJLRE9XThACEhYKElVJX05PREVfVFlQRV9JTUFHRRADEhYKElVJX05PREVfVFlQRV9UQUJMRRAEMrYBCglVaVNlcnZpY2USWAoLR2V0RG9jdW1lbnQSIy5pbnNpZ2h0aWZ5LnYxLkdldFVpRG9jdW1lbnRSZXF1ZXN0GiQuaW5zaWdodGlmeS52MS5HZXRVaURvY3VtZW50UmVzcG9uc2USTwoIQXBwbHlPcHMSIC5pbnNpZ2h0aWZ5LnYxLkFwcGx5VWlPcHNSZXF1ZXN0GiEuaW5zaWdodGlmeS52MS5BcHBseVVpT3BzUmVzcG9uc2VCnwEKEWNvbS5pbnNpZ2h0aWZ5LnYxQgdVaVByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw");
+  fileDesc("ChZpbnNpZ2h0aWZ5L3YxL3VpLnByb3RvEg1pbnNpZ2h0aWZ5LnYxIj4KClVpTm9kZU1ldGESDQoFdGl0bGUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDAoEdGFncxgDIAMoCSKeAQoNVWlDaGF0TWVzc2FnZRIKCgJpZBgBIAEoCRIvCgRyb2xlGAIgASgOMiEuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlLlJvbGUSDwoHY29udGVudBgDIAEoCSI/CgRSb2xlEhQKEFJPTEVfVU5TUEVDSUZJRUQQABINCglST0xFX1VTRVIQARISCg5ST0xFX0FTU0lTVEFOVBACIpMBCg5VaUxsbUNoYXRTdGF0ZRINCgVtb2RlbBgBIAEoCRIVCg1pc19yZXNwb25kaW5nGAIgASgIEhMKC3NlbmRfbG9ja2VkGAMgASgIEhYKDnNlbmRfbG9ja19oaW50GAQgASgJEi4KCG1lc3NhZ2VzGAUgAygLMhwuaW5zaWdodGlmeS52MS5VaUNoYXRNZXNzYWdlIiMKD1VpTWFya2Rvd25TdGF0ZRIQCghtYXJrZG93bhgBIAEoCSIoCgxVaUltYWdlU3RhdGUSCwoDc3JjGAEgASgJEgsKA2FsdBgCIAEoCSJICgxVaVRhYmxlU3RhdGUSDwoHY29sdW1ucxgBIAMoCRInCgRyb3dzGAIgAygLMhkuaW5zaWdodGlmeS52MS5VaVRhYmxlUm93IhsKClVpVGFibGVSb3cSDQoFY2VsbHMYASADKAkioQIKBlVpTm9kZRIKCgJpZBgBIAEoCRInCgR0eXBlGAIgASgOMhkuaW5zaWdodGlmeS52MS5VaU5vZGVUeXBlEicKBG1ldGEYAyABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZU1ldGESLwoIbGxtX2NoYXQYCiABKAsyHS5pbnNpZ2h0aWZ5LnYxLlVpTGxtQ2hhdFN0YXRlEjAKCG1hcmtkb3duGAsgASgLMh4uaW5zaWdodGlmeS52MS5VaU1hcmtkb3duU3RhdGUSKgoFaW1hZ2UYDCABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpSW1hZ2VTdGF0ZRIqCgV0YWJsZRgNIAEoCzIbLmluc2lnaHRpZnkudjEuVWlUYWJsZVN0YXRlIlMKClVpRG9jdW1lbnQSDgoGcnVuX2lkGAEgASgJEg8KB3ZlcnNpb24YAiABKAMSJAoFbm9kZXMYAyADKAsyFS5pbnNpZ2h0aWZ5LnYxLlVpTm9kZSImChRHZXRVaURvY3VtZW50UmVxdWVzdBIOCgZydW5faWQYASABKAkiRAoVR2V0VWlEb2N1bWVudFJlc3BvbnNlEisKCGRvY3VtZW50GAEgASgLMhkuaW5zaWdodGlmeS52MS5VaURvY3VtZW50IkEKG0dldFByb2plY3RVaURvY3VtZW50UmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJEg4KBnRhYl9pZBgCIAEoCSKOAQocR2V0UHJvamVjdFVpRG9jdW1lbnRSZXNwb25zZRINCgVmb3VuZBgBIAEoCBISCgpwcm9qZWN0X2lkGAIgASgJEg4KBnRhYl9pZBgDIAEoCRIOCgZydW5faWQYBCABKAkSKwoIZG9jdW1lbnQYBSABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpRG9jdW1lbnQiXAoLVWlXb3Jrc3BhY2USFAoMd29ya3NwYWNlX2lkGAEgASgJEhIKCnByb2plY3RfaWQYAiABKAkSDAoEbmFtZRgDIAEoCRIVCg1hY3RpdmVfdGFiX2lkGAQgASgJIpkBCg5VaVdvcmtzcGFjZVRhYhIOCgZ0YWJfaWQYASABKAkSFAoMd29ya3NwYWNlX2lkGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnJ1bl9pZBgEIAEoCRITCgtvcmRlcl9pbmRleBgFIAEoBRIRCglpc19waW5uZWQYBiABKAgSGgoSY3JlYXRlZF9hdF91bml4X21zGAcgASgDIisKFUdldFVpV29ya3NwYWNlUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJInQKFkdldFVpV29ya3NwYWNlUmVzcG9uc2USLQoJd29ya3NwYWNlGAEgASgLMhouaW5zaWdodGlmeS52MS5VaVdvcmtzcGFjZRIrCgR0YWJzGAIgAygLMh0uaW5zaWdodGlmeS52MS5VaVdvcmtzcGFjZVRhYiInChFMaXN0VWlUYWJzUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJInAKEkxpc3RVaVRhYnNSZXNwb25zZRItCgl3b3Jrc3BhY2UYASABKAsyGi5pbnNpZ2h0aWZ5LnYxLlVpV29ya3NwYWNlEisKBHRhYnMYAiADKAsyHS5pbnNpZ2h0aWZ5LnYxLlVpV29ya3NwYWNlVGFiIjcKEkNyZWF0ZVVpVGFiUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJEg0KBXRpdGxlGAIgASgJIp0BChNDcmVhdGVVaVRhYlJlc3BvbnNlEi0KCXdvcmtzcGFjZRgBIAEoCzIaLmluc2lnaHRpZnkudjEuVWlXb3Jrc3BhY2USKgoDdGFiGAIgASgLMh0uaW5zaWdodGlmeS52MS5VaVdvcmtzcGFjZVRhYhIrCgR0YWJzGAMgAygLMh0uaW5zaWdodGlmeS52MS5VaVdvcmtzcGFjZVRhYiI4ChJTZWxlY3RVaVRhYlJlcXVlc3QSEgoKcHJvamVjdF9pZBgBIAEoCRIOCgZ0YWJfaWQYAiABKAkicQoTU2VsZWN0VWlUYWJSZXNwb25zZRItCgl3b3Jrc3BhY2UYASABKAsyGi5pbnNpZ2h0aWZ5LnYxLlVpV29ya3NwYWNlEisKBHRhYnMYAiADKAsyHS5pbnNpZ2h0aWZ5LnYxLlVpV29ya3NwYWNlVGFiImoKEUFwcGx5VWlPcHNSZXF1ZXN0Eg4KBnJ1bl9pZBgBIAEoCRIUCgxiYXNlX3ZlcnNpb24YAiABKAMSIAoDb3BzGAMgAygLMhMuaW5zaWdodGlmeS52MS5VaU9wEg0KBWFjdG9yGAQgASgJIoYBChJBcHBseVVpT3BzUmVzcG9uc2USKwoIZG9jdW1lbnQYASABKAsyGS5pbnNpZ2h0aWZ5LnYxLlVpRG9jdW1lbnQSEAoIY29uZmxpY3QYAiABKAgSFwoPY3VycmVudF92ZXJzaW9uGAMgASgDEhgKEGNvbmZsaWN0X21lc3NhZ2UYBCABKAkirAEKBFVpT3ASMgoLdXBzZXJ0X25vZGUYASABKAsyGy5pbnNpZ2h0aWZ5LnYxLlVpVXBzZXJ0Tm9kZUgAEjIKC2RlbGV0ZV9ub2RlGAIgASgLMhsuaW5zaWdodGlmeS52MS5VaURlbGV0ZU5vZGVIABIyCgtjbGVhcl9ub2RlcxgDIAEoCzIbLmluc2lnaHRpZnkudjEuVWlDbGVhck5vZGVzSABCCAoGYWN0aW9uIjMKDFVpVXBzZXJ0Tm9kZRIjCgRub2RlGAEgASgLMhUuaW5zaWdodGlmeS52MS5VaU5vZGUiHwoMVWlEZWxldGVOb2RlEg8KB25vZGVfaWQYASABKAkiDgoMVWlDbGVhck5vZGVzKpABCgpVaU5vZGVUeXBlEhwKGFVJX05PREVfVFlQRV9VTlNQRUNJRklFRBAAEhkKFVVJX05PREVfVFlQRV9MTE1fQ0hBVBABEhkKFVVJX05PREVfVFlQRV9NQVJLRE9XThACEhYKElVJX05PREVfVFlQRV9JTUFHRRADEhYKElVJX05PREVfVFlQRV9UQUJMRRAEMqgCCglVaVNlcnZpY2USWAoLR2V0RG9jdW1lbnQSIy5pbnNpZ2h0aWZ5LnYxLkdldFVpRG9jdW1lbnRSZXF1ZXN0GiQuaW5zaWdodGlmeS52MS5HZXRVaURvY3VtZW50UmVzcG9uc2UScAoVR2V0UHJvamVjdFRhYkRvY3VtZW50EiouaW5zaWdodGlmeS52MS5HZXRQcm9qZWN0VWlEb2N1bWVudFJlcXVlc3QaKy5pbnNpZ2h0aWZ5LnYxLkdldFByb2plY3RVaURvY3VtZW50UmVzcG9uc2USTwoIQXBwbHlPcHMSIC5pbnNpZ2h0aWZ5LnYxLkFwcGx5VWlPcHNSZXF1ZXN0GiEuaW5zaWdodGlmeS52MS5BcHBseVVpT3BzUmVzcG9uc2Uy6gIKElVpV29ya3NwYWNlU2VydmljZRJbCgxHZXRXb3Jrc3BhY2USJC5pbnNpZ2h0aWZ5LnYxLkdldFVpV29ya3NwYWNlUmVxdWVzdBolLmluc2lnaHRpZnkudjEuR2V0VWlXb3Jrc3BhY2VSZXNwb25zZRJPCghMaXN0VGFicxIgLmluc2lnaHRpZnkudjEuTGlzdFVpVGFic1JlcXVlc3QaIS5pbnNpZ2h0aWZ5LnYxLkxpc3RVaVRhYnNSZXNwb25zZRJSCglDcmVhdGVUYWISIS5pbnNpZ2h0aWZ5LnYxLkNyZWF0ZVVpVGFiUmVxdWVzdBoiLmluc2lnaHRpZnkudjEuQ3JlYXRlVWlUYWJSZXNwb25zZRJSCglTZWxlY3RUYWISIS5pbnNpZ2h0aWZ5LnYxLlNlbGVjdFVpVGFiUmVxdWVzdBoiLmluc2lnaHRpZnkudjEuU2VsZWN0VWlUYWJSZXNwb25zZUKfAQoRY29tLmluc2lnaHRpZnkudjFCB1VpUHJvdG9QAVosaW5zaWdodGlmeS9nZW4vZ28vaW5zaWdodGlmeS92MTtpbnNpZ2h0aWZ5djGiAgNJWFiqAg1JbnNpZ2h0aWZ5LlYxygINSW5zaWdodGlmeVxWMeICGUluc2lnaHRpZnlcVjFcR1BCTWV0YWRhdGHqAg5JbnNpZ2h0aWZ5OjpWMWIGcHJvdG8z");
 
 /**
  * Describes the message insightify.v1.UiNodeMeta.
@@ -100,46 +100,130 @@ export const GetUiDocumentResponseSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_ui, 10);
 
 /**
+ * Describes the message insightify.v1.GetProjectUiDocumentRequest.
+ * Use `create(GetProjectUiDocumentRequestSchema)` to create a new message.
+ */
+export const GetProjectUiDocumentRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 11);
+
+/**
+ * Describes the message insightify.v1.GetProjectUiDocumentResponse.
+ * Use `create(GetProjectUiDocumentResponseSchema)` to create a new message.
+ */
+export const GetProjectUiDocumentResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 12);
+
+/**
+ * Describes the message insightify.v1.UiWorkspace.
+ * Use `create(UiWorkspaceSchema)` to create a new message.
+ */
+export const UiWorkspaceSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 13);
+
+/**
+ * Describes the message insightify.v1.UiWorkspaceTab.
+ * Use `create(UiWorkspaceTabSchema)` to create a new message.
+ */
+export const UiWorkspaceTabSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 14);
+
+/**
+ * Describes the message insightify.v1.GetUiWorkspaceRequest.
+ * Use `create(GetUiWorkspaceRequestSchema)` to create a new message.
+ */
+export const GetUiWorkspaceRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 15);
+
+/**
+ * Describes the message insightify.v1.GetUiWorkspaceResponse.
+ * Use `create(GetUiWorkspaceResponseSchema)` to create a new message.
+ */
+export const GetUiWorkspaceResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 16);
+
+/**
+ * Describes the message insightify.v1.ListUiTabsRequest.
+ * Use `create(ListUiTabsRequestSchema)` to create a new message.
+ */
+export const ListUiTabsRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 17);
+
+/**
+ * Describes the message insightify.v1.ListUiTabsResponse.
+ * Use `create(ListUiTabsResponseSchema)` to create a new message.
+ */
+export const ListUiTabsResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 18);
+
+/**
+ * Describes the message insightify.v1.CreateUiTabRequest.
+ * Use `create(CreateUiTabRequestSchema)` to create a new message.
+ */
+export const CreateUiTabRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 19);
+
+/**
+ * Describes the message insightify.v1.CreateUiTabResponse.
+ * Use `create(CreateUiTabResponseSchema)` to create a new message.
+ */
+export const CreateUiTabResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 20);
+
+/**
+ * Describes the message insightify.v1.SelectUiTabRequest.
+ * Use `create(SelectUiTabRequestSchema)` to create a new message.
+ */
+export const SelectUiTabRequestSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 21);
+
+/**
+ * Describes the message insightify.v1.SelectUiTabResponse.
+ * Use `create(SelectUiTabResponseSchema)` to create a new message.
+ */
+export const SelectUiTabResponseSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_ui, 22);
+
+/**
  * Describes the message insightify.v1.ApplyUiOpsRequest.
  * Use `create(ApplyUiOpsRequestSchema)` to create a new message.
  */
 export const ApplyUiOpsRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 11);
+  messageDesc(file_insightify_v1_ui, 23);
 
 /**
  * Describes the message insightify.v1.ApplyUiOpsResponse.
  * Use `create(ApplyUiOpsResponseSchema)` to create a new message.
  */
 export const ApplyUiOpsResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 12);
+  messageDesc(file_insightify_v1_ui, 24);
 
 /**
  * Describes the message insightify.v1.UiOp.
  * Use `create(UiOpSchema)` to create a new message.
  */
 export const UiOpSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 13);
+  messageDesc(file_insightify_v1_ui, 25);
 
 /**
  * Describes the message insightify.v1.UiUpsertNode.
  * Use `create(UiUpsertNodeSchema)` to create a new message.
  */
 export const UiUpsertNodeSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 14);
+  messageDesc(file_insightify_v1_ui, 26);
 
 /**
  * Describes the message insightify.v1.UiDeleteNode.
  * Use `create(UiDeleteNodeSchema)` to create a new message.
  */
 export const UiDeleteNodeSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 15);
+  messageDesc(file_insightify_v1_ui, 27);
 
 /**
  * Describes the message insightify.v1.UiClearNodes.
  * Use `create(UiClearNodesSchema)` to create a new message.
  */
 export const UiClearNodesSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_ui, 16);
+  messageDesc(file_insightify_v1_ui, 28);
 
 /**
  * Describes the enum insightify.v1.UiNodeType.
@@ -158,4 +242,10 @@ export const UiNodeType = /*@__PURE__*/
  */
 export const UiService = /*@__PURE__*/
   serviceDesc(file_insightify_v1_ui, 0);
+
+/**
+ * @generated from service insightify.v1.UiWorkspaceService
+ */
+export const UiWorkspaceService = /*@__PURE__*/
+  serviceDesc(file_insightify_v1_ui, 1);
 

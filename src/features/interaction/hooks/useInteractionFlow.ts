@@ -92,6 +92,14 @@ export function useInteractionFlow({
     }
     return runId;
   }, []);
+  const setNodeRunId = useCallback((nodeId: string, runId: string) => {
+    const targetNodeId = (nodeId ?? "").trim();
+    const targetRunId = (runId ?? "").trim();
+    if (!targetNodeId || !targetRunId) {
+      return;
+    }
+    interactionSession.setRunId(targetNodeId, targetRunId);
+  }, [interactionSession]);
   const cancelStream = useCallback(() => undefined, []);
 
   const handleInputChange = useCallback(
@@ -193,6 +201,7 @@ export function useInteractionFlow({
   return {
     startWorkerRun,
     initInteractionNode,
+    setNodeRunId,
     cancelStream,
   };
 }

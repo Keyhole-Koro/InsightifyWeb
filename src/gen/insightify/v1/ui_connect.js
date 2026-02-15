@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ApplyUiOpsRequest, ApplyUiOpsResponse, GetUiDocumentRequest, GetUiDocumentResponse } from "./ui_pb.js";
+import { ApplyUiOpsRequest, ApplyUiOpsResponse, CreateUiTabRequest, CreateUiTabResponse, GetProjectUiDocumentRequest, GetProjectUiDocumentResponse, GetUiDocumentRequest, GetUiDocumentResponse, GetUiWorkspaceRequest, GetUiWorkspaceResponse, ListUiTabsRequest, ListUiTabsResponse, SelectUiTabRequest, SelectUiTabResponse } from "./ui_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -22,12 +22,66 @@ export const UiService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc insightify.v1.UiService.GetProjectTabDocument
+     */
+    getProjectTabDocument: {
+      name: "GetProjectTabDocument",
+      I: GetProjectUiDocumentRequest,
+      O: GetProjectUiDocumentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * @generated from rpc insightify.v1.UiService.ApplyOps
      */
     applyOps: {
       name: "ApplyOps",
       I: ApplyUiOpsRequest,
       O: ApplyUiOpsResponse,
+      kind: MethodKind.Unary,
+    },
+  }
+};
+
+/**
+ * @generated from service insightify.v1.UiWorkspaceService
+ */
+export const UiWorkspaceService = {
+  typeName: "insightify.v1.UiWorkspaceService",
+  methods: {
+    /**
+     * @generated from rpc insightify.v1.UiWorkspaceService.GetWorkspace
+     */
+    getWorkspace: {
+      name: "GetWorkspace",
+      I: GetUiWorkspaceRequest,
+      O: GetUiWorkspaceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.UiWorkspaceService.ListTabs
+     */
+    listTabs: {
+      name: "ListTabs",
+      I: ListUiTabsRequest,
+      O: ListUiTabsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.UiWorkspaceService.CreateTab
+     */
+    createTab: {
+      name: "CreateTab",
+      I: CreateUiTabRequest,
+      O: CreateUiTabResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.UiWorkspaceService.SelectTab
+     */
+    selectTab: {
+      name: "SelectTab",
+      I: SelectUiTabRequest,
+      O: SelectUiTabResponse,
       kind: MethodKind.Unary,
     },
   }

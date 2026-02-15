@@ -14,7 +14,6 @@ export interface Project {
   isActive?: boolean;
 }
 
-// Backward-compatible alias for existing feature code.
 export type ProjectItem = Project;
 
 export interface ListProjectsRequest {
