@@ -1,11 +1,16 @@
 import type { ProjectItem } from "@/contracts/project";
+import type { UiWorkspaceTab } from "@/contracts/ui";
 
 interface ActionPanelProps {
   isInitialized: boolean;
   projectId: string | null;
   projects: ProjectItem[];
+  tabs: UiWorkspaceTab[];
+  activeTabId: string;
   onSelectProject: (projectId: string) => void | Promise<void>;
   onCreateProject: () => void | Promise<void>;
+  onSelectTab: (tabId: string) => void | Promise<void>;
+  onCreateTab: () => void | Promise<void>;
   onCreateChatNode: () => void | Promise<void>;
   initError: string | null;
 }
@@ -14,8 +19,12 @@ export function ActionPanel({
   isInitialized,
   projectId,
   projects,
+  tabs,
+  activeTabId,
   onSelectProject,
   onCreateProject,
+  onSelectTab,
+  onCreateTab,
   onCreateChatNode,
   initError,
 }: ActionPanelProps) {
@@ -91,6 +100,68 @@ export function ActionPanel({
         >
           New Project
         </button>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: 96,
+          right: 24,
+          zIndex: 10,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          background: "rgba(255,255,255,0.9)",
+          border: "1px solid rgba(148,163,184,0.35)",
+          borderRadius: 10,
+          padding: "8px 10px",
+        }}
+      >
+        <select
+          value={activeTabId}
+          onChange={(e) => void onSelectTab(e.target.value)}
+          disabled={!isInitialized || tabs.length === 0}
+          style={{
+            minWidth: 180,
+            border: "1px solid rgba(148,163,184,0.4)",
+            borderRadius: 6,
+            padding: "4px 8px",
+            fontSize: 12,
+            backgroundColor: !isInitialized ? "rgba(241,245,249,0.9)" : "white",
+          }}
+        >
+          {tabs.length === 0 ? <option value="">No Tabs</option> : null}
+          {tabs.map((tab) => {
+            const tabId = (tab.tabId ?? "").trim();
+            if (!tabId) {
+              return null;
+            }
+            return (
+              <option key={tabId} value={tabId}>
+                {(tab.title ?? "Tab").trim() || "Tab"}
+              </option>
+            );
+          })}
+        </select>
+        <button
+          type="button"
+          onClick={() => void onCreateTab()}
+          disabled={!isInitialized}
+          style={{
+            border: "1px solid rgba(14,165,233,0.45)",
+            borderRadius: 6,
+            background: isInitialized
+              ? "rgba(240,249,255,0.95)"
+              : "rgba(241,245,249,0.9)",
+            color: isInitialized ? "#0c4a6e" : "#64748b",
+            padding: "4px 10px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: isInitialized ? "pointer" : "not-allowed",
+          }}
+        >
+          New Tab
+        </button>
         <button
           type="button"
           onClick={() => void onCreateChatNode()}
@@ -115,7 +186,7 @@ export function ActionPanel({
         <div
           style={{
             position: "absolute",
-            top: 96,
+            top: 140,
             right: 24,
             zIndex: 10,
             maxWidth: 360,

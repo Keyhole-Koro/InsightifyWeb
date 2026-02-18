@@ -2,9 +2,15 @@ import { type MutableRefObject } from "react";
 import { type Node } from "reactflow";
 
 import { useInteractionFlow } from "@/features/interaction/hooks/useInteractionFlow";
-import { getProjectUiDocument } from "@/features/ui/api";
+import {
+  createUiTab,
+  getProjectUiDocument,
+  getUiWorkspace,
+  selectUiTab,
+} from "@/features/ui/api";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import { useUiNodeSync } from "@/features/ui/hooks/useUiNodeSync";
+import type { UiWorkspaceTab } from "@/contracts/ui";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
 
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
@@ -76,17 +82,21 @@ export function useHomeBootstrapRunner({
     await startWorkerRun(BOOTSTRAP_WORKER_KEY, activeProjectID);
   };
 
-  const restoreLatestTab = async (activeProjectID: string): Promise<boolean> => {
-    const storedTabID = getStoredTabId(activeProjectID);
+  const restoreLatestTab = async (
+    activeProjectID: string,
+    preferredTabID?: string,
+  ): Promise<boolean> => {
+    const defaultTabID = (preferredTabID ?? getStoredTabId(activeProjectID)).trim();
     const res = await getProjectUiDocument({
       projectId: activeProjectID,
-      tabId: storedTabID || undefined,
+      tabId: defaultTabID || undefined,
     });
     if (!res.found) {
       setStoredTabId(activeProjectID, "");
       return false;
     }
-    setStoredTabId(activeProjectID, (res.tabId ?? "").trim());
+    const activeTabID = (res.tabId ?? defaultTabID).trim();
+    setStoredTabId(activeProjectID, activeTabID);
     const doc = res.document;
     const nodes = doc?.nodes ?? [];
     if (nodes.length === 0) {
@@ -107,6 +117,40 @@ export function useHomeBootstrapRunner({
     return true;
   };
 
+  const getWorkspaceTabs = async (
+    activeProjectID: string,
+  ): Promise<{ tabs: UiWorkspaceTab[]; activeTabId: string }> => {
+    const res = await getUiWorkspace({ projectId: activeProjectID });
+    const tabs = res.tabs ?? [];
+    const activeTabId = (res.workspace?.activeTabId ?? "").trim();
+    return { tabs, activeTabId };
+  };
+
+  const createTab = async (activeProjectID: string, title?: string) => {
+    const res = await createUiTab({
+      projectId: activeProjectID,
+      title: (title ?? "").trim() || "Tab",
+    });
+    const tabId = (res.tab?.tabId ?? "").trim();
+    if (!tabId) {
+      throw new Error("CreateTab did not return tab_id");
+    }
+    setStoredTabId(activeProjectID, tabId);
+    return tabId;
+  };
+
+  const selectTab = async (activeProjectID: string, tabID: string) => {
+    const tid = (tabID ?? "").trim();
+    if (!tid) {
+      throw new Error("tab_id is required");
+    }
+    await selectUiTab({
+      projectId: activeProjectID,
+      tabId: tid,
+    });
+    setStoredTabId(activeProjectID, tid);
+  };
+
   const runTestChatNode = async (activeProjectID: string) => {
     const runID = await startWorkerRun(TEST_CHAT_WORKER_KEY, activeProjectID);
     const nodeID = `test-llm-chat-node-${runID}`;
@@ -119,5 +163,8 @@ export function useHomeBootstrapRunner({
     runBootstrap,
     runTestChatNode,
     restoreLatestTab,
+    getWorkspaceTabs,
+    createTab,
+    selectTab,
   };
 }

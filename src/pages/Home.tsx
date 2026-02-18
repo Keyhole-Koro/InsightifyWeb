@@ -18,9 +18,13 @@ export const Home = () => {
     nodeTypes,
     projectId,
     projects,
+    tabs,
+    activeTabId,
     initError,
     onSelectProject,
     onCreateProject,
+    onSelectTab,
+    onCreateTab,
     onCreateChatNode,
   } = useBootstrap({
     setNodes,
@@ -47,8 +51,12 @@ export const Home = () => {
             isInitialized={isInitialized}
             projectId={projectId}
             projects={projects}
+            tabs={tabs}
+            activeTabId={activeTabId}
             onSelectProject={onSelectProject}
             onCreateProject={onCreateProject}
+            onSelectTab={onSelectTab}
+            onCreateTab={onCreateTab}
             onCreateChatNode={onCreateChatNode}
             initError={initError}
           />
