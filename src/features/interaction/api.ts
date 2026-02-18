@@ -1,4 +1,3 @@
-import { interactionClient } from "@/rpc/clients";
 import { apiBaseUrl } from "@/shared/env";
 import {
   type CloseRequest,
@@ -9,7 +8,6 @@ import {
   type WaitResponse,
 } from "@/contracts/interaction";
 
-export { interactionClient };
 export type { CloseRequest, CloseResponse, SendRequest, SendResponse, WaitRequest, WaitResponse };
 
 type WSInbound =

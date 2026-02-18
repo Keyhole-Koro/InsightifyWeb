@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ApplyUiOpsRequest, ApplyUiOpsResponse, CreateUiTabRequest, CreateUiTabResponse, GetUiDocumentRequest, GetUiDocumentResponse, GetUiWorkspaceRequest, GetUiWorkspaceResponse, ListUiTabsRequest, ListUiTabsResponse, RestoreUiRequest, RestoreUiResponse, SelectUiTabRequest, SelectUiTabResponse } from "./ui_pb.js";
+import { ApplyUiOpsRequest, ApplyUiOpsResponse, CreateUiTabRequest, CreateUiTabResponse, GetUiDocumentRequest, GetUiDocumentResponse, GetUiWorkspaceRequest, GetUiWorkspaceResponse, RestoreUiRequest, RestoreUiResponse, SelectUiTabRequest, SelectUiTabResponse } from "./ui_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -46,15 +46,6 @@ export const UiWorkspaceService = {
       name: "GetWorkspace",
       I: GetUiWorkspaceRequest,
       O: GetUiWorkspaceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc insightify.v1.UiWorkspaceService.ListTabs
-     */
-    listTabs: {
-      name: "ListTabs",
-      I: ListUiTabsRequest,
-      O: ListUiTabsResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -8,8 +8,6 @@ import type {
   GetUiWorkspaceResponse,
   GetUiDocumentRequest,
   GetUiDocumentResponse,
-  ListUiTabsRequest,
-  ListUiTabsResponse,
   RestoreUiRequest,
   RestoreUiResponse,
   SelectUiTabRequest,
@@ -26,8 +24,6 @@ export type {
   GetUiWorkspaceResponse,
   GetUiDocumentRequest,
   GetUiDocumentResponse,
-  ListUiTabsRequest,
-  ListUiTabsResponse,
   RestoreUiRequest,
   RestoreUiResponse,
   SelectUiTabRequest,
@@ -57,14 +53,6 @@ export const getUiWorkspace = async (
   req: GetUiWorkspaceRequest,
 ): Promise<GetUiWorkspaceResponse> => {
   return await uiWorkspaceClient.getWorkspace({
-    projectId: req.projectId,
-  });
-};
-
-export const listUiTabs = async (
-  req: ListUiTabsRequest,
-): Promise<ListUiTabsResponse> => {
-  return await uiWorkspaceClient.listTabs({
     projectId: req.projectId,
   });
 };

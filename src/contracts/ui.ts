@@ -96,15 +96,6 @@ export interface GetUiWorkspaceResponse {
   tabs?: UiWorkspaceTab[];
 }
 
-export interface ListUiTabsRequest {
-  projectId: string;
-}
-
-export interface ListUiTabsResponse {
-  workspace?: UiWorkspace;
-  tabs?: UiWorkspaceTab[];
-}
-
 export interface CreateUiTabRequest {
   projectId: string;
   title?: string;
