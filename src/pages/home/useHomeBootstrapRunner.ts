@@ -4,8 +4,8 @@ import { type Node } from "reactflow";
 import { useInteractionFlow } from "@/features/interaction/hooks/useInteractionFlow";
 import {
   createUiTab,
-  getProjectUiDocument,
   getUiWorkspace,
+  restoreUi,
   selectUiTab,
 } from "@/features/ui/api";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
@@ -87,7 +87,7 @@ export function useHomeBootstrapRunner({
     preferredTabID?: string,
   ): Promise<{ restored: boolean; runId: string; tabId: string }> => {
     const defaultTabID = (preferredTabID ?? getStoredTabId(activeProjectID)).trim();
-    const res = await getProjectUiDocument({
+    const res = await restoreUi({
       projectId: activeProjectID,
       tabId: defaultTabID || undefined,
     });

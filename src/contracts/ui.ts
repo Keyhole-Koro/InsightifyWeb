@@ -70,19 +70,6 @@ export interface GetUiDocumentResponse {
   document?: UiDocument;
 }
 
-export interface GetProjectUiDocumentRequest {
-  projectId: string;
-  tabId?: string;
-}
-
-export interface GetProjectUiDocumentResponse {
-  found?: boolean;
-  projectId?: string;
-  tabId?: string;
-  runId?: string;
-  document?: UiDocument;
-}
-
 export interface UiWorkspace {
   workspaceId?: string;
   projectId?: string;
@@ -137,6 +124,28 @@ export interface SelectUiTabRequest {
 export interface SelectUiTabResponse {
   workspace?: UiWorkspace;
   tabs?: UiWorkspaceTab[];
+}
+
+export type UiRestoreReason =
+  | "UI_RESTORE_REASON_UNSPECIFIED"
+  | "UI_RESTORE_REASON_RESOLVED"
+  | "UI_RESTORE_REASON_NO_TAB"
+  | "UI_RESTORE_REASON_NO_RUN"
+  | "UI_RESTORE_REASON_ERROR";
+
+export interface RestoreUiRequest {
+  projectId: string;
+  tabId?: string;
+}
+
+export interface RestoreUiResponse {
+  found?: boolean;
+  restored?: boolean;
+  reason?: UiRestoreReason;
+  projectId?: string;
+  tabId?: string;
+  runId?: string;
+  document?: UiDocument;
 }
 
 export interface UiOpUpsertNode {

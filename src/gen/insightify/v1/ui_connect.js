@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ApplyUiOpsRequest, ApplyUiOpsResponse, CreateUiTabRequest, CreateUiTabResponse, GetProjectUiDocumentRequest, GetProjectUiDocumentResponse, GetUiDocumentRequest, GetUiDocumentResponse, GetUiWorkspaceRequest, GetUiWorkspaceResponse, ListUiTabsRequest, ListUiTabsResponse, SelectUiTabRequest, SelectUiTabResponse } from "./ui_pb.js";
+import { ApplyUiOpsRequest, ApplyUiOpsResponse, CreateUiTabRequest, CreateUiTabResponse, GetUiDocumentRequest, GetUiDocumentResponse, GetUiWorkspaceRequest, GetUiWorkspaceResponse, ListUiTabsRequest, ListUiTabsResponse, RestoreUiRequest, RestoreUiResponse, SelectUiTabRequest, SelectUiTabResponse } from "./ui_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,15 +19,6 @@ export const UiService = {
       name: "GetDocument",
       I: GetUiDocumentRequest,
       O: GetUiDocumentResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc insightify.v1.UiService.GetProjectTabDocument
-     */
-    getProjectTabDocument: {
-      name: "GetProjectTabDocument",
-      I: GetProjectUiDocumentRequest,
-      O: GetProjectUiDocumentResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -82,6 +73,15 @@ export const UiWorkspaceService = {
       name: "SelectTab",
       I: SelectUiTabRequest,
       O: SelectUiTabResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc insightify.v1.UiWorkspaceService.Restore
+     */
+    restore: {
+      name: "Restore",
+      I: RestoreUiRequest,
+      O: RestoreUiResponse,
       kind: MethodKind.Unary,
     },
   }

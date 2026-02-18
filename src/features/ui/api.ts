@@ -6,12 +6,12 @@ import type {
   CreateUiTabResponse,
   GetUiWorkspaceRequest,
   GetUiWorkspaceResponse,
-  GetProjectUiDocumentRequest,
-  GetProjectUiDocumentResponse,
   GetUiDocumentRequest,
   GetUiDocumentResponse,
   ListUiTabsRequest,
   ListUiTabsResponse,
+  RestoreUiRequest,
+  RestoreUiResponse,
   SelectUiTabRequest,
   SelectUiTabResponse,
 } from "@/contracts/ui";
@@ -24,12 +24,12 @@ export type {
   CreateUiTabResponse,
   GetUiWorkspaceRequest,
   GetUiWorkspaceResponse,
-  GetProjectUiDocumentRequest,
-  GetProjectUiDocumentResponse,
   GetUiDocumentRequest,
   GetUiDocumentResponse,
   ListUiTabsRequest,
   ListUiTabsResponse,
+  RestoreUiRequest,
+  RestoreUiResponse,
   SelectUiTabRequest,
   SelectUiTabResponse,
 };
@@ -50,15 +50,6 @@ export const applyUiOps = async (
     baseVersion: req.baseVersion ?? 0,
     ops: req.ops,
     actor: req.actor ?? "",
-  });
-};
-
-export const getProjectUiDocument = async (
-  req: GetProjectUiDocumentRequest,
-): Promise<GetProjectUiDocumentResponse> => {
-  return await uiClient.getProjectTabDocument({
-    projectId: req.projectId,
-    tabId: req.tabId ?? "",
   });
 };
 
@@ -93,5 +84,14 @@ export const selectUiTab = async (
   return await uiWorkspaceClient.selectTab({
     projectId: req.projectId,
     tabId: req.tabId,
+  });
+};
+
+export const restoreUi = async (
+  req: RestoreUiRequest,
+): Promise<RestoreUiResponse> => {
+  return await uiWorkspaceClient.restore({
+    projectId: req.projectId,
+    tabId: req.tabId ?? "",
   });
 };
