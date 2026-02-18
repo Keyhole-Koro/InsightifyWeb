@@ -7,6 +7,7 @@ interface ActionPanelProps {
   projects: ProjectItem[];
   tabs: UiWorkspaceTab[];
   activeTabId: string;
+  restoreStatus: string;
   onSelectProject: (projectId: string) => void | Promise<void>;
   onCreateProject: () => void | Promise<void>;
   onSelectTab: (tabId: string) => void | Promise<void>;
@@ -21,6 +22,7 @@ export function ActionPanel({
   projects,
   tabs,
   activeTabId,
+  restoreStatus,
   onSelectProject,
   onCreateProject,
   onSelectTab,
@@ -182,11 +184,30 @@ export function ActionPanel({
           Add LLM Chat
         </button>
       </div>
-      {initError ? (
+      {restoreStatus ? (
         <div
           style={{
             position: "absolute",
             top: 140,
+            right: 24,
+            zIndex: 10,
+            maxWidth: 420,
+            border: "1px solid rgba(56,189,248,0.45)",
+            background: "rgba(224,242,254,0.92)",
+            color: "#0c4a6e",
+            borderRadius: 8,
+            padding: "8px 10px",
+            fontSize: 12,
+          }}
+        >
+          {restoreStatus}
+        </div>
+      ) : null}
+      {initError ? (
+        <div
+          style={{
+            position: "absolute",
+            top: restoreStatus ? 184 : 140,
             right: 24,
             zIndex: 10,
             maxWidth: 360,

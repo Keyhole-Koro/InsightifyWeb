@@ -5,6 +5,7 @@ import type { UiWorkspaceTab } from "@/contracts/ui";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
 import { useHomeBootstrapRunner } from "./useHomeBootstrapRunner";
 import { useHomeProject } from "./useHomeProject";
+import { useUiRestore } from "./useUiRestore";
 
 interface UseBootstrapOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -71,26 +72,30 @@ export function useBootstrap({
     setActiveTabId(nextActiveTabId);
   };
 
-  const bootstrapProject = async (targetProjectID?: string) => {
-    const activeProjectID = await ensureProjectID(targetProjectID);
-    const restored = await restoreLatestTab(activeProjectID);
-    if (!restored) {
-      await runBootstrap(activeProjectID);
-    }
-    await refreshWorkspaceTabs(activeProjectID);
-    await refreshProjects();
-    return activeProjectID;
-  };
-
   const resetBootstrapScene = () => {
     setNodes([]);
     nodeSeq.current = 1;
     msgSeq.current = 1;
   };
 
+  const {
+    restoreStatus,
+    clearRestoreStatus,
+    restoreForProject,
+    restoreForSelectedTab,
+    restoreForNewTab,
+  } = useUiRestore({
+    resetBootstrapScene,
+    restoreLatestTab,
+    runBootstrap,
+    refreshWorkspaceTabs,
+  });
+
   const runBootstrapForProject = async (targetProjectID?: string) => {
-    resetBootstrapScene();
-    return await bootstrapProject(targetProjectID);
+    const activeProjectID = await ensureProjectID(targetProjectID);
+    await restoreForProject(activeProjectID);
+    await refreshProjects();
+    return activeProjectID;
   };
 
   useEffect(() => {
@@ -119,6 +124,7 @@ export function useBootstrap({
     if (initializingRef.current) return;
     initializingRef.current = true;
     setInitError(null);
+    clearRestoreStatus();
     try {
       await selectProjectById(normalized);
       await runBootstrapForProject(normalized);
@@ -133,6 +139,7 @@ export function useBootstrap({
     if (initializingRef.current) return;
     initializingRef.current = true;
     setInitError(null);
+    clearRestoreStatus();
     try {
       const createdProjectID = await createProjectAndSelect();
       await runBootstrapForProject(createdProjectID);
@@ -159,15 +166,11 @@ export function useBootstrap({
     if (!tid || initializingRef.current) return;
     initializingRef.current = true;
     setInitError(null);
+    clearRestoreStatus();
     try {
       const activeProjectID = await ensureProjectID(projectId ?? undefined);
       await selectTab(activeProjectID, tid);
-      resetBootstrapScene();
-      const restored = await restoreLatestTab(activeProjectID, tid);
-      if (!restored) {
-        await runBootstrap(activeProjectID);
-      }
-      await refreshWorkspaceTabs(activeProjectID);
+      await restoreForSelectedTab(activeProjectID, tid);
     } catch (err) {
       setInitError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -179,15 +182,11 @@ export function useBootstrap({
     if (initializingRef.current) return;
     initializingRef.current = true;
     setInitError(null);
+    clearRestoreStatus();
     try {
       const activeProjectID = await ensureProjectID(projectId ?? undefined);
       const newTabID = await createTab(activeProjectID);
-      resetBootstrapScene();
-      const restored = await restoreLatestTab(activeProjectID, newTabID);
-      if (!restored) {
-        await runBootstrap(activeProjectID);
-      }
-      await refreshWorkspaceTabs(activeProjectID);
+      await restoreForNewTab(activeProjectID, newTabID);
     } catch (err) {
       setInitError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -201,6 +200,7 @@ export function useBootstrap({
     projects,
     tabs,
     activeTabId,
+    restoreStatus,
     initError,
     onSelectProject,
     onCreateProject,

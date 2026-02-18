@@ -20,6 +20,7 @@ export const Home = () => {
     projects,
     tabs,
     activeTabId,
+    restoreStatus,
     initError,
     onSelectProject,
     onCreateProject,
@@ -53,6 +54,7 @@ export const Home = () => {
             projects={projects}
             tabs={tabs}
             activeTabId={activeTabId}
+            restoreStatus={restoreStatus}
             onSelectProject={onSelectProject}
             onCreateProject={onCreateProject}
             onSelectTab={onSelectTab}

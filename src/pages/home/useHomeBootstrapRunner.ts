@@ -85,7 +85,7 @@ export function useHomeBootstrapRunner({
   const restoreLatestTab = async (
     activeProjectID: string,
     preferredTabID?: string,
-  ): Promise<boolean> => {
+  ): Promise<{ restored: boolean; runId: string; tabId: string }> => {
     const defaultTabID = (preferredTabID ?? getStoredTabId(activeProjectID)).trim();
     const res = await getProjectUiDocument({
       projectId: activeProjectID,
@@ -93,14 +93,18 @@ export function useHomeBootstrapRunner({
     });
     if (!res.found) {
       setStoredTabId(activeProjectID, "");
-      return false;
+      return { restored: false, runId: "", tabId: "" };
     }
     const activeTabID = (res.tabId ?? defaultTabID).trim();
     setStoredTabId(activeProjectID, activeTabID);
     const doc = res.document;
     const nodes = doc?.nodes ?? [];
     if (nodes.length === 0) {
-      return false;
+      return {
+        restored: false,
+        runId: (res.runId ?? doc?.runId ?? "").trim(),
+        tabId: activeTabID,
+      };
     }
     const runID = (res.runId ?? doc?.runId ?? "").trim();
     setNodes([]);
@@ -114,7 +118,7 @@ export function useHomeBootstrapRunner({
         setNodeRunId(nodeID, runID);
       }
     }
-    return true;
+    return { restored: true, runId: runID, tabId: activeTabID };
   };
 
   const getWorkspaceTabs = async (
