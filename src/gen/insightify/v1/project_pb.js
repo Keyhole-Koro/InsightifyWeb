@@ -8,7 +8,7 @@ import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2
  * Describes the file insightify/v1/project.proto.
  */
 export const file_insightify_v1_project = /*@__PURE__*/
-  fileDesc("ChtpbnNpZ2h0aWZ5L3YxL3Byb2plY3QucHJvdG8SDWluc2lnaHRpZnkudjEiOwoURW5zdXJlUHJvamVjdFJlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCRISCgpwcm9qZWN0X2lkGAIgASgJIisKFUVuc3VyZVByb2plY3RSZXNwb25zZRISCgpwcm9qZWN0X2lkGAEgASgJIk8KB1Byb2plY3QSEgoKcHJvamVjdF9pZBgBIAEoCRIPCgd1c2VyX2lkGAIgASgJEgwKBG5hbWUYAyABKAkSEQoJaXNfYWN0aXZlGAQgASgIIiYKE0xpc3RQcm9qZWN0c1JlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCSJbChRMaXN0UHJvamVjdHNSZXNwb25zZRIoCghwcm9qZWN0cxgBIAMoCzIWLmluc2lnaHRpZnkudjEuUHJvamVjdBIZChFhY3RpdmVfcHJvamVjdF9pZBgCIAEoCSI1ChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJEgwKBG5hbWUYAiABKAkiQAoVQ3JlYXRlUHJvamVjdFJlc3BvbnNlEicKB3Byb2plY3QYASABKAsyFi5pbnNpZ2h0aWZ5LnYxLlByb2plY3QiOwoUU2VsZWN0UHJvamVjdFJlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCRISCgpwcm9qZWN0X2lkGAIgASgJIkAKFVNlbGVjdFByb2plY3RSZXNwb25zZRInCgdwcm9qZWN0GAEgASgLMhYuaW5zaWdodGlmeS52MS5Qcm9qZWN0Mv0CCg5Qcm9qZWN0U2VydmljZRJaCg1FbnN1cmVQcm9qZWN0EiMuaW5zaWdodGlmeS52MS5FbnN1cmVQcm9qZWN0UmVxdWVzdBokLmluc2lnaHRpZnkudjEuRW5zdXJlUHJvamVjdFJlc3BvbnNlElcKDExpc3RQcm9qZWN0cxIiLmluc2lnaHRpZnkudjEuTGlzdFByb2plY3RzUmVxdWVzdBojLmluc2lnaHRpZnkudjEuTGlzdFByb2plY3RzUmVzcG9uc2USWgoNQ3JlYXRlUHJvamVjdBIjLmluc2lnaHRpZnkudjEuQ3JlYXRlUHJvamVjdFJlcXVlc3QaJC5pbnNpZ2h0aWZ5LnYxLkNyZWF0ZVByb2plY3RSZXNwb25zZRJaCg1TZWxlY3RQcm9qZWN0EiMuaW5zaWdodGlmeS52MS5TZWxlY3RQcm9qZWN0UmVxdWVzdBokLmluc2lnaHRpZnkudjEuU2VsZWN0UHJvamVjdFJlc3BvbnNlQqQBChFjb20uaW5zaWdodGlmeS52MUIMUHJvamVjdFByb3RvUAFaLGluc2lnaHRpZnkvZ2VuL2dvL2luc2lnaHRpZnkvdjE7aW5zaWdodGlmeXYxogIDSVhYqgINSW5zaWdodGlmeS5WMcoCDUluc2lnaHRpZnlcVjHiAhlJbnNpZ2h0aWZ5XFYxXEdQQk1ldGFkYXRh6gIOSW5zaWdodGlmeTo6VjFiBnByb3RvMw");
+  fileDesc("ChtpbnNpZ2h0aWZ5L3YxL3Byb2plY3QucHJvdG8SDWluc2lnaHRpZnkudjEiOwoURW5zdXJlUHJvamVjdFJlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCRISCgpwcm9qZWN0X2lkGAIgASgJIisKFUVuc3VyZVByb2plY3RSZXNwb25zZRISCgpwcm9qZWN0X2lkGAEgASgJInsKB1Byb2plY3QSEgoKcHJvamVjdF9pZBgBIAEoCRIPCgd1c2VyX2lkGAIgASgJEgwKBG5hbWUYAyABKAkSEQoJaXNfYWN0aXZlGAQgASgIEioKCWFydGlmYWN0cxgFIAMoCzIXLmluc2lnaHRpZnkudjEuQXJ0aWZhY3QiVQoIQXJ0aWZhY3QSCgoCaWQYASABKAkSDgoGcnVuX2lkGAIgASgJEgwKBHBhdGgYAyABKAkSCwoDdXJsGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAkiJgoTTGlzdFByb2plY3RzUmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJIlsKFExpc3RQcm9qZWN0c1Jlc3BvbnNlEigKCHByb2plY3RzGAEgAygLMhYuaW5zaWdodGlmeS52MS5Qcm9qZWN0EhkKEWFjdGl2ZV9wcm9qZWN0X2lkGAIgASgJIjUKFENyZWF0ZVByb2plY3RSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkSDAoEbmFtZRgCIAEoCSJAChVDcmVhdGVQcm9qZWN0UmVzcG9uc2USJwoHcHJvamVjdBgBIAEoCzIWLmluc2lnaHRpZnkudjEuUHJvamVjdCI7ChRTZWxlY3RQcm9qZWN0UmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJEhIKCnByb2plY3RfaWQYAiABKAkiQAoVU2VsZWN0UHJvamVjdFJlc3BvbnNlEicKB3Byb2plY3QYASABKAsyFi5pbnNpZ2h0aWZ5LnYxLlByb2plY3Qy/QIKDlByb2plY3RTZXJ2aWNlEloKDUVuc3VyZVByb2plY3QSIy5pbnNpZ2h0aWZ5LnYxLkVuc3VyZVByb2plY3RSZXF1ZXN0GiQuaW5zaWdodGlmeS52MS5FbnN1cmVQcm9qZWN0UmVzcG9uc2USVwoMTGlzdFByb2plY3RzEiIuaW5zaWdodGlmeS52MS5MaXN0UHJvamVjdHNSZXF1ZXN0GiMuaW5zaWdodGlmeS52MS5MaXN0UHJvamVjdHNSZXNwb25zZRJaCg1DcmVhdGVQcm9qZWN0EiMuaW5zaWdodGlmeS52MS5DcmVhdGVQcm9qZWN0UmVxdWVzdBokLmluc2lnaHRpZnkudjEuQ3JlYXRlUHJvamVjdFJlc3BvbnNlEloKDVNlbGVjdFByb2plY3QSIy5pbnNpZ2h0aWZ5LnYxLlNlbGVjdFByb2plY3RSZXF1ZXN0GiQuaW5zaWdodGlmeS52MS5TZWxlY3RQcm9qZWN0UmVzcG9uc2VCpAEKEWNvbS5pbnNpZ2h0aWZ5LnYxQgxQcm9qZWN0UHJvdG9QAVosaW5zaWdodGlmeS9nZW4vZ28vaW5zaWdodGlmeS92MTtpbnNpZ2h0aWZ5djGiAgNJWFiqAg1JbnNpZ2h0aWZ5LlYxygINSW5zaWdodGlmeVxWMeICGUluc2lnaHRpZnlcVjFcR1BCTWV0YWRhdGHqAg5JbnNpZ2h0aWZ5OjpWMWIGcHJvdG8z");
 
 /**
  * Describes the message insightify.v1.EnsureProjectRequest.
@@ -32,46 +32,53 @@ export const ProjectSchema = /*@__PURE__*/
   messageDesc(file_insightify_v1_project, 2);
 
 /**
+ * Describes the message insightify.v1.Artifact.
+ * Use `create(ArtifactSchema)` to create a new message.
+ */
+export const ArtifactSchema = /*@__PURE__*/
+  messageDesc(file_insightify_v1_project, 3);
+
+/**
  * Describes the message insightify.v1.ListProjectsRequest.
  * Use `create(ListProjectsRequestSchema)` to create a new message.
  */
 export const ListProjectsRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 3);
+  messageDesc(file_insightify_v1_project, 4);
 
 /**
  * Describes the message insightify.v1.ListProjectsResponse.
  * Use `create(ListProjectsResponseSchema)` to create a new message.
  */
 export const ListProjectsResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 4);
+  messageDesc(file_insightify_v1_project, 5);
 
 /**
  * Describes the message insightify.v1.CreateProjectRequest.
  * Use `create(CreateProjectRequestSchema)` to create a new message.
  */
 export const CreateProjectRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 5);
+  messageDesc(file_insightify_v1_project, 6);
 
 /**
  * Describes the message insightify.v1.CreateProjectResponse.
  * Use `create(CreateProjectResponseSchema)` to create a new message.
  */
 export const CreateProjectResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 6);
+  messageDesc(file_insightify_v1_project, 7);
 
 /**
  * Describes the message insightify.v1.SelectProjectRequest.
  * Use `create(SelectProjectRequestSchema)` to create a new message.
  */
 export const SelectProjectRequestSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 7);
+  messageDesc(file_insightify_v1_project, 8);
 
 /**
  * Describes the message insightify.v1.SelectProjectResponse.
  * Use `create(SelectProjectResponseSchema)` to create a new message.
  */
 export const SelectProjectResponseSchema = /*@__PURE__*/
-  messageDesc(file_insightify_v1_project, 8);
+  messageDesc(file_insightify_v1_project, 9);
 
 /**
  * ProjectService manages project lifecycle.

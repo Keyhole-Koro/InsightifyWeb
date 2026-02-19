@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 import { onAssistantMessage, send, wait } from "@/features/interaction/api";
 import { useInteractionState } from "@/features/interaction/hooks/useInteractionState";
 import { startRun } from "@/features/worker/api";
+import { useUiEditor } from "@/features/ui/hooks/useUiEditor";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import type { UiNode } from "@/contracts/ui";
 
@@ -33,25 +34,124 @@ export function useInteractionFlow({
   bindHandlers,
 }: UseInteractionFlowOptions) {
   const interactionSession = useInteractionState();
+  const uiEditor = useUiEditor();
   const offByNodeRef = useRef<Record<string, () => void>>({});
+  const shadowNodeRef = useRef<Record<string, UiNode>>({});
+
+  const ensureShadowNode = useCallback((nodeId: string): UiNode => {
+    const targetNodeId = (nodeId ?? "").trim();
+    const existing = shadowNodeRef.current[targetNodeId];
+    if (existing) {
+      return existing;
+    }
+    const next: UiNode = {
+      id: targetNodeId,
+      type: "UI_NODE_TYPE_LLM_CHAT",
+      meta: { title: targetNodeId },
+      llmChat: {
+        model: "Low",
+        isResponding: false,
+        sendLocked: false,
+        sendLockHint: "",
+        messages: [],
+      },
+    };
+    shadowNodeRef.current[targetNodeId] = next;
+    return next;
+  }, []);
+
+  const persistShadowNode = useCallback(
+    (nodeId: string) => {
+      const targetNodeId = (nodeId ?? "").trim();
+      const runId = interactionSession.getRunId(targetNodeId);
+      const node = shadowNodeRef.current[targetNodeId];
+      if (!runId || !node) {
+        return;
+      }
+      void uiEditor.upsertNode(runId, node, "frontend").catch((err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        setInitError(`ApplyOps failed: ${message}`);
+      });
+    },
+    [interactionSession, setInitError, uiEditor],
+  );
+
+  const setShadowResponding = useCallback((nodeId: string, isResponding: boolean) => {
+    const node = ensureShadowNode(nodeId);
+    node.llmChat = {
+      ...(node.llmChat ?? {}),
+      isResponding,
+    };
+  }, [ensureShadowNode]);
+
+  const appendShadowMessage = useCallback(
+    (nodeId: string, role: "ROLE_USER" | "ROLE_ASSISTANT", content: string) => {
+      const trimmed = (content ?? "").trim();
+      if (!trimmed) {
+        return;
+      }
+      const node = ensureShadowNode(nodeId);
+      const llm = node.llmChat ?? {
+        model: "Low",
+        isResponding: false,
+        sendLocked: false,
+        sendLockHint: "",
+        messages: [],
+      };
+      llm.messages = [
+        ...(llm.messages ?? []),
+        {
+          id: `msg-${Date.now()}-${Math.random()}`,
+          role,
+          content: trimmed,
+        },
+      ];
+      node.llmChat = llm;
+    },
+    [ensureShadowNode],
+  );
+
+  const upsertLastAssistantShadow = useCallback(
+    (nodeId: string, content: string) => {
+      const trimmed = (content ?? "").trim();
+      if (!trimmed) {
+        return;
+      }
+      const node = ensureShadowNode(nodeId);
+      const llm = node.llmChat ?? {
+        model: "Low",
+        isResponding: false,
+        sendLocked: false,
+        sendLockHint: "",
+        messages: [],
+      };
+      const messages = [...(llm.messages ?? [])];
+      const last = messages[messages.length - 1];
+      if (last?.role === "ROLE_ASSISTANT") {
+        messages[messages.length - 1] = { ...last, content: trimmed };
+      } else {
+        messages.push({
+          id: `msg-${Date.now()}-${Math.random()}`,
+          role: "ROLE_ASSISTANT",
+          content: trimmed,
+        });
+      }
+      llm.messages = messages;
+      node.llmChat = llm;
+    },
+    [ensureShadowNode],
+  );
 
   const ensureNodeShell = useCallback(
     (nodeId: string) => {
-      upsertNodeFromRpc(nodeId, {
-        id: nodeId,
-        type: "UI_NODE_TYPE_LLM_CHAT",
-        meta: { title: nodeId },
-        llmChat: {
-          isResponding: true,
-          sendLocked: false,
-          sendLockHint: "",
-          messages: [],
-        },
-      });
+      const shadow = ensureShadowNode(nodeId);
+      setShadowResponding(nodeId, true);
+      upsertNodeFromRpc(nodeId, shadow);
       nodeState.setResponding(nodeId, true);
       nodeState.ensureServerMessage(nodeId);
+      persistShadowNode(nodeId);
     },
-    [nodeState, upsertNodeFromRpc],
+    [ensureShadowNode, nodeState, persistShadowNode, setShadowResponding, upsertNodeFromRpc],
   );
 
   const initInteractionNode = useCallback(
@@ -69,10 +169,13 @@ export function useInteractionFlow({
         // Ensure the node exists before mutating chat messages.
         ensureNodeShell(nodeId);
         nodeState.updateLastServerMessage(nodeId, assistantMessage);
+        upsertLastAssistantShadow(nodeId, assistantMessage);
         if (interactionId !== "") {
           interactionSession.setPendingInteractionId(nodeId, interactionId);
         }
         nodeState.setResponding(nodeId, false);
+        setShadowResponding(nodeId, false);
+        persistShadowNode(nodeId);
       });
       const waiting = await wait({ runId, timeoutMs: 5_000 });
       interactionSession.setPendingInteractionId(
@@ -80,8 +183,17 @@ export function useInteractionFlow({
         (waiting.interactionId ?? "").trim(),
       );
       nodeState.setResponding(nodeId, false);
+      setShadowResponding(nodeId, false);
+      persistShadowNode(nodeId);
     },
-    [ensureNodeShell, interactionSession, nodeState],
+    [
+      ensureNodeShell,
+      interactionSession,
+      nodeState,
+      persistShadowNode,
+      setShadowResponding,
+      upsertLastAssistantShadow,
+    ],
   );
 
   const startWorkerRun = useCallback(async (workerKey: string, activeProjectId: string) => {
@@ -92,14 +204,15 @@ export function useInteractionFlow({
     }
     return runId;
   }, []);
-  const setNodeRunId = useCallback((nodeId: string, runId: string) => {
+  const setNodeRunId = useCallback((nodeId: string, runId: string, version?: number) => {
     const targetNodeId = (nodeId ?? "").trim();
     const targetRunId = (runId ?? "").trim();
     if (!targetNodeId || !targetRunId) {
       return;
     }
     interactionSession.setRunId(targetNodeId, targetRunId);
-  }, [interactionSession]);
+    uiEditor.setRunVersion(targetRunId, version);
+  }, [interactionSession, uiEditor]);
   const cancelStream = useCallback(() => undefined, []);
 
   const handleInputChange = useCallback(
@@ -129,6 +242,9 @@ export function useInteractionFlow({
           if (!runId) {
             throw new Error("No active run for this node.");
           }
+          appendShadowMessage(nodeId, "ROLE_USER", submitted);
+          setShadowResponding(nodeId, true);
+          persistShadowNode(nodeId);
 
           const interactionId = interactionSession.getPendingInteractionId(nodeId);
           const res = await send({
@@ -139,6 +255,8 @@ export function useInteractionFlow({
 
           if (!res.accepted) {
             nodeState.setResponding(nodeId, false);
+            setShadowResponding(nodeId, false);
+            persistShadowNode(nodeId);
             return;
           }
 
@@ -147,9 +265,10 @@ export function useInteractionFlow({
             nodeState.addMessage(nodeId, {
               id: `msg-${Date.now()}`,
               role: "assistant",
-              content: assistant,
-            });
+                content: assistant,
+              });
             nodeState.updateLastServerMessage(nodeId, assistant);
+            upsertLastAssistantShadow(nodeId, assistant);
           }
           interactionSession.clearPendingInteractionId(nodeId);
           interactionSession.setPendingInteractionId(
@@ -157,6 +276,8 @@ export function useInteractionFlow({
             (res.interactionId ?? interactionId ?? "").trim(),
           );
           nodeState.setResponding(nodeId, true);
+          setShadowResponding(nodeId, true);
+          persistShadowNode(nodeId);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           if (isProjectNotFoundError(message)) {
@@ -169,18 +290,25 @@ export function useInteractionFlow({
             content: message,
           });
           nodeState.setResponding(nodeId, false);
+          upsertLastAssistantShadow(nodeId, message);
+          setShadowResponding(nodeId, false);
+          persistShadowNode(nodeId);
         }
       })();
     },
     [
+      appendShadowMessage,
       isProjectNotFoundError,
       msgSeq,
       nodeState,
       projectId,
+      persistShadowNode,
       ensureActiveProject,
       setInitError,
       setProjectId,
+      setShadowResponding,
       interactionSession,
+      upsertLastAssistantShadow,
     ],
   );
 

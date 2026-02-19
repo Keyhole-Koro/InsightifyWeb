@@ -17,12 +17,8 @@ import { useUiRestoreCache } from "./useUiRestoreCache";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
 const TEST_CHAT_WORKER_KEY = "testllmChatNode";
 
-const isResolvedRestore = (reason?: string, found?: boolean): boolean => {
-  if ((reason ?? "").trim() === "UI_RESTORE_REASON_RESOLVED") {
-    return true;
-  }
-  return Boolean(found);
-};
+const isResolvedRestore = (reason?: string): boolean =>
+  (reason ?? "").trim() === "UI_RESTORE_REASON_RESOLVED";
 
 interface UseHomeBootstrapRunnerOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -91,7 +87,7 @@ export function useHomeBootstrapRunner({
       tabId: defaultTabID || undefined,
     });
     const runID = (res.runId ?? res.document?.runId ?? "").trim();
-    if (!isResolvedRestore(res.reason, res.found) || !runID) {
+    if (!isResolvedRestore(res.reason) || !runID) {
       setStoredTabId(activeProjectID, "");
       if (defaultTabID) {
         clearDocumentCache(activeProjectID, defaultTabID);
@@ -117,7 +113,7 @@ export function useHomeBootstrapRunner({
       }
       upsertNodeFromRpc(nodeID, n);
       if (runID) {
-        setNodeRunId(nodeID, runID);
+        setNodeRunId(nodeID, runID, doc?.version);
       }
     }
     saveDocumentCache(activeProjectID, activeTabID, runID, resolved.documentHash, doc);

@@ -130,8 +130,6 @@ export interface RestoreUiRequest {
 }
 
 export interface RestoreUiResponse {
-  found?: boolean;
-  restored?: boolean;
   reason?: UiRestoreReason;
   projectId?: string;
   tabId?: string;
