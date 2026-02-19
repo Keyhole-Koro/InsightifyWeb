@@ -137,6 +137,7 @@ export interface RestoreUiResponse {
   tabId?: string;
   runId?: string;
   document?: UiDocument;
+  documentHash?: string;
 }
 
 export interface UiOpUpsertNode {

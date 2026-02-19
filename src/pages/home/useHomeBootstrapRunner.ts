@@ -12,10 +12,17 @@ import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import { useUiNodeSync } from "@/features/ui/hooks/useUiNodeSync";
 import type { UiWorkspaceTab } from "@/contracts/ui";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
+import { useUiRestoreCache } from "./useUiRestoreCache";
 
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
 const TEST_CHAT_WORKER_KEY = "testllmChatNode";
-const PROJECT_TAB_STORAGE_PREFIX = "insightify.ui_tab_id.";
+
+const isResolvedRestore = (reason?: string, found?: boolean): boolean => {
+  if ((reason ?? "").trim() === "UI_RESTORE_REASON_RESOLVED") {
+    return true;
+  }
+  return Boolean(found);
+};
 
 interface UseHomeBootstrapRunnerOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
@@ -38,26 +45,13 @@ export function useHomeBootstrapRunner({
   isProjectNotFoundError,
   ensureActiveProject,
 }: UseHomeBootstrapRunnerOptions) {
-  const getStoredTabId = (projectID: string): string => {
-    const pid = (projectID ?? "").trim();
-    if (!pid) {
-      return "";
-    }
-    return (localStorage.getItem(PROJECT_TAB_STORAGE_PREFIX + pid) ?? "").trim();
-  };
-
-  const setStoredTabId = (projectID: string, tabID: string): void => {
-    const pid = (projectID ?? "").trim();
-    const tid = (tabID ?? "").trim();
-    if (!pid) {
-      return;
-    }
-    if (!tid) {
-      localStorage.removeItem(PROJECT_TAB_STORAGE_PREFIX + pid);
-      return;
-    }
-    localStorage.setItem(PROJECT_TAB_STORAGE_PREFIX + pid, tid);
-  };
+  const {
+    getStoredTabId,
+    setStoredTabId,
+    clearDocumentCache,
+    resolveDocument,
+    saveDocumentCache,
+  } = useUiRestoreCache();
 
   const nodeState = useUiNodeState(setNodes);
   const { nodeTypes, bindHandlers, upsertNodeFromRpc } = useUiNodeSync({
@@ -85,28 +79,36 @@ export function useHomeBootstrapRunner({
   const restoreLatestTab = async (
     activeProjectID: string,
     preferredTabID?: string,
-  ): Promise<{ restored: boolean; runId: string; tabId: string }> => {
+  ): Promise<{
+    restored: boolean;
+    runId: string;
+    tabId: string;
+    source: "server" | "local_cache";
+  }> => {
     const defaultTabID = (preferredTabID ?? getStoredTabId(activeProjectID)).trim();
     const res = await restoreUi({
       projectId: activeProjectID,
       tabId: defaultTabID || undefined,
     });
-    if (!res.found) {
+    const runID = (res.runId ?? res.document?.runId ?? "").trim();
+    if (!isResolvedRestore(res.reason, res.found) || !runID) {
       setStoredTabId(activeProjectID, "");
-      return { restored: false, runId: "", tabId: "" };
+      if (defaultTabID) {
+        clearDocumentCache(activeProjectID, defaultTabID);
+      }
+      return { restored: false, runId: "", tabId: "", source: "server" };
     }
     const activeTabID = (res.tabId ?? defaultTabID).trim();
     setStoredTabId(activeProjectID, activeTabID);
-    const doc = res.document;
+    const resolved = resolveDocument({
+      projectId: activeProjectID,
+      tabId: activeTabID,
+      runId: runID,
+      serverDocument: res.document,
+      serverHash: res.documentHash,
+    });
+    const doc = resolved.document;
     const nodes = doc?.nodes ?? [];
-    if (nodes.length === 0) {
-      return {
-        restored: false,
-        runId: (res.runId ?? doc?.runId ?? "").trim(),
-        tabId: activeTabID,
-      };
-    }
-    const runID = (res.runId ?? doc?.runId ?? "").trim();
     setNodes([]);
     for (const n of nodes) {
       const nodeID = (n.id ?? "").trim();
@@ -118,7 +120,13 @@ export function useHomeBootstrapRunner({
         setNodeRunId(nodeID, runID);
       }
     }
-    return { restored: true, runId: runID, tabId: activeTabID };
+    saveDocumentCache(activeProjectID, activeTabID, runID, resolved.documentHash, doc);
+    return {
+      restored: true,
+      runId: runID,
+      tabId: activeTabID,
+      source: resolved.source,
+    };
   };
 
   const getWorkspaceTabs = async (

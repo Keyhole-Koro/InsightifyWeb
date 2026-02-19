@@ -4,6 +4,7 @@ interface RestoreResult {
   restored: boolean;
   runId: string;
   tabId: string;
+  source: "server" | "local_cache";
 }
 
 interface UseUiRestoreOptions {
@@ -41,7 +42,7 @@ export function useUiRestore({
         setRestoreStatus(fallbackMessage);
       } else {
         setRestoreStatus(
-          `復元成功: tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
+          `復元成功(${restoreResult.source === "local_cache" ? "cache" : "server"}): tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
         );
       }
       await refreshWorkspaceTabs(activeProjectID);
@@ -91,4 +92,3 @@ export function useUiRestore({
     restoreForNewTab,
   };
 }
-
