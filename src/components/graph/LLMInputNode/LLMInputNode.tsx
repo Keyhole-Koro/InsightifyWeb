@@ -173,7 +173,7 @@ export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
                 props.onSend();
               }
             }}
-            placeholder="メッセージを入力..."
+            placeholder="Type a message..."
             rows={2}
             style={{
               width: "100%",
@@ -253,7 +253,7 @@ export const LLMInputNode = memo(({ data }: NodeProps<LLMInputNodeData>) => {
         >
           {props.sendLocked && props.sendLockHint
             ? props.sendLockHint
-            : "Shift + Enter で改行"}
+            : "Shift + Enter for a new line"}
         </div>
       </div>
       <Handle

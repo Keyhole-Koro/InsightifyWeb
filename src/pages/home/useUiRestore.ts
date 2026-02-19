@@ -42,7 +42,7 @@ export function useUiRestore({
         setRestoreStatus(fallbackMessage);
       } else {
         setRestoreStatus(
-          `復元成功(${restoreResult.source === "local_cache" ? "cache" : "server"}): tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
+          `Restore succeeded (${restoreResult.source === "local_cache" ? "cache" : "server"}): tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
         );
       }
       await refreshWorkspaceTabs(activeProjectID);
@@ -56,7 +56,7 @@ export function useUiRestore({
       return await restoreWithFallback(
         activeProjectID,
         undefined,
-        "復元なし: 新規実行で初期化しました",
+        "No restore target. Initialized with a new run.",
       );
     },
     [restoreWithFallback],
@@ -67,7 +67,7 @@ export function useUiRestore({
       return await restoreWithFallback(
         activeProjectID,
         tabID,
-        "復元なし: 選択タブを新規実行で初期化しました",
+        "No restore target for selected tab. Initialized with a new run.",
       );
     },
     [restoreWithFallback],
@@ -78,7 +78,7 @@ export function useUiRestore({
       return await restoreWithFallback(
         activeProjectID,
         tabID,
-        "新規タブを作成し、初期実行しました",
+        "Created a new tab and initialized it with a new run.",
       );
     },
     [restoreWithFallback],

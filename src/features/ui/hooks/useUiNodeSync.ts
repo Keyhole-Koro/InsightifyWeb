@@ -18,6 +18,16 @@ export function useUiNodeSync({
   setNodes,
   nodeSeq,
 }: UseUiNodeSyncOptions) {
+  const mapRpcRole = (role: unknown): "user" | "assistant" | null => {
+    if (role === "ROLE_USER" || role === 1) {
+      return "user";
+    }
+    if (role === "ROLE_ASSISTANT" || role === 2) {
+      return "assistant";
+    }
+    return null;
+  };
+
   const mergeMessages = useCallback(
     (current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] => {
       if (incoming.length === 0) {
@@ -71,12 +81,7 @@ export function useUiNodeSync({
 
       const rpcMessages: ChatMessage[] = (llm.messages ?? [])
         .map((m) => {
-          const role =
-            m.role === "ROLE_USER"
-              ? "user"
-              : m.role === "ROLE_ASSISTANT"
-                ? "assistant"
-                : null;
+          const role = mapRpcRole(m.role);
           const content = (m.content ?? "").trim();
           if (!role || content === "") {
             return null;

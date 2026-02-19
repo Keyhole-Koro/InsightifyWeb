@@ -17,8 +17,15 @@ import { useUiRestoreCache } from "./useUiRestoreCache";
 const BOOTSTRAP_WORKER_KEY = "bootstrap";
 const TEST_CHAT_WORKER_KEY = "testllmChatNode";
 
-const isResolvedRestore = (reason?: string): boolean =>
-  (reason ?? "").trim() === "UI_RESTORE_REASON_RESOLVED";
+const isResolvedRestore = (reason?: unknown): boolean => {
+  if (typeof reason === "number") {
+    return reason === 1;
+  }
+  if (typeof reason === "string") {
+    return reason.trim() === "UI_RESTORE_REASON_RESOLVED";
+  }
+  return false;
+};
 
 interface UseHomeBootstrapRunnerOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;

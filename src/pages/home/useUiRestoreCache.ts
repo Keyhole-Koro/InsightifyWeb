@@ -25,6 +25,18 @@ type ResolveDocumentResult = {
 };
 
 const normalize = (value?: string): string => (value ?? "").trim();
+const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
+
+const jsonSafeReplacer = (_key: string, value: unknown): unknown => {
+  if (typeof value !== "bigint") {
+    return value;
+  }
+  if (value <= MAX_SAFE_BIGINT && value >= MIN_SAFE_BIGINT) {
+    return Number(value);
+  }
+  return value.toString();
+};
 
 const readCache = (projectId: string, tabId: string): LocalDocumentCache | null => {
   const pid = normalize(projectId);
@@ -137,7 +149,7 @@ export function useUiRestoreCache() {
     };
     localStorage.setItem(
       `${PROJECT_TAB_DOCUMENT_CACHE_PREFIX}${pid}.${tid}`,
-      JSON.stringify(payload),
+      JSON.stringify(payload, jsonSafeReplacer),
     );
   };
 
