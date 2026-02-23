@@ -17,7 +17,7 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
-      "/debug": {
+      "/trace": {
         target: "http://localhost:8081",
         changeOrigin: true,
       },

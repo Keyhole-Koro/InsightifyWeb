@@ -1,5 +1,11 @@
 import { apiBaseUrl } from "@/shared/env";
 import {
+  getCurrentTraceScopeId,
+  getLastTraceId,
+  newTraceId,
+  setLastTraceId,
+} from "@/shared/trace";
+import {
   type CloseRequest,
   type CloseResponse,
   type SendRequest,
@@ -14,6 +20,7 @@ type WSInbound =
   | {
       type: "wait_state";
       runId?: string;
+      traceId?: string;
       interactionId?: string;
       waiting?: boolean;
       closed?: boolean;
@@ -21,12 +28,14 @@ type WSInbound =
   | {
       type: "assistant_message";
       runId?: string;
+      traceId?: string;
       interactionId?: string;
       assistantMessage?: string;
     }
   | {
       type: "send_ack";
       runId?: string;
+      traceId?: string;
       interactionId?: string;
       accepted?: boolean;
       assistantMessage?: string;
@@ -34,19 +43,23 @@ type WSInbound =
   | {
       type: "close_ack";
       runId?: string;
+      traceId?: string;
       closed?: boolean;
     }
   | {
       type: "subscribed";
       runId?: string;
+      traceId?: string;
     }
   | {
       type: "error";
       code?: string;
       message?: string;
+      traceId?: string;
     }
   | {
       type: "pong";
+      traceId?: string;
     };
 
 type Waiter = {
@@ -63,6 +76,7 @@ type Resolver<T> = {
 
 type RunSocket = {
   runId: string;
+  traceId: string;
   ws: WebSocket;
   openPromise: Promise<void>;
   waiters: Waiter[];
@@ -87,13 +101,21 @@ function wsBaseURL(): string {
   return base.replace(/^http/, "ws");
 }
 
-function wsURLForRun(runId: string): string {
+function wsURLForRun(runId: string, traceId: string): string {
   const base = wsBaseURL();
-  return `${base}/ws/interaction?run_id=${encodeURIComponent(runId)}`;
+  return `${base}/ws/interaction?run_id=${encodeURIComponent(runId)}&trace_id=${encodeURIComponent(traceId)}`;
 }
 
-function newTimeoutError(message: string): Error {
-  return new Error(message);
+function withTraceId(message: string, traceId: string): string {
+  const tid = (traceId ?? "").trim();
+  if (!tid) {
+    return message;
+  }
+  return `${message} (Trace ID: ${tid})`;
+}
+
+function newTimeoutError(message: string, traceId: string): Error {
+  return new Error(withTraceId(message, traceId));
 }
 
 function resolveWaitersWithState(sock: RunSocket, state: WaitResponse): void {
@@ -130,6 +152,15 @@ function rejectAllPending(sock: RunSocket, err: Error): void {
   }
 }
 
+function maybeUpdateTraceId(sock: RunSocket, traceId?: string): void {
+  const tid = (traceId ?? "").trim();
+  if (!tid) {
+    return;
+  }
+  sock.traceId = tid;
+  setLastTraceId(tid);
+}
+
 function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
   if (interactionWSDebug) {
     console.log("[interaction-ws] raw message", {
@@ -151,6 +182,8 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
     return;
   }
 
+  maybeUpdateTraceId(sock, msg.traceId);
+
   switch (msg.type) {
     case "wait_state": {
       resolveWaitersWithState(sock, {
@@ -169,6 +202,7 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
       if (interactionWSDebug) {
         console.log("[interaction-ws] assistant_message received", {
           runId: sock.runId,
+          traceId: sock.traceId,
           interactionId,
           assistantMessage,
         });
@@ -211,7 +245,7 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
       return;
     }
     case "error": {
-      const err = new Error((msg.message ?? "interaction websocket error").trim());
+      const err = new Error(withTraceId((msg.message ?? "interaction websocket error").trim(), sock.traceId));
       rejectAllPending(sock, err);
       return;
     }
@@ -232,9 +266,13 @@ function ensureRunSocket(runId: string): RunSocket {
     return existing;
   }
 
-  const ws = new WebSocket(wsURLForRun(key));
+  const traceId = getCurrentTraceScopeId() || getLastTraceId() || newTraceId();
+  setLastTraceId(traceId);
+
+  const ws = new WebSocket(wsURLForRun(key, traceId));
   const sock: RunSocket = {
     runId: key,
+    traceId,
     ws,
     openPromise: Promise.resolve(),
     waiters: [],
@@ -247,13 +285,13 @@ function ensureRunSocket(runId: string): RunSocket {
 
   sock.openPromise = new Promise<void>((resolve, reject) => {
     ws.onopen = () => resolve();
-    ws.onerror = () => reject(new Error("interaction websocket open failed"));
+    ws.onerror = () => reject(new Error(withTraceId("interaction websocket open failed", sock.traceId)));
   });
 
   ws.onmessage = (ev) => handleWSMessage(sock, ev as MessageEvent<string>);
   ws.onclose = () => {
     runSockets.delete(key);
-    rejectAllPending(sock, new Error("interaction websocket closed"));
+    rejectAllPending(sock, new Error(withTraceId("interaction websocket closed", sock.traceId)));
   };
   ws.onerror = () => {
     // noop: onclose handles cleanup/reject.
@@ -265,7 +303,7 @@ function ensureRunSocket(runId: string): RunSocket {
 
 function sendWSMessage(sock: RunSocket, payload: Record<string, unknown>): void {
   if (sock.ws.readyState !== WebSocket.OPEN) {
-    throw new Error("interaction websocket is not open");
+    throw new Error(withTraceId("interaction websocket is not open", sock.traceId));
   }
   sock.ws.send(JSON.stringify(payload));
 }
@@ -331,7 +369,7 @@ export const send = async (req: SendRequest): Promise<SendResponse> => {
         if (i >= 0) {
           sock.sendQueue.splice(i, 1);
         }
-        reject(newTimeoutError("send timeout"));
+        reject(newTimeoutError("send timeout", sock.traceId));
       }, 15_000),
     };
     sock.sendQueue.push(pending);
@@ -349,7 +387,7 @@ export const send = async (req: SendRequest): Promise<SendResponse> => {
       if (i >= 0) {
         sock.sendQueue.splice(i, 1);
       }
-      reject(err instanceof Error ? err : new Error(String(err)));
+      reject(err instanceof Error ? err : new Error(withTraceId(String(err), sock.traceId)));
     }
   });
 };
@@ -372,7 +410,7 @@ export const close = async (req: CloseRequest): Promise<CloseResponse> => {
         if (i >= 0) {
           sock.closeQueue.splice(i, 1);
         }
-        reject(newTimeoutError("close timeout"));
+        reject(newTimeoutError("close timeout", sock.traceId));
       }, 10_000),
     };
     sock.closeQueue.push(pending);
@@ -390,7 +428,7 @@ export const close = async (req: CloseRequest): Promise<CloseResponse> => {
       if (i >= 0) {
         sock.closeQueue.splice(i, 1);
       }
-      reject(err instanceof Error ? err : new Error(String(err)));
+      reject(err instanceof Error ? err : new Error(withTraceId(String(err), sock.traceId)));
     }
   });
 };

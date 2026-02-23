@@ -5,6 +5,7 @@ import { useInteractionState } from "@/features/interaction/hooks/useInteraction
 import { startRun } from "@/features/worker/api";
 import { useUiEditor } from "@/features/ui/hooks/useUiEditor";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
+import { getLastTraceId } from "@/shared/trace";
 import type { UiNode } from "@/contracts/ui";
 
 interface UseInteractionFlowOptions {
@@ -165,13 +166,23 @@ export function useInteractionFlow({
       ensureNodeShell(nodeId);
       offByNodeRef.current[nodeId]?.();
       offByNodeRef.current[nodeId] = onAssistantMessage(runId, ({ interactionId, assistantMessage }) => {
+        const incomingInteractionID = (interactionId ?? "").trim();
+        const expectedInteractionID = interactionSession.getPendingInteractionId(nodeId);
+        // Avoid cross-updating sibling nodes that share the same run.
+        if (
+          expectedInteractionID &&
+          incomingInteractionID &&
+          incomingInteractionID !== expectedInteractionID
+        ) {
+          return;
+        }
         // First assistant message can arrive before React commits node creation.
         // Ensure the node exists before mutating chat messages.
         ensureNodeShell(nodeId);
         nodeState.updateLastServerMessage(nodeId, assistantMessage);
         upsertLastAssistantShadow(nodeId, assistantMessage);
-        if (interactionId !== "") {
-          interactionSession.setPendingInteractionId(nodeId, interactionId);
+        if (incomingInteractionID !== "") {
+          interactionSession.setPendingInteractionId(nodeId, incomingInteractionID);
         }
         nodeState.setResponding(nodeId, false);
         setShadowResponding(nodeId, false);
@@ -279,7 +290,11 @@ export function useInteractionFlow({
           setShadowResponding(nodeId, true);
           persistShadowNode(nodeId);
         } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+          const rawMessage = err instanceof Error ? err.message : String(err);
+          const lastTraceId = getLastTraceId();
+          const message = lastTraceId && !rawMessage.includes("Trace ID:")
+            ? `${rawMessage} (Trace ID: ${lastTraceId})`
+            : rawMessage;
           if (isProjectNotFoundError(message)) {
             setProjectId(null);
           }

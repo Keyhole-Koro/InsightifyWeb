@@ -113,12 +113,14 @@ export function useHomeBootstrapRunner({
     const doc = resolved.document;
     const nodes = doc?.nodes ?? [];
     setNodes([]);
-    for (const n of nodes) {
-      const nodeID = (n.id ?? "").trim();
-      if (!nodeID) {
-        continue;
-      }
-      upsertNodeFromRpc(nodeID, n);
+    for (let i = 0; i < nodes.length; i += 1) {
+      const n = nodes[i];
+      const nodeID = (n.id ?? "").trim() || `restored-node-${i + 1}`;
+      const normalizedNode = {
+        ...n,
+        id: nodeID,
+      };
+      upsertNodeFromRpc(nodeID, normalizedNode);
       if (runID) {
         setNodeRunId(nodeID, runID, doc?.version);
       }
