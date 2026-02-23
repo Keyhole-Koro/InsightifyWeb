@@ -138,6 +138,23 @@ export interface RestoreUiResponse {
   documentHash?: string;
 }
 
+export interface CreateNodeInTabRequest {
+  projectId: string;
+  tabId?: string;
+  node: UiNode;
+  actor?: string;
+}
+
+export interface CreateNodeInTabResponse {
+  reason?: UiRestoreReason;
+  projectId?: string;
+  tabId?: string;
+  runId?: string;
+  nodeId?: string;
+  document?: UiDocument;
+  documentHash?: string;
+}
+
 export interface UiOpUpsertNode {
   upsertNode: {
     node: UiNode;

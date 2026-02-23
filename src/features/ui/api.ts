@@ -4,6 +4,8 @@ import type {
   ApplyUiOpsResponse,
   CreateUiTabRequest,
   CreateUiTabResponse,
+  CreateNodeInTabRequest,
+  CreateNodeInTabResponse,
   GetUiWorkspaceRequest,
   GetUiWorkspaceResponse,
   GetUiDocumentRequest,
@@ -20,6 +22,8 @@ export type {
   ApplyUiOpsResponse,
   CreateUiTabRequest,
   CreateUiTabResponse,
+  CreateNodeInTabRequest,
+  CreateNodeInTabResponse,
   GetUiWorkspaceRequest,
   GetUiWorkspaceResponse,
   GetUiDocumentRequest,
@@ -189,5 +193,16 @@ export const restoreUi = async (
   return await uiWorkspaceClient.restore({
     projectId: req.projectId,
     tabId: req.tabId ?? "",
+  });
+};
+
+export const createNodeInTab = async (
+  req: CreateNodeInTabRequest,
+): Promise<CreateNodeInTabResponse> => {
+  return await uiWorkspaceClient.createNodeInTab({
+    projectId: req.projectId,
+    tabId: req.tabId ?? "",
+    node: normalizeUiNode(req.node),
+    actor: req.actor ?? "",
   });
 };

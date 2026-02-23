@@ -54,7 +54,12 @@ const readCache = (projectId: string, tabId: string): LocalDocumentCache | null 
       return null;
     }
     return parsed;
-  } catch {
+  } catch (err) {
+    console.warn("[ui-restore] failed to parse local cache", {
+      projectId: pid,
+      tabId: tid,
+      error: err instanceof Error ? err.message : String(err),
+    });
     return null;
   }
 };
@@ -97,9 +102,18 @@ export function useUiRestoreCache() {
     serverDocument,
     serverHash,
   }: ResolveDocumentInput): ResolveDocumentResult => {
+    const pid = normalize(projectId);
+    const tid = normalize(tabId);
     const normalizedHash = normalize(serverHash);
     const normalizedRunId = normalize(runId);
     if (!normalizedHash || !normalizedRunId) {
+      console.debug("[ui-restore] cache skipped", {
+        projectId: pid,
+        tabId: tid,
+        runId: normalizedRunId,
+        documentHash: normalizedHash,
+        reason: "missing_run_or_hash",
+      });
       return {
         document: serverDocument,
         documentHash: normalizedHash,
@@ -113,6 +127,19 @@ export function useUiRestoreCache() {
       normalize(cached.runId) === normalizedRunId &&
       normalize(cached.documentHash) === normalizedHash &&
       !!cached.document;
+    console.debug("[ui-restore] cache decision", {
+      projectId: pid,
+      tabId: tid,
+      runId: normalizedRunId,
+      documentHash: normalizedHash,
+      hasCache: !!cached,
+      cachedRunId: normalize(cached?.runId),
+      cachedHash: normalize(cached?.documentHash),
+      source: useCache ? "local_cache" : "server",
+      cachedNodeCount: cached?.document?.nodes?.length ?? 0,
+      serverNodeCount: serverDocument?.nodes?.length ?? 0,
+      cachedSavedAt: cached?.savedAt ?? null,
+    });
     if (useCache) {
       return {
         document: cached?.document,
@@ -151,6 +178,14 @@ export function useUiRestoreCache() {
       `${PROJECT_TAB_DOCUMENT_CACHE_PREFIX}${pid}.${tid}`,
       JSON.stringify(payload, jsonSafeReplacer),
     );
+    console.debug("[ui-restore] cache saved", {
+      projectId: pid,
+      tabId: tid,
+      runId: rid,
+      documentHash: hash,
+      nodeCount: document.nodes?.length ?? 0,
+      savedAt: payload.savedAt,
+    });
   };
 
   return {
