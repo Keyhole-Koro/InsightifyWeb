@@ -2,7 +2,7 @@ import { UI_ACT_STATUS, UI_NODE_TYPE, type UiNode } from "@/contracts/ui";
 import { createNodeInTab, restoreUi, selectUiTab } from "@/features/ui/api";
 import { isResolvedRestore, normalizeRestoreReason, restoreReasonDescription } from "./restoreReason";
 
-const ACT_BOOTSTRAP_WORKER_KEY = "testllmChatNode";
+const ACT_BOOTSTRAP_WORKER_KEY = "actBootstrapNode";
 
 interface UseActNodeCreatorOptions {
     getStoredTabId: (projectId: string) => string;

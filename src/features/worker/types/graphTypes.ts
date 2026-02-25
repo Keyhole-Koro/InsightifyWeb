@@ -42,12 +42,12 @@ export interface CustomNodeData {
 }
 
 export interface LLMInputNodeData {
-  type: "llmChat" | "act";
-  props: LLMChatNodeProps | ActNodeProps;
+  type: "act";
+  props: ActNodeProps;
   meta?: GraphNodeMeta;
 }
 
-export type GraphNodeType = "llmChat" | "markdown" | "image" | "table" | "act";
+export type GraphNodeType = "markdown" | "image" | "table" | "act";
 
 export interface GraphNodeMeta {
   title?: string;
@@ -59,23 +59,6 @@ export interface GraphNodeShell<TType extends GraphNodeType, TProps> {
   type: TType;
   props: TProps;
   meta?: GraphNodeMeta;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface LLMChatNodeProps {
-  model?: string;
-  input: string;
-  isResponding: boolean;
-  sendLocked?: boolean;
-  sendLockHint?: string;
-  messages: ChatMessage[];
-  onInputChange: (value: string) => void;
-  onSend: () => void;
 }
 
 export interface MarkdownNodeProps {
@@ -120,7 +103,6 @@ export interface ActNodeProps {
 }
 
 export interface GraphNodePropsByType {
-  llmChat: LLMChatNodeProps;
   markdown: MarkdownNodeProps;
   image: ImageNodeProps;
   table: TableNodeProps;

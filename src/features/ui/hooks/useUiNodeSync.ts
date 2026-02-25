@@ -1,11 +1,10 @@
-import { useCallback, useMemo, useRef, type MutableRefObject } from "react";
+import { useCallback, useMemo, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
-import { LLMInputNode } from "@/components/graph/LLMInputNode/LLMInputNode";
 import { ActNode } from "@/components/graph/ActNode/ActNode";
-import { UI_ACT_STATUS, UI_MESSAGE_ROLE, UI_NODE_TYPE, type UiNode } from "@/contracts/ui";
+import { UI_ACT_STATUS, UI_NODE_TYPE, type UiNode } from "@/contracts/ui";
 import type {
+  ActTimelineEvent,
   ActNodeProps,
-  ChatMessage,
   GraphNodeRegistry,
   LLMInputNodeData,
   RuntimeGraphNode,
@@ -26,72 +25,60 @@ const ACT_STATUS_NAMES: Record<number, string> = {
 interface UseUiNodeSyncOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
   nodeSeq: MutableRefObject<number>;
+  selectedActId?: string | null;
+  onActSelect?: (actId: string) => void;
 }
 
 export function useUiNodeSync({
   setNodes,
   nodeSeq,
+  selectedActId,
+  onActSelect,
 }: UseUiNodeSyncOptions) {
-  const mapRpcRole = (role: unknown): "user" | "assistant" | null => {
-    if (role === UI_MESSAGE_ROLE.USER) {
-      return "user";
-    }
-    if (role === UI_MESSAGE_ROLE.ASSISTANT) {
-      return "assistant";
-    }
-    return null;
-  };
-
-  const mergeMessages = useCallback(
-    (current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] => {
-      if (incoming.length === 0) {
-        return current;
-      }
-      const merged = [...current];
-      for (const msg of incoming) {
-        const idx = merged.findIndex(
-          (m) =>
-            m.id === msg.id ||
-            (m.role === msg.role && m.content.trim() === msg.content.trim()),
-        );
-        if (idx >= 0) {
-          merged[idx] = { ...merged[idx], ...msg };
-          continue;
-        }
-        merged.push(msg);
-      }
-      return merged;
-    },
-    [],
-  );
-
-  const onInputChangeRef = useRef<(nodeId: string, value: string) => void>(
-    () => { },
-  );
-  const onSendRef = useRef<(nodeId: string) => void>(() => { });
-  const onSelectActRef = useRef<(actId: string) => void>(() => { });
-
-  const bindHandlers = useCallback(
+  const appendActTimelineEvent = useCallback(
     (
-      onInputChange: (nodeId: string, value: string) => void,
-      onSend: (nodeId: string) => void,
+      targetNodeID: string,
+      event: ActTimelineEvent,
+      status?: string,
+      mode?: string,
     ) => {
-      onInputChangeRef.current = onInputChange;
-      onSendRef.current = onSend;
+      const eventId = (event.id ?? "").trim();
+      setNodes((current) =>
+        current.map((node) => {
+          if (node.id !== targetNodeID) {
+            return node;
+          }
+          const data = node.data as LLMInputNodeData;
+          if (data.type !== "act") {
+            return node;
+          }
+          const props = data.props as ActNodeProps;
+          const timeline = [...(props.timeline ?? [])];
+          const alreadyExists =
+            eventId !== "" && timeline.some((evt) => (evt.id ?? "").trim() === eventId);
+          if (!alreadyExists) {
+            timeline.push(event);
+          }
+          return {
+            ...node,
+            data: {
+              ...data,
+              props: {
+                ...props,
+                timeline,
+                status: status ?? props.status,
+                mode: mode ?? props.mode,
+              },
+            },
+          };
+        }),
+      );
     },
-    [],
-  );
-
-  const bindActHandlers = useCallback(
-    (onSelectAct: (actId: string) => void) => {
-      onSelectActRef.current = onSelectAct;
-    },
-    [],
+    [setNodes],
   );
 
   const nodeTypes = useMemo<GraphNodeRegistry>(
     () => ({
-      llmChat: LLMInputNode,
       act: ActNode as GraphNodeRegistry["act"],
     }),
     [],
@@ -127,8 +114,8 @@ export function useUiNodeSync({
               label: pa.label,
               description: pa.description,
             })),
-            isSelected: false, // selection state is managed externally
-            onSelect: () => onSelectActRef.current(targetNodeID),
+            isSelected: (selectedActId ?? "").trim() === targetNodeID,
+            onSelect: () => onActSelect?.(targetNodeID),
           };
 
           if (idx >= 0) {
@@ -167,110 +154,14 @@ export function useUiNodeSync({
           };
           return [...current, newNode as Node<LLMInputNodeData>];
         });
-        return;
       }
-
-      // --- LLM Chat node branch (original) ---
-      const llm = node.llmChat;
-      if (!llm) {
-        return;
-      }
-
-      const rpcMessages: ChatMessage[] = (llm.messages ?? [])
-        .map((m) => {
-          const role = mapRpcRole(m.role);
-          const content = (m.content ?? "").trim();
-          if (!role || content === "") {
-            return null;
-          }
-          return {
-            id: (m.id ?? "").trim() || `msg-${Date.now()}-${Math.random()}`,
-            role,
-            content,
-          };
-        })
-        .filter((m): m is ChatMessage => m !== null);
-
-      setNodes((current) => {
-        const idx = current.findIndex((n) => n.id === targetNodeID);
-        if (idx >= 0) {
-          const existing = current[idx];
-          const data = existing.data as LLMInputNodeData;
-          const chatProps = data.props as import("@/features/worker/types/graphTypes").LLMChatNodeProps;
-          const next = [...current];
-          next[idx] = {
-            ...existing,
-            data: {
-              ...data,
-              meta: {
-                ...(data.meta ?? {}),
-                title:
-                  (node.meta?.title ?? data.meta?.title ?? "").trim() ||
-                  data.meta?.title,
-              },
-              props: {
-                ...chatProps,
-                model: llm.model || chatProps.model,
-                isResponding:
-                  typeof llm.isResponding === "boolean"
-                    ? llm.isResponding
-                    : chatProps.isResponding,
-                sendLocked:
-                  typeof llm.sendLocked === "boolean"
-                    ? llm.sendLocked
-                    : chatProps.sendLocked,
-                sendLockHint: llm.sendLockHint ?? chatProps.sendLockHint,
-                messages: mergeMessages(chatProps.messages, rpcMessages),
-                onInputChange: (value: string) =>
-                  onInputChangeRef.current(targetNodeID, value),
-                onSend: () => onSendRef.current(targetNodeID),
-              },
-            },
-          };
-          return next;
-        }
-
-        const position = {
-          x: 100 + ((nodeSeq.current - 1) % 2) * 460,
-          y: 110 + Math.floor((nodeSeq.current - 1) / 2) * 420,
-        };
-        nodeSeq.current += 1;
-
-        const newNode: RuntimeGraphNode<"llmChat"> = {
-          id: targetNodeID,
-          type: "llmChat",
-          position,
-          data: {
-            type: "llmChat",
-            meta: {
-              title: (node.meta?.title ?? "").trim() || "LLM Chat",
-              description: node.meta?.description,
-              tags: node.meta?.tags ?? [],
-            },
-            props: {
-              model: llm.model || "Low",
-              input: "",
-              isResponding: llm.isResponding ?? false,
-              sendLocked: llm.sendLocked ?? false,
-              sendLockHint: llm.sendLockHint ?? "",
-              messages: rpcMessages,
-              onInputChange: (value: string) =>
-                onInputChangeRef.current(targetNodeID, value),
-              onSend: () => onSendRef.current(targetNodeID),
-            },
-          },
-        };
-        return [...current, newNode];
-      });
     },
-    [mergeMessages, nodeSeq, setNodes],
+    [nodeSeq, onActSelect, selectedActId, setNodes],
   );
 
   return {
     nodeTypes,
-    bindHandlers,
-    bindActHandlers,
+    appendActTimelineEvent,
     upsertNodeFromRpc,
   };
 }
-

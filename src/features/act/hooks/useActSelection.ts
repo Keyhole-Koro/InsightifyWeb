@@ -10,13 +10,8 @@ export function useActSelection(initialActId: string | null = null) {
     setSelectedActId(next || null);
   }, []);
 
-  const clearActSelection = useCallback(() => {
-    setSelectedActId(null);
-  }, []);
-
   return {
     selectedActId,
     selectAct,
-    clearActSelection,
   };
 }

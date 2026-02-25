@@ -27,8 +27,6 @@ export const Home = () => {
     onSelectTab,
     onCreateTab,
     selectedActId,
-    selectAct,
-    clearActSelection,
     onSendToAct,
   } = useBootstrap({
     setNodes,
@@ -76,4 +74,3 @@ export const Home = () => {
     />
   );
 };
-

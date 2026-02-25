@@ -20,7 +20,6 @@ import type {
 } from "@/contracts/ui";
 import {
   UI_ACT_STATUS,
-  UI_MESSAGE_ROLE,
   UI_NODE_TYPE,
   UI_RESTORE_REASON,
 } from "@/contracts/ui";
@@ -58,7 +57,6 @@ type OneofUiOp = {
 };
 
 const UI_NODE_TYPE_VALUES = new Set<number>(Object.values(UI_NODE_TYPE));
-const UI_MESSAGE_ROLE_VALUES = new Set<number>(Object.values(UI_MESSAGE_ROLE));
 const UI_ACT_STATUS_VALUES = new Set<number>(Object.values(UI_ACT_STATUS));
 const UI_RESTORE_REASON_VALUES = new Set<number>(Object.values(UI_RESTORE_REASON));
 
@@ -82,32 +80,11 @@ const normalizeUiNodeOutgoing = (node: unknown): unknown => {
     return node;
   }
   const src = node as Record<string, unknown>;
-  const llmChat = src.llmChat as Record<string, unknown> | undefined;
   const act = src.act as Record<string, unknown> | undefined;
-  const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
-  const messages = rawMessages.map((m) => {
-    if (!m || typeof m !== "object") {
-      return m;
-    }
-    const mm = m as Record<string, unknown>;
-    return {
-      ...mm,
-      role: toKnownEnum(mm.role, UI_MESSAGE_ROLE_VALUES, UI_MESSAGE_ROLE.UNSPECIFIED),
-    };
-  });
-
   const type = toKnownEnum(src.type, UI_NODE_TYPE_VALUES, UI_NODE_TYPE.UNSPECIFIED);
   return {
     ...src,
     type,
-    ...(llmChat
-      ? {
-          llmChat: {
-            ...llmChat,
-            messages,
-          },
-        }
-      : {}),
     ...(act
       ? {
           act: {
@@ -124,31 +101,10 @@ const normalizeUiNodeIncoming = (node: unknown): unknown => {
     return node;
   }
   const src = node as Record<string, unknown>;
-  const llmChat = src.llmChat as Record<string, unknown> | undefined;
   const act = src.act as Record<string, unknown> | undefined;
-  const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
-  const messages = rawMessages.map((m) => {
-    if (!m || typeof m !== "object") {
-      return m;
-    }
-    const mm = m as Record<string, unknown>;
-    return {
-      ...mm,
-      role: toKnownEnum(mm.role, UI_MESSAGE_ROLE_VALUES, UI_MESSAGE_ROLE.UNSPECIFIED),
-    };
-  });
-
   return {
     ...src,
     type: toKnownEnum(src.type, UI_NODE_TYPE_VALUES, UI_NODE_TYPE.UNSPECIFIED),
-    ...(llmChat
-      ? {
-          llmChat: {
-            ...llmChat,
-            messages,
-          },
-        }
-      : {}),
     ...(act
       ? {
           act: {

@@ -4,20 +4,19 @@ const MESSAGE_PREVIEW_MAX = 80;
 
 export const summarizeRestoredNodes = (nodes: UiNode[]) => {
   return nodes.map((node, index) => {
-    const lastMessage =
-      node.llmChat?.messages && node.llmChat.messages.length > 0
-        ? (node.llmChat.messages[node.llmChat.messages.length - 1]?.content ?? "")
-        : "";
+    const timeline = node.act?.timeline ?? [];
+    const lastEvent = timeline.length > 0 ? timeline[timeline.length - 1] : undefined;
+    const preview = (lastEvent?.summary ?? "").trim();
     const lastMessagePreview =
-      lastMessage.length > MESSAGE_PREVIEW_MAX
-        ? `${lastMessage.slice(0, MESSAGE_PREVIEW_MAX)}...`
-        : lastMessage;
+      preview.length > MESSAGE_PREVIEW_MAX
+        ? `${preview.slice(0, MESSAGE_PREVIEW_MAX)}...`
+        : preview;
     return {
       index,
       id: (node.id ?? "").trim() || null,
       type: node.type ?? null,
       title: (node.meta?.title ?? "").trim() || null,
-      messageCount: node.llmChat?.messages?.length ?? 0,
+      messageCount: timeline.length,
       lastMessagePreview: lastMessagePreview || null,
     };
   });

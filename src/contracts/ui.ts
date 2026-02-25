@@ -1,6 +1,5 @@
 export const UI_NODE_TYPE = {
   UNSPECIFIED: 0,
-  LLM_CHAT: 1,
   MARKDOWN: 2,
   IMAGE: 3,
   TABLE: 4,
@@ -12,28 +11,6 @@ export interface UiNodeMeta {
   title?: string;
   description?: string;
   tags?: string[];
-}
-
-export const UI_MESSAGE_ROLE = {
-  UNSPECIFIED: 0,
-  USER: 1,
-  ASSISTANT: 2,
-} as const;
-export type UiMessageRole =
-  (typeof UI_MESSAGE_ROLE)[keyof typeof UI_MESSAGE_ROLE];
-
-export interface UiChatMessage {
-  id?: string;
-  role?: UiMessageRole;
-  content?: string;
-}
-
-export interface UiLlmState {
-  model?: string;
-  isResponding?: boolean;
-  sendLocked?: boolean;
-  sendLockHint?: string;
-  messages?: UiChatMessage[];
 }
 
 export interface UiMarkdownState {
@@ -92,7 +69,6 @@ export interface UiNode {
   id?: string;
   type?: UiNodeType;
   meta?: UiNodeMeta;
-  llmChat?: UiLlmState;
   markdown?: UiMarkdownState;
   image?: UiImageState;
   table?: UiTableState;

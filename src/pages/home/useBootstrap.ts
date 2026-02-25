@@ -45,8 +45,6 @@ export function useBootstrap({
     selectTab,
     cancelStream,
     selectedActId,
-    selectAct,
-    clearActSelection,
     sendToAct,
   } = useHomeBootstrapRunner({
     setNodes,
@@ -219,9 +217,6 @@ export function useBootstrap({
     onSelectTab,
     onCreateTab,
     selectedActId,
-    selectAct,
-    clearActSelection,
     onSendToAct,
   };
 }
-
