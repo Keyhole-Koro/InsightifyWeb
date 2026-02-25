@@ -18,5 +18,5 @@ export interface RestoreLatestTabResult {
   restored: boolean;
   runId: string;
   tabId: string;
-  source: "server" | "local_cache";
+  source: "server";
 }

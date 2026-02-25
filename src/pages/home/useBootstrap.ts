@@ -72,6 +72,14 @@ export function useBootstrap({
     setActiveTabId(nextActiveTabId);
   };
 
+  const shouldBootstrapOnFallback = async (activeProjectID: string) => {
+    const { tabs: currentTabs } = await getWorkspaceTabs(activeProjectID);
+    if ((currentTabs ?? []).length === 0) {
+      return true;
+    }
+    return currentTabs.every((t) => ((t.runId ?? "").trim() === ""));
+  };
+
   const resetBootstrapScene = () => {
     setNodes([]);
     nodeSeq.current = 1;
@@ -88,6 +96,7 @@ export function useBootstrap({
     resetBootstrapScene,
     restoreLatestTab,
     runBootstrap,
+    shouldBootstrapOnFallback,
     refreshWorkspaceTabs,
   });
 

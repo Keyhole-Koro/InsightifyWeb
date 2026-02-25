@@ -1,9 +1,16 @@
-import type { UiNode } from "@/contracts/ui";
-import { createNodeInTab } from "@/features/ui/api";
+import { UI_NODE_TYPE, type UiNode } from "@/contracts/ui";
+import { createNodeInTab, restoreUi, selectUiTab } from "@/features/ui/api";
 import { isResolvedRestore, normalizeRestoreReason, restoreReasonDescription } from "./restoreReason";
+
+const TEST_CHAT_WORKER_KEY = "testllmChatNode";
 
 interface UseHomeChatNodeCreatorOptions {
   getStoredTabId: (projectId: string) => string;
+  startWorkerRun: (
+    workerKey: string,
+    activeProjectId: string,
+    params?: Record<string, string>,
+  ) => Promise<string>;
   upsertNodeFromRpc: (targetNodeID: string, node: UiNode) => void;
   setNodeRunId: (nodeId: string, runId: string, version?: number) => void;
   initInteractionNode: (runId: string, nodeId: string) => Promise<void>;
@@ -11,14 +18,47 @@ interface UseHomeChatNodeCreatorOptions {
 
 export function useHomeChatNodeCreator({
   getStoredTabId,
+  startWorkerRun,
   upsertNodeFromRpc,
   setNodeRunId,
   initInteractionNode,
 }: UseHomeChatNodeCreatorOptions) {
+  const isLlmChatNode = (node: UiNode): boolean => {
+    return node.type === UI_NODE_TYPE.LLM_CHAT;
+  };
+
+  const ensureConversationRun = async (
+    activeProjectID: string,
+    preferredTabID: string,
+    nodeID: string,
+  ): Promise<string> => {
+    const res = await restoreUi({
+      projectId: activeProjectID,
+      tabId: preferredTabID || undefined,
+    });
+    const restoredRunID = (res.runId ?? res.document?.runId ?? "").trim();
+    const hasLlmChat = (res.document?.nodes ?? []).some(isLlmChatNode);
+    if (isResolvedRestore(res.reason) && restoredRunID && hasLlmChat) {
+      return restoredRunID;
+    }
+    if (preferredTabID) {
+      await selectUiTab({
+        projectId: activeProjectID,
+        tabId: preferredTabID,
+      });
+    }
+    return await startWorkerRun(TEST_CHAT_WORKER_KEY, activeProjectID, {
+      node_id: nodeID,
+    });
+  };
+
   const runTestChatNode = async (activeProjectID: string) => {
     const preferredTabID = getStoredTabId(activeProjectID).trim();
+    const requestedNodeID = `llm-chat-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    const ensuredRunID = await ensureConversationRun(activeProjectID, preferredTabID, requestedNodeID);
     const createNode: UiNode = {
-      type: "UI_NODE_TYPE_LLM_CHAT",
+      id: requestedNodeID,
+      type: UI_NODE_TYPE.LLM_CHAT,
       meta: {
         title: "LLM Chat",
       },
@@ -36,7 +76,7 @@ export function useHomeChatNodeCreator({
       node: createNode,
       actor: "frontend",
     });
-    const runID = (res.runId ?? "").trim();
+    const runID = (res.runId ?? "").trim() || ensuredRunID;
     const nodeID = (res.nodeId ?? "").trim();
     if (!isResolvedRestore(res.reason) || !runID || !nodeID) {
       throw new Error(

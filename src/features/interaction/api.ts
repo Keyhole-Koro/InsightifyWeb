@@ -20,6 +20,7 @@ type WSInbound =
   | {
       type: "wait_state";
       runId?: string;
+      nodeId?: string;
       traceId?: string;
       interactionId?: string;
       waiting?: boolean;
@@ -28,6 +29,7 @@ type WSInbound =
   | {
       type: "assistant_message";
       runId?: string;
+      nodeId?: string;
       traceId?: string;
       interactionId?: string;
       assistantMessage?: string;
@@ -35,6 +37,7 @@ type WSInbound =
   | {
       type: "send_ack";
       runId?: string;
+      nodeId?: string;
       traceId?: string;
       interactionId?: string;
       accepted?: boolean;
@@ -43,12 +46,14 @@ type WSInbound =
   | {
       type: "close_ack";
       runId?: string;
+      nodeId?: string;
       traceId?: string;
       closed?: boolean;
     }
   | {
       type: "subscribed";
       runId?: string;
+      nodeId?: string;
       traceId?: string;
     }
   | {
@@ -75,7 +80,9 @@ type Resolver<T> = {
 };
 
 type RunSocket = {
+  key: string;
   runId: string;
+  nodeId: string;
   traceId: string;
   ws: WebSocket;
   openPromise: Promise<void>;
@@ -101,9 +108,13 @@ function wsBaseURL(): string {
   return base.replace(/^http/, "ws");
 }
 
-function wsURLForRun(runId: string, traceId: string): string {
+function socketKey(runId: string, nodeId: string): string {
+  return `${runId}::${nodeId}`;
+}
+
+function wsURLForNode(runId: string, nodeId: string, traceId: string): string {
   const base = wsBaseURL();
-  return `${base}/ws/interaction?run_id=${encodeURIComponent(runId)}&trace_id=${encodeURIComponent(traceId)}`;
+  return `${base}/ws/interaction?run_id=${encodeURIComponent(runId)}&node_id=${encodeURIComponent(nodeId)}&trace_id=${encodeURIComponent(traceId)}`;
 }
 
 function withTraceId(message: string, traceId: string): string {
@@ -165,6 +176,7 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
   if (interactionWSDebug) {
     console.log("[interaction-ws] raw message", {
       runId: sock.runId,
+      nodeId: sock.nodeId,
       raw: raw.data,
     });
   }
@@ -176,6 +188,7 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
     if (interactionWSDebug) {
       console.warn("[interaction-ws] failed to parse message", {
         runId: sock.runId,
+        nodeId: sock.nodeId,
         raw: raw.data,
       });
     }
@@ -202,6 +215,7 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
       if (interactionWSDebug) {
         console.log("[interaction-ws] assistant_message received", {
           runId: sock.runId,
+          nodeId: sock.nodeId,
           traceId: sock.traceId,
           interactionId,
           assistantMessage,
@@ -255,11 +269,13 @@ function handleWSMessage(sock: RunSocket, raw: MessageEvent<string>): void {
   }
 }
 
-function ensureRunSocket(runId: string): RunSocket {
-  const key = (runId ?? "").trim();
-  if (!key) {
-    throw new Error("runId is required");
+function ensureRunSocket(runId: string, nodeId: string): RunSocket {
+  const rid = (runId ?? "").trim();
+  const nid = (nodeId ?? "").trim();
+  if (!rid || !nid) {
+    throw new Error("runId and nodeId are required");
   }
+  const key = socketKey(rid, nid);
 
   const existing = runSockets.get(key);
   if (existing && (existing.ws.readyState === WebSocket.OPEN || existing.ws.readyState === WebSocket.CONNECTING)) {
@@ -269,9 +285,11 @@ function ensureRunSocket(runId: string): RunSocket {
   const traceId = getCurrentTraceScopeId() || getLastTraceId() || newTraceId();
   setLastTraceId(traceId);
 
-  const ws = new WebSocket(wsURLForRun(key, traceId));
+  const ws = new WebSocket(wsURLForNode(rid, nid, traceId));
   const sock: RunSocket = {
-    runId: key,
+    key,
+    runId: rid,
+    nodeId: nid,
     traceId,
     ws,
     openPromise: Promise.resolve(),
@@ -310,12 +328,13 @@ function sendWSMessage(sock: RunSocket, payload: Record<string, unknown>): void 
 
 export const wait = async (req: WaitRequest): Promise<WaitResponse> => {
   const runId = (req.runId ?? "").trim();
-  if (!runId) {
-    throw new Error("runId is required");
+  const nodeId = (req.nodeId ?? "").trim();
+  if (!runId || !nodeId) {
+    throw new Error("runId and nodeId are required");
   }
   const timeoutMs = Math.max(0, Number(req.timeoutMs ?? 0));
 
-  const sock = ensureRunSocket(runId);
+  const sock = ensureRunSocket(runId, nodeId);
   await sock.openPromise;
 
   const current = sock.lastState;
@@ -349,15 +368,16 @@ export const wait = async (req: WaitRequest): Promise<WaitResponse> => {
 
 export const send = async (req: SendRequest): Promise<SendResponse> => {
   const runId = (req.runId ?? "").trim();
+  const nodeId = (req.nodeId ?? "").trim();
   const input = (req.input ?? "").trim();
-  if (!runId) {
-    throw new Error("runId is required");
+  if (!runId || !nodeId) {
+    throw new Error("runId and nodeId are required");
   }
   if (!input) {
     throw new Error("input is required");
   }
 
-  const sock = ensureRunSocket(runId);
+  const sock = ensureRunSocket(runId, nodeId);
   await sock.openPromise;
 
   return await new Promise<SendResponse>((resolve, reject) => {
@@ -378,6 +398,7 @@ export const send = async (req: SendRequest): Promise<SendResponse> => {
       sendWSMessage(sock, {
         type: "send",
         runId,
+        nodeId,
         interactionId: (req.interactionId ?? "").trim(),
         input,
       });
@@ -394,11 +415,12 @@ export const send = async (req: SendRequest): Promise<SendResponse> => {
 
 export const close = async (req: CloseRequest): Promise<CloseResponse> => {
   const runId = (req.runId ?? "").trim();
-  if (!runId) {
-    throw new Error("runId is required");
+  const nodeId = (req.nodeId ?? "").trim();
+  if (!runId || !nodeId) {
+    throw new Error("runId and nodeId are required");
   }
 
-  const sock = ensureRunSocket(runId);
+  const sock = ensureRunSocket(runId, nodeId);
   await sock.openPromise;
 
   return await new Promise<CloseResponse>((resolve, reject) => {
@@ -419,6 +441,7 @@ export const close = async (req: CloseRequest): Promise<CloseResponse> => {
       sendWSMessage(sock, {
         type: "close",
         runId,
+        nodeId,
         interactionId: (req.interactionId ?? "").trim(),
         reason: (req.reason ?? "").trim(),
       });
@@ -435,9 +458,10 @@ export const close = async (req: CloseRequest): Promise<CloseResponse> => {
 
 export const onAssistantMessage = (
   runId: string,
+  nodeId: string,
   cb: (msg: { interactionId: string; assistantMessage: string }) => void,
 ): (() => void) => {
-  const sock = ensureRunSocket(runId);
+  const sock = ensureRunSocket(runId, nodeId);
   sock.onAssistantMessage.add(cb);
   if (sock.assistantBacklog.length > 0) {
     const backlog = [...sock.assistantBacklog];
@@ -447,7 +471,7 @@ export const onAssistantMessage = (
     }
   }
   return () => {
-    const s = runSockets.get(sock.runId);
+    const s = runSockets.get(sock.key);
     if (!s) {
       return;
     }

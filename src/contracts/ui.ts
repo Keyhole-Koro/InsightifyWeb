@@ -1,9 +1,11 @@
-export type UiNodeType =
-  | "UI_NODE_TYPE_UNSPECIFIED"
-  | "UI_NODE_TYPE_LLM_CHAT"
-  | "UI_NODE_TYPE_MARKDOWN"
-  | "UI_NODE_TYPE_IMAGE"
-  | "UI_NODE_TYPE_TABLE";
+export const UI_NODE_TYPE = {
+  UNSPECIFIED: 0,
+  LLM_CHAT: 1,
+  MARKDOWN: 2,
+  IMAGE: 3,
+  TABLE: 4,
+} as const;
+export type UiNodeType = (typeof UI_NODE_TYPE)[keyof typeof UI_NODE_TYPE];
 
 export interface UiNodeMeta {
   title?: string;
@@ -11,10 +13,13 @@ export interface UiNodeMeta {
   tags?: string[];
 }
 
+export const UI_MESSAGE_ROLE = {
+  UNSPECIFIED: 0,
+  USER: 1,
+  ASSISTANT: 2,
+} as const;
 export type UiMessageRole =
-  | "ROLE_UNSPECIFIED"
-  | "ROLE_USER"
-  | "ROLE_ASSISTANT";
+  (typeof UI_MESSAGE_ROLE)[keyof typeof UI_MESSAGE_ROLE];
 
 export interface UiChatMessage {
   id?: string;
@@ -117,12 +122,15 @@ export interface SelectUiTabResponse {
   tabs?: UiWorkspaceTab[];
 }
 
+export const UI_RESTORE_REASON = {
+  UNSPECIFIED: 0,
+  RESOLVED: 1,
+  NO_TAB: 2,
+  NO_RUN: 3,
+  ERROR: 4,
+} as const;
 export type UiRestoreReason =
-  | "UI_RESTORE_REASON_UNSPECIFIED"
-  | "UI_RESTORE_REASON_RESOLVED"
-  | "UI_RESTORE_REASON_NO_TAB"
-  | "UI_RESTORE_REASON_NO_RUN"
-  | "UI_RESTORE_REASON_ERROR";
+  (typeof UI_RESTORE_REASON)[keyof typeof UI_RESTORE_REASON];
 
 export interface RestoreUiRequest {
   projectId: string;

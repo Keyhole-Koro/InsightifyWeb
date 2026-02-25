@@ -1,5 +1,6 @@
 export interface WaitRequest {
   runId: string;
+  nodeId: string;
   timeoutMs?: number;
 }
 
@@ -11,6 +12,7 @@ export interface WaitResponse {
 
 export interface SendRequest {
   runId: string;
+  nodeId: string;
   input: string;
   interactionId?: string;
 }
@@ -23,6 +25,7 @@ export interface SendResponse {
 
 export interface CloseRequest {
   runId: string;
+  nodeId: string;
   interactionId?: string;
   reason?: string;
 }

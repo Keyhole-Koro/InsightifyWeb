@@ -6,7 +6,12 @@ import { startRun } from "@/features/worker/api";
 import { useUiEditor } from "@/features/ui/hooks/useUiEditor";
 import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import { getLastTraceId } from "@/shared/trace";
-import type { UiNode } from "@/contracts/ui";
+import {
+  UI_MESSAGE_ROLE,
+  UI_NODE_TYPE,
+  type UiMessageRole,
+  type UiNode,
+} from "@/contracts/ui";
 
 interface UseInteractionFlowOptions {
   projectId: string | null;
@@ -47,7 +52,7 @@ export function useInteractionFlow({
     }
     const next: UiNode = {
       id: targetNodeId,
-      type: "UI_NODE_TYPE_LLM_CHAT",
+      type: UI_NODE_TYPE.LLM_CHAT,
       meta: { title: targetNodeId },
       llmChat: {
         model: "Low",
@@ -86,7 +91,7 @@ export function useInteractionFlow({
   }, [ensureShadowNode]);
 
   const appendShadowMessage = useCallback(
-    (nodeId: string, role: "ROLE_USER" | "ROLE_ASSISTANT", content: string) => {
+    (nodeId: string, role: UiMessageRole, content: string) => {
       const trimmed = (content ?? "").trim();
       if (!trimmed) {
         return;
@@ -128,12 +133,12 @@ export function useInteractionFlow({
       };
       const messages = [...(llm.messages ?? [])];
       const last = messages[messages.length - 1];
-      if (last?.role === "ROLE_ASSISTANT") {
+      if (last?.role === UI_MESSAGE_ROLE.ASSISTANT) {
         messages[messages.length - 1] = { ...last, content: trimmed };
       } else {
         messages.push({
           id: `msg-${Date.now()}-${Math.random()}`,
-          role: "ROLE_ASSISTANT",
+          role: UI_MESSAGE_ROLE.ASSISTANT,
           content: trimmed,
         });
       }
@@ -165,7 +170,7 @@ export function useInteractionFlow({
 
       ensureNodeShell(nodeId);
       offByNodeRef.current[nodeId]?.();
-      offByNodeRef.current[nodeId] = onAssistantMessage(runId, ({ interactionId, assistantMessage }) => {
+      offByNodeRef.current[nodeId] = onAssistantMessage(runId, nodeId, ({ interactionId, assistantMessage }) => {
         const incomingInteractionID = (interactionId ?? "").trim();
         const expectedInteractionID = interactionSession.getPendingInteractionId(nodeId);
         // Avoid cross-updating sibling nodes that share the same run.
@@ -188,7 +193,7 @@ export function useInteractionFlow({
         setShadowResponding(nodeId, false);
         persistShadowNode(nodeId);
       });
-      const waiting = await wait({ runId, timeoutMs: 5_000 });
+      const waiting = await wait({ runId, nodeId, timeoutMs: 5_000 });
       interactionSession.setPendingInteractionId(
         nodeId,
         (waiting.interactionId ?? "").trim(),
@@ -207,8 +212,12 @@ export function useInteractionFlow({
     ],
   );
 
-  const startWorkerRun = useCallback(async (workerKey: string, activeProjectId: string) => {
-    const res = await startRun({ projectId: activeProjectId, workerId: workerKey, params: {} });
+  const startWorkerRun = useCallback(async (
+    workerKey: string,
+    activeProjectId: string,
+    params: Record<string, string> = {},
+  ) => {
+    const res = await startRun({ projectId: activeProjectId, workerId: workerKey, params });
     const runId = (res.runId ?? "").trim();
     if (!runId) {
       throw new Error(`StartRun did not return run_id for ${workerKey}`);
@@ -253,13 +262,14 @@ export function useInteractionFlow({
           if (!runId) {
             throw new Error("No active run for this node.");
           }
-          appendShadowMessage(nodeId, "ROLE_USER", submitted);
+          appendShadowMessage(nodeId, UI_MESSAGE_ROLE.USER, submitted);
           setShadowResponding(nodeId, true);
           persistShadowNode(nodeId);
 
           const interactionId = interactionSession.getPendingInteractionId(nodeId);
           const res = await send({
             runId,
+            nodeId,
             interactionId,
             input: submitted,
           });

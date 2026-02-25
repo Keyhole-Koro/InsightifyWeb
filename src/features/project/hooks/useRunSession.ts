@@ -21,6 +21,12 @@ export function useRunSession(
   const [projectId, setProjectId] = useStringStorage(config.storageKey);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [initError, setInitError] = useState<string | null>(null);
+  const buildUniqueProjectName = useCallback((name?: string) => {
+    const baseName = (name ?? "").trim() || config.defaultProjectName || "Project";
+    const ts = Date.now().toString(36);
+    const rand = Math.random().toString(36).slice(2, 8);
+    return `${baseName}-${ts}-${rand}`;
+  }, [config.defaultProjectName]);
 
   const isProjectNotFoundError = useCallback((message: string) => {
     const text = message.toLowerCase();
@@ -55,7 +61,7 @@ export function useRunSession(
     async (name?: string) => {
       const created = await createProject({
         userId: config.defaultUserId,
-        name: (name ?? "").trim() || config.defaultProjectName || "",
+        name: buildUniqueProjectName(name),
       });
       const createdProjectID = (created.project?.projectId ?? "").trim();
       if (!createdProjectID) {
@@ -66,6 +72,7 @@ export function useRunSession(
       return createdProjectID;
     },
     [
+      buildUniqueProjectName,
       config.defaultProjectName,
       config.defaultUserId,
       refreshProjects,

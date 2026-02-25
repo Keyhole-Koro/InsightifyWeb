@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, type MutableRefObject } from "react";
 import { type Node } from "reactflow";
 import { LLMInputNode } from "@/components/graph/LLMInputNode/LLMInputNode";
-import type { UiNode } from "@/contracts/ui";
+import { UI_MESSAGE_ROLE, type UiNode } from "@/contracts/ui";
 import type {
   ChatMessage,
   GraphNodeRegistry,
@@ -19,10 +19,10 @@ export function useUiNodeSync({
   nodeSeq,
 }: UseUiNodeSyncOptions) {
   const mapRpcRole = (role: unknown): "user" | "assistant" | null => {
-    if (role === "ROLE_USER" || role === 1) {
+    if (role === UI_MESSAGE_ROLE.USER) {
       return "user";
     }
-    if (role === "ROLE_ASSISTANT" || role === 2) {
+    if (role === UI_MESSAGE_ROLE.ASSISTANT) {
       return "assistant";
     }
     return null;

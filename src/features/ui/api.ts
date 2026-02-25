@@ -1,4 +1,7 @@
-import { uiClient, uiWorkspaceClient } from "@/rpc/clients";
+import {
+  uiClient,
+  uiWorkspaceClient,
+} from "@/rpc/clients";
 import type {
   ApplyUiOpsRequest,
   ApplyUiOpsResponse,
@@ -14,6 +17,11 @@ import type {
   RestoreUiResponse,
   SelectUiTabRequest,
   SelectUiTabResponse,
+} from "@/contracts/ui";
+import {
+  UI_MESSAGE_ROLE,
+  UI_NODE_TYPE,
+  UI_RESTORE_REASON,
 } from "@/contracts/ui";
 
 export { uiClient };
@@ -48,53 +56,47 @@ type OneofUiOp = {
     | { case: undefined; value?: undefined };
 };
 
-const NODE_TYPE_MAP: Record<string, number> = {
-  UI_NODE_TYPE_UNSPECIFIED: 0,
-  UI_NODE_TYPE_LLM_CHAT: 1,
-  UI_NODE_TYPE_MARKDOWN: 2,
-  UI_NODE_TYPE_IMAGE: 3,
-  UI_NODE_TYPE_TABLE: 4,
-};
+const UI_NODE_TYPE_VALUES = new Set<number>(Object.values(UI_NODE_TYPE));
+const UI_MESSAGE_ROLE_VALUES = new Set<number>(Object.values(UI_MESSAGE_ROLE));
+const UI_RESTORE_REASON_VALUES = new Set<number>(Object.values(UI_RESTORE_REASON));
 
-const CHAT_ROLE_MAP: Record<string, number> = {
-  ROLE_UNSPECIFIED: 0,
-  ROLE_USER: 1,
-  ROLE_ASSISTANT: 2,
-};
-
-const toEnumNumber = (
+const toKnownEnum = (
   value: unknown,
-  table: Record<string, number>,
-): number | undefined => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
+  allowed: Set<number>,
+  fallback: number,
+): number => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
   }
-  if (typeof value === "string") {
-    return table[value.trim()];
+  const v = Math.trunc(value);
+  if (!allowed.has(v)) {
+    return fallback;
   }
-  return undefined;
+  return v;
 };
 
-const normalizeUiNode = (node: unknown): unknown => {
+const normalizeUiNodeOutgoing = (node: unknown): unknown => {
   if (!node || typeof node !== "object") {
     return node;
   }
   const src = node as Record<string, unknown>;
   const llmChat = src.llmChat as Record<string, unknown> | undefined;
-  const rawMessages = Array.isArray(llmChat?.messages) ? llmChat?.messages : [];
+  const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
   const messages = rawMessages.map((m) => {
     if (!m || typeof m !== "object") {
       return m;
     }
     const mm = m as Record<string, unknown>;
-    const role = toEnumNumber(mm.role, CHAT_ROLE_MAP);
-    return role === undefined ? mm : { ...mm, role };
+    return {
+      ...mm,
+      role: toKnownEnum(mm.role, UI_MESSAGE_ROLE_VALUES, UI_MESSAGE_ROLE.UNSPECIFIED),
+    };
   });
 
-  const type = toEnumNumber(src.type, NODE_TYPE_MAP);
+  const type = toKnownEnum(src.type, UI_NODE_TYPE_VALUES, UI_NODE_TYPE.UNSPECIFIED);
   return {
     ...src,
-    ...(type === undefined ? {} : { type }),
+    type,
     ...(llmChat
       ? {
           llmChat: {
@@ -103,6 +105,52 @@ const normalizeUiNode = (node: unknown): unknown => {
           },
         }
       : {}),
+  };
+};
+
+const normalizeUiNodeIncoming = (node: unknown): unknown => {
+  if (!node || typeof node !== "object") {
+    return node;
+  }
+  const src = node as Record<string, unknown>;
+  const llmChat = src.llmChat as Record<string, unknown> | undefined;
+  const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
+  const messages = rawMessages.map((m) => {
+    if (!m || typeof m !== "object") {
+      return m;
+    }
+    const mm = m as Record<string, unknown>;
+    return {
+      ...mm,
+      role: toKnownEnum(mm.role, UI_MESSAGE_ROLE_VALUES, UI_MESSAGE_ROLE.UNSPECIFIED),
+    };
+  });
+
+  return {
+    ...src,
+    type: toKnownEnum(src.type, UI_NODE_TYPE_VALUES, UI_NODE_TYPE.UNSPECIFIED),
+    ...(llmChat
+      ? {
+          llmChat: {
+            ...llmChat,
+            messages,
+          },
+        }
+      : {}),
+  };
+};
+
+const normalizeUiDocumentIncoming = (doc: unknown): unknown => {
+  if (!doc || typeof doc !== "object") {
+    return doc;
+  }
+  const src = doc as Record<string, unknown>;
+  const nodes = Array.isArray(src.nodes)
+    ? src.nodes.map((n) => normalizeUiNodeIncoming(n))
+    : src.nodes;
+  return {
+    ...src,
+    ...(nodes === undefined ? {} : { nodes }),
   };
 };
 
@@ -118,7 +166,7 @@ const normalizeUiOp = (op: unknown): OneofUiOp => {
         case: "upsertNode",
         value: {
           ...src.upsertNode,
-          node: normalizeUiNode(src.upsertNode.node),
+          node: normalizeUiNodeOutgoing(src.upsertNode.node),
         },
       },
     };
@@ -136,29 +184,71 @@ const normalizeUiOp = (op: unknown): OneofUiOp => {
   return { action: { case: undefined, value: undefined } };
 };
 
+const normalizeInt64 = (value: unknown): bigint => {
+  if (typeof value === "bigint") {
+    return value;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return BigInt(Math.trunc(value));
+  }
+  return 0n;
+};
+
+const normalizeApplyUiOpsResponse = (res: unknown): ApplyUiOpsResponse => {
+  const src = (res ?? {}) as Record<string, unknown>;
+  return {
+    ...(src as ApplyUiOpsResponse),
+    document: normalizeUiDocumentIncoming(src.document) as ApplyUiOpsResponse["document"],
+  };
+};
+
+const normalizeGetUiDocumentResponse = (res: unknown): GetUiDocumentResponse => {
+  const src = (res ?? {}) as Record<string, unknown>;
+  return {
+    ...(src as GetUiDocumentResponse),
+    document: normalizeUiDocumentIncoming(src.document) as GetUiDocumentResponse["document"],
+  };
+};
+
+const normalizeRestoreUiResponse = (res: unknown): RestoreUiResponse => {
+  const src = (res ?? {}) as Record<string, unknown>;
+  return {
+    ...(src as RestoreUiResponse),
+    reason: toKnownEnum(src.reason, UI_RESTORE_REASON_VALUES, UI_RESTORE_REASON.UNSPECIFIED) as RestoreUiResponse["reason"],
+    document: normalizeUiDocumentIncoming(src.document) as RestoreUiResponse["document"],
+  };
+};
+
+const normalizeCreateNodeInTabResponse = (res: unknown): CreateNodeInTabResponse => {
+  const src = (res ?? {}) as Record<string, unknown>;
+  return {
+    ...(src as CreateNodeInTabResponse),
+    reason: toKnownEnum(src.reason, UI_RESTORE_REASON_VALUES, UI_RESTORE_REASON.UNSPECIFIED) as CreateNodeInTabResponse["reason"],
+    document: normalizeUiDocumentIncoming(src.document) as CreateNodeInTabResponse["document"],
+  };
+};
+
 export const getUiDocument = async (
   req: GetUiDocumentRequest,
 ): Promise<GetUiDocumentResponse> => {
-  return await uiClient.getDocument({
+  const res = await uiClient.getDocument({
     runId: req.runId,
   });
+  return normalizeGetUiDocumentResponse(res);
 };
 
 export const applyUiOps = async (
   req: ApplyUiOpsRequest,
 ): Promise<ApplyUiOpsResponse> => {
-  const baseVersionRaw = req.baseVersion;
-  const baseVersion =
-    typeof baseVersionRaw === "number" && Number.isFinite(baseVersionRaw)
-      ? Math.trunc(baseVersionRaw)
-      : 0;
+  const baseVersion = normalizeInt64(req.baseVersion);
 
-  return await uiClient.applyOps({
+  const res = await uiClient.applyOps({
     runId: req.runId,
     baseVersion,
     ops: (req.ops ?? []).map(normalizeUiOp),
     actor: req.actor ?? "",
   });
+  return normalizeApplyUiOpsResponse(res);
 };
 
 export const getUiWorkspace = async (
@@ -190,19 +280,21 @@ export const selectUiTab = async (
 export const restoreUi = async (
   req: RestoreUiRequest,
 ): Promise<RestoreUiResponse> => {
-  return await uiWorkspaceClient.restore({
+  const res = await uiWorkspaceClient.restore({
     projectId: req.projectId,
     tabId: req.tabId ?? "",
   });
+  return normalizeRestoreUiResponse(res);
 };
 
 export const createNodeInTab = async (
   req: CreateNodeInTabRequest,
 ): Promise<CreateNodeInTabResponse> => {
-  return await uiWorkspaceClient.createNodeInTab({
+  const res = await uiWorkspaceClient.createNodeInTab({
     projectId: req.projectId,
     tabId: req.tabId ?? "",
-    node: normalizeUiNode(req.node),
+    node: normalizeUiNodeOutgoing(req.node),
     actor: req.actor ?? "",
   });
+  return normalizeCreateNodeInTabResponse(res);
 };

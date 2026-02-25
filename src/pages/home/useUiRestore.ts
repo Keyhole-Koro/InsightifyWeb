@@ -4,7 +4,7 @@ interface RestoreResult {
   restored: boolean;
   runId: string;
   tabId: string;
-  source: "server" | "local_cache";
+  source: "server";
 }
 
 interface UseUiRestoreOptions {
@@ -14,6 +14,7 @@ interface UseUiRestoreOptions {
     preferredTabID?: string,
   ) => Promise<RestoreResult>;
   runBootstrap: (activeProjectID: string) => Promise<void>;
+  shouldBootstrapOnFallback: (activeProjectID: string) => Promise<boolean>;
   refreshWorkspaceTabs: (activeProjectID: string) => Promise<void>;
 }
 
@@ -21,6 +22,7 @@ export function useUiRestore({
   resetBootstrapScene,
   restoreLatestTab,
   runBootstrap,
+  shouldBootstrapOnFallback,
   refreshWorkspaceTabs,
 }: UseUiRestoreOptions) {
   const [restoreStatus, setRestoreStatus] = useState<string>("");
@@ -38,17 +40,22 @@ export function useUiRestore({
       resetBootstrapScene();
       const restoreResult = await restoreLatestTab(activeProjectID, preferredTabID);
       if (!restoreResult.restored) {
-        await runBootstrap(activeProjectID);
-        setRestoreStatus(fallbackMessage);
+        const shouldBootstrap = await shouldBootstrapOnFallback(activeProjectID);
+        if (shouldBootstrap) {
+          await runBootstrap(activeProjectID);
+          setRestoreStatus(fallbackMessage);
+        } else {
+          setRestoreStatus("No restore target. Bootstrap skipped (project already has run history).");
+        }
       } else {
         setRestoreStatus(
-          `Restore succeeded (${restoreResult.source === "local_cache" ? "cache" : "server"}): tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
+          `Restore succeeded (server): tab=${restoreResult.tabId || "-"} / run=${restoreResult.runId || "-"}`,
         );
       }
       await refreshWorkspaceTabs(activeProjectID);
       return restoreResult;
     },
-    [refreshWorkspaceTabs, resetBootstrapScene, restoreLatestTab, runBootstrap],
+    [refreshWorkspaceTabs, resetBootstrapScene, restoreLatestTab, runBootstrap, shouldBootstrapOnFallback],
   );
 
   const restoreForProject = useCallback(

@@ -22,7 +22,7 @@ interface RestoreCacheBindings {
   }) => {
     document?: UiDocument;
     documentHash: string;
-    source: "server" | "local_cache";
+    source: "server";
   };
   saveDocumentCache: (
     projectId: string,

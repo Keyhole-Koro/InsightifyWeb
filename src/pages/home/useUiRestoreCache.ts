@@ -1,12 +1,11 @@
 import type { UiDocument } from "@/contracts/ui";
 
 const PROJECT_TAB_STORAGE_PREFIX = "insightify.ui_tab_id.";
-const PROJECT_TAB_DOCUMENT_CACHE_PREFIX = "insightify.ui_doc_cache.";
+const PROJECT_TAB_META_CACHE_PREFIX = "insightify.ui_doc_meta.";
 
-type LocalDocumentCache = {
+type LocalDocumentMetaCache = {
   runId: string;
   documentHash: string;
-  document: UiDocument;
   savedAt: number;
 };
 
@@ -21,35 +20,22 @@ type ResolveDocumentInput = {
 type ResolveDocumentResult = {
   document?: UiDocument;
   documentHash: string;
-  source: "server" | "local_cache";
+  source: "server";
 };
 
 const normalize = (value?: string): string => (value ?? "").trim();
-const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
-const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
-
-const jsonSafeReplacer = (_key: string, value: unknown): unknown => {
-  if (typeof value !== "bigint") {
-    return value;
-  }
-  if (value <= MAX_SAFE_BIGINT && value >= MIN_SAFE_BIGINT) {
-    return Number(value);
-  }
-  return value.toString();
-};
-
-const readCache = (projectId: string, tabId: string): LocalDocumentCache | null => {
+const readMetaCache = (projectId: string, tabId: string): LocalDocumentMetaCache | null => {
   const pid = normalize(projectId);
   const tid = normalize(tabId);
   if (!pid || !tid) {
     return null;
   }
-  const raw = localStorage.getItem(`${PROJECT_TAB_DOCUMENT_CACHE_PREFIX}${pid}.${tid}`);
+  const raw = localStorage.getItem(`${PROJECT_TAB_META_CACHE_PREFIX}${pid}.${tid}`);
   if (!raw) {
     return null;
   }
   try {
-    const parsed = JSON.parse(raw) as LocalDocumentCache;
+    const parsed = JSON.parse(raw) as LocalDocumentMetaCache;
     if (!parsed || typeof parsed !== "object") {
       return null;
     }
@@ -92,7 +78,7 @@ export function useUiRestoreCache() {
     if (!pid || !tid) {
       return;
     }
-    localStorage.removeItem(`${PROJECT_TAB_DOCUMENT_CACHE_PREFIX}${pid}.${tid}`);
+    localStorage.removeItem(`${PROJECT_TAB_META_CACHE_PREFIX}${pid}.${tid}`);
   };
 
   const resolveDocument = ({
@@ -106,27 +92,7 @@ export function useUiRestoreCache() {
     const tid = normalize(tabId);
     const normalizedHash = normalize(serverHash);
     const normalizedRunId = normalize(runId);
-    if (!normalizedHash || !normalizedRunId) {
-      console.debug("[ui-restore] cache skipped", {
-        projectId: pid,
-        tabId: tid,
-        runId: normalizedRunId,
-        documentHash: normalizedHash,
-        reason: "missing_run_or_hash",
-      });
-      return {
-        document: serverDocument,
-        documentHash: normalizedHash,
-        source: "server",
-      };
-    }
-
-    const cached = readCache(projectId, tabId);
-    const useCache =
-      !!cached &&
-      normalize(cached.runId) === normalizedRunId &&
-      normalize(cached.documentHash) === normalizedHash &&
-      !!cached.document;
+    const cached = readMetaCache(projectId, tabId);
     console.debug("[ui-restore] cache decision", {
       projectId: pid,
       tabId: tid,
@@ -135,18 +101,10 @@ export function useUiRestoreCache() {
       hasCache: !!cached,
       cachedRunId: normalize(cached?.runId),
       cachedHash: normalize(cached?.documentHash),
-      source: useCache ? "local_cache" : "server",
-      cachedNodeCount: cached?.document?.nodes?.length ?? 0,
+      source: "server",
       serverNodeCount: serverDocument?.nodes?.length ?? 0,
       cachedSavedAt: cached?.savedAt ?? null,
     });
-    if (useCache) {
-      return {
-        document: cached?.document,
-        documentHash: normalizedHash,
-        source: "local_cache",
-      };
-    }
     return {
       document: serverDocument,
       documentHash: normalizedHash,
@@ -159,31 +117,29 @@ export function useUiRestoreCache() {
     tabId: string,
     runId: string,
     documentHash: string,
-    document?: UiDocument,
+    _document?: UiDocument,
   ): void => {
     const pid = normalize(projectId);
     const tid = normalize(tabId);
     const rid = normalize(runId);
     const hash = normalize(documentHash);
-    if (!pid || !tid || !rid || !hash || !document) {
+    if (!pid || !tid || !rid || !hash) {
       return;
     }
-    const payload: LocalDocumentCache = {
+    const payload: LocalDocumentMetaCache = {
       runId: rid,
       documentHash: hash,
-      document,
       savedAt: Date.now(),
     };
     localStorage.setItem(
-      `${PROJECT_TAB_DOCUMENT_CACHE_PREFIX}${pid}.${tid}`,
-      JSON.stringify(payload, jsonSafeReplacer),
+      `${PROJECT_TAB_META_CACHE_PREFIX}${pid}.${tid}`,
+      JSON.stringify(payload),
     );
     console.debug("[ui-restore] cache saved", {
       projectId: pid,
       tabId: tid,
       runId: rid,
       documentHash: hash,
-      nodeCount: document.nodes?.length ?? 0,
       savedAt: payload.savedAt,
     });
   };

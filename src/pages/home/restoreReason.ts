@@ -1,39 +1,27 @@
-export type RestoreReasonCode =
-  | "UI_RESTORE_REASON_UNSPECIFIED"
-  | "UI_RESTORE_REASON_RESOLVED"
-  | "UI_RESTORE_REASON_NO_TAB"
-  | "UI_RESTORE_REASON_NO_RUN"
-  | "UI_RESTORE_REASON_ERROR";
+import { UI_RESTORE_REASON, type UiRestoreReason } from "@/contracts/ui";
 
-export const normalizeRestoreReason = (reason?: unknown): RestoreReasonCode => {
-  if (typeof reason === "string") {
-    const trimmed = reason.trim();
-    if (trimmed === "UI_RESTORE_REASON_RESOLVED") return "UI_RESTORE_REASON_RESOLVED";
-    if (trimmed === "UI_RESTORE_REASON_NO_TAB") return "UI_RESTORE_REASON_NO_TAB";
-    if (trimmed === "UI_RESTORE_REASON_NO_RUN") return "UI_RESTORE_REASON_NO_RUN";
-    if (trimmed === "UI_RESTORE_REASON_ERROR") return "UI_RESTORE_REASON_ERROR";
-    return "UI_RESTORE_REASON_UNSPECIFIED";
+export const normalizeRestoreReason = (reason?: unknown): UiRestoreReason => {
+  if (typeof reason !== "number" || !Number.isFinite(reason)) {
+    return UI_RESTORE_REASON.UNSPECIFIED;
   }
-  if (typeof reason === "number") {
-    if (reason === 1) return "UI_RESTORE_REASON_RESOLVED";
-    if (reason === 2) return "UI_RESTORE_REASON_NO_TAB";
-    if (reason === 3) return "UI_RESTORE_REASON_NO_RUN";
-    if (reason === 4) return "UI_RESTORE_REASON_ERROR";
-    return "UI_RESTORE_REASON_UNSPECIFIED";
-  }
-  return "UI_RESTORE_REASON_UNSPECIFIED";
+  const value = Math.trunc(reason);
+  if (value === UI_RESTORE_REASON.RESOLVED) return UI_RESTORE_REASON.RESOLVED;
+  if (value === UI_RESTORE_REASON.NO_TAB) return UI_RESTORE_REASON.NO_TAB;
+  if (value === UI_RESTORE_REASON.NO_RUN) return UI_RESTORE_REASON.NO_RUN;
+  if (value === UI_RESTORE_REASON.ERROR) return UI_RESTORE_REASON.ERROR;
+  return UI_RESTORE_REASON.UNSPECIFIED;
 };
 
 export const restoreReasonDescription = (reason?: unknown): string => {
   const code = normalizeRestoreReason(reason);
   switch (code) {
-    case "UI_RESTORE_REASON_RESOLVED":
+    case UI_RESTORE_REASON.RESOLVED:
       return "restore target resolved and run is available";
-    case "UI_RESTORE_REASON_NO_TAB":
+    case UI_RESTORE_REASON.NO_TAB:
       return "no tab could be resolved for the project";
-    case "UI_RESTORE_REASON_NO_RUN":
+    case UI_RESTORE_REASON.NO_RUN:
       return "resolved tab has no run attached";
-    case "UI_RESTORE_REASON_ERROR":
+    case UI_RESTORE_REASON.ERROR:
       return "restore failed due to server-side error";
     default:
       return "restore reason is unspecified";
@@ -41,5 +29,5 @@ export const restoreReasonDescription = (reason?: unknown): string => {
 };
 
 export const isResolvedRestore = (reason?: unknown): boolean => {
-  return normalizeRestoreReason(reason) === "UI_RESTORE_REASON_RESOLVED";
+  return normalizeRestoreReason(reason) === UI_RESTORE_REASON.RESOLVED;
 };

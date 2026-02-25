@@ -53,6 +53,7 @@ export function useHomeBootstrapRunner({
 
   const { runTestChatNode } = useHomeChatNodeCreator({
     getStoredTabId: restoreCache.getStoredTabId,
+    startWorkerRun,
     upsertNodeFromRpc,
     setNodeRunId,
     initInteractionNode,
