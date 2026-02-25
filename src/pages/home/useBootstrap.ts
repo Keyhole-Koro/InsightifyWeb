@@ -39,7 +39,6 @@ export function useBootstrap({
   const {
     nodeTypes,
     runBootstrap,
-    runTestChatNode,
     restoreLatestTab,
     getWorkspaceTabs,
     createTab,
@@ -163,17 +162,6 @@ export function useBootstrap({
     }
   };
 
-  const onCreateChatNode = async () => {
-    if (initializingRef.current) return;
-    setInitError(null);
-    try {
-      const activeProjectID = await ensureProjectID(projectId ?? undefined);
-      await runTestChatNode(activeProjectID);
-    } catch (err) {
-      setInitError(err instanceof Error ? err.message : String(err));
-    }
-  };
-
   const onSendToAct = async (input: string) => {
     if (initializingRef.current) return;
     setInitError(null);
@@ -228,7 +216,6 @@ export function useBootstrap({
     initError,
     onSelectProject,
     onCreateProject,
-    onCreateChatNode,
     onSelectTab,
     onCreateTab,
     selectedActId,

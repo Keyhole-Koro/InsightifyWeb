@@ -13,7 +13,6 @@ interface ActionPanelProps {
   onCreateProject: () => void | Promise<void>;
   onSelectTab: (tabId: string) => void | Promise<void>;
   onCreateTab: () => void | Promise<void>;
-  onCreateChatNode: () => void | Promise<void>;
   initError: string | null;
   selectedActId: string | null;
   onSendToAct: (input: string) => void | Promise<void>;
@@ -30,7 +29,6 @@ export function ActionPanel({
   onCreateProject,
   onSelectTab,
   onCreateTab,
-  onCreateChatNode,
   initError,
   selectedActId,
   onSendToAct,
@@ -187,25 +185,6 @@ export function ActionPanel({
           }}
         >
           New Tab
-        </button>
-        <button
-          type="button"
-          onClick={() => void onCreateChatNode()}
-          disabled={!isInitialized}
-          style={{
-            border: "1px solid rgba(16,185,129,0.45)",
-            borderRadius: 6,
-            background: isInitialized
-              ? "rgba(236,253,245,0.95)"
-              : "rgba(241,245,249,0.9)",
-            color: isInitialized ? "#065f46" : "#64748b",
-            padding: "4px 10px",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: isInitialized ? "pointer" : "not-allowed",
-          }}
-        >
-          Add LLM Chat
         </button>
       </div>
 

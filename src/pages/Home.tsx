@@ -26,7 +26,6 @@ export const Home = () => {
     onCreateProject,
     onSelectTab,
     onCreateTab,
-    onCreateChatNode,
     selectedActId,
     selectAct,
     clearActSelection,
@@ -63,7 +62,6 @@ export const Home = () => {
             onCreateProject={onCreateProject}
             onSelectTab={onSelectTab}
             onCreateTab={onCreateTab}
-            onCreateChatNode={onCreateChatNode}
             initError={initError}
             selectedActId={selectedActId}
             onSendToAct={onSendToAct}

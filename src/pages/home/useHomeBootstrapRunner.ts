@@ -3,7 +3,6 @@ import { useUiNodeState } from "@/features/ui/hooks/useUiNodeState";
 import { useUiNodeSync } from "@/features/ui/hooks/useUiNodeSync";
 import { useActSelection } from "@/features/act/hooks/useActSelection";
 import { routeInputToAct } from "@/features/act/model/routeInputToAct";
-import { useHomeChatNodeCreator } from "./useHomeChatNodeCreator";
 import { useActNodeCreator } from "./useActNodeCreator";
 import type { UseHomeBootstrapRunnerOptions } from "./homeBootstrapTypes";
 import { useHomeRestoreRunner } from "./useHomeRestoreRunner";
@@ -60,13 +59,6 @@ export function useHomeBootstrapRunner({
     setStoredTabId: restoreCache.setStoredTabId,
   });
 
-  const { runTestChatNode } = useHomeChatNodeCreator({
-    getStoredTabId: restoreCache.getStoredTabId,
-    startWorkerRun,
-    upsertNodeFromRpc,
-    setNodeRunId,
-    initInteractionNode,
-  });
 
   const { createActNode } = useActNodeCreator({
     getStoredTabId: restoreCache.getStoredTabId,
@@ -107,7 +99,6 @@ export function useHomeBootstrapRunner({
     nodeTypes,
     cancelStream,
     runBootstrap,
-    runTestChatNode,
     restoreLatestTab,
     getWorkspaceTabs,
     createTab,
