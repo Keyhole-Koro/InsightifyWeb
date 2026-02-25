@@ -74,7 +74,7 @@ export function useHomeChatNodeCreator({
       projectId: activeProjectID,
       tabId: preferredTabID || undefined,
       node: createNode,
-      actor: "frontend",
+      actor: "act",
     });
     const runID = (res.runId ?? "").trim() || ensuredRunID;
     const nodeID = (res.nodeId ?? "").trim();

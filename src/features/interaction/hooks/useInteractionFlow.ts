@@ -74,7 +74,7 @@ export function useInteractionFlow({
       if (!runId || !node) {
         return;
       }
-      void uiEditor.upsertNode(runId, node, "frontend").catch((err) => {
+      void uiEditor.upsertNode(runId, node, "act").catch((err) => {
         const message = err instanceof Error ? err.message : String(err);
         setInitError(`ApplyOps failed: ${message}`);
       });

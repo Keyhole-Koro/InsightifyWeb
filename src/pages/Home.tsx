@@ -27,6 +27,10 @@ export const Home = () => {
     onSelectTab,
     onCreateTab,
     onCreateChatNode,
+    selectedActId,
+    selectAct,
+    clearActSelection,
+    onSendToAct,
   } = useBootstrap({
     setNodes,
     nodeSeq,
@@ -61,6 +65,8 @@ export const Home = () => {
             onCreateTab={onCreateTab}
             onCreateChatNode={onCreateChatNode}
             initError={initError}
+            selectedActId={selectedActId}
+            onSendToAct={onSendToAct}
           />
         ),
         floating: (
@@ -72,3 +78,4 @@ export const Home = () => {
     />
   );
 };
+

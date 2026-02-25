@@ -4,6 +4,7 @@ export const UI_NODE_TYPE = {
   MARKDOWN: 2,
   IMAGE: 3,
   TABLE: 4,
+  ACT: 5,
 } as const;
 export type UiNodeType = (typeof UI_NODE_TYPE)[keyof typeof UI_NODE_TYPE];
 
@@ -49,6 +50,44 @@ export interface UiTableState {
   rows?: string[][];
 }
 
+export const UI_ACT_STATUS = {
+  UNSPECIFIED: 0,
+  IDLE: 1,
+  PLANNING: 2,
+  SUGGESTING: 3,
+  SEARCHING: 4,
+  RUNNING_WORKER: 5,
+  NEEDS_USER_ACTION: 6,
+  DONE: 7,
+  FAILED: 8,
+} as const;
+export type UiActStatus = (typeof UI_ACT_STATUS)[keyof typeof UI_ACT_STATUS];
+
+export interface UiActPendingAction {
+  id?: string;
+  label?: string;
+  description?: string;
+}
+
+export interface UiActTimelineEvent {
+  id?: string;
+  createdAtUnixMs?: number;
+  kind?: string;
+  summary?: string;
+  detail?: string;
+  workerKey?: string;
+}
+
+export interface UiActState {
+  actId?: string;
+  status?: UiActStatus;
+  mode?: string;
+  goal?: string;
+  selectedWorker?: string;
+  pendingActions?: UiActPendingAction[];
+  timeline?: UiActTimelineEvent[];
+}
+
 export interface UiNode {
   id?: string;
   type?: UiNodeType;
@@ -57,6 +96,7 @@ export interface UiNode {
   markdown?: UiMarkdownState;
   image?: UiImageState;
   table?: UiTableState;
+  act?: UiActState;
 }
 
 export type ChatNode = UiNode;
@@ -150,7 +190,7 @@ export interface CreateNodeInTabRequest {
   projectId: string;
   tabId?: string;
   node: UiNode;
-  actor?: string;
+  actor: string;
 }
 
 export interface CreateNodeInTabResponse {

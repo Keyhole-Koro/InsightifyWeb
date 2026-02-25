@@ -19,6 +19,7 @@ import type {
   SelectUiTabResponse,
 } from "@/contracts/ui";
 import {
+  UI_ACT_STATUS,
   UI_MESSAGE_ROLE,
   UI_NODE_TYPE,
   UI_RESTORE_REASON,
@@ -58,6 +59,7 @@ type OneofUiOp = {
 
 const UI_NODE_TYPE_VALUES = new Set<number>(Object.values(UI_NODE_TYPE));
 const UI_MESSAGE_ROLE_VALUES = new Set<number>(Object.values(UI_MESSAGE_ROLE));
+const UI_ACT_STATUS_VALUES = new Set<number>(Object.values(UI_ACT_STATUS));
 const UI_RESTORE_REASON_VALUES = new Set<number>(Object.values(UI_RESTORE_REASON));
 
 const toKnownEnum = (
@@ -81,6 +83,7 @@ const normalizeUiNodeOutgoing = (node: unknown): unknown => {
   }
   const src = node as Record<string, unknown>;
   const llmChat = src.llmChat as Record<string, unknown> | undefined;
+  const act = src.act as Record<string, unknown> | undefined;
   const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
   const messages = rawMessages.map((m) => {
     if (!m || typeof m !== "object") {
@@ -105,6 +108,14 @@ const normalizeUiNodeOutgoing = (node: unknown): unknown => {
           },
         }
       : {}),
+    ...(act
+      ? {
+          act: {
+            ...act,
+            status: toKnownEnum(act.status, UI_ACT_STATUS_VALUES, UI_ACT_STATUS.UNSPECIFIED),
+          },
+        }
+      : {}),
   };
 };
 
@@ -114,6 +125,7 @@ const normalizeUiNodeIncoming = (node: unknown): unknown => {
   }
   const src = node as Record<string, unknown>;
   const llmChat = src.llmChat as Record<string, unknown> | undefined;
+  const act = src.act as Record<string, unknown> | undefined;
   const rawMessages = Array.isArray(llmChat?.messages) ? llmChat.messages : [];
   const messages = rawMessages.map((m) => {
     if (!m || typeof m !== "object") {
@@ -134,6 +146,14 @@ const normalizeUiNodeIncoming = (node: unknown): unknown => {
           llmChat: {
             ...llmChat,
             messages,
+          },
+        }
+      : {}),
+    ...(act
+      ? {
+          act: {
+            ...act,
+            status: toKnownEnum(act.status, UI_ACT_STATUS_VALUES, UI_ACT_STATUS.UNSPECIFIED),
           },
         }
       : {}),
@@ -294,7 +314,7 @@ export const createNodeInTab = async (
     projectId: req.projectId,
     tabId: req.tabId ?? "",
     node: normalizeUiNodeOutgoing(req.node),
-    actor: req.actor ?? "",
+    actor: req.actor,
   });
   return normalizeCreateNodeInTabResponse(res);
 };

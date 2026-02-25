@@ -84,7 +84,7 @@ export function useUiEditor() {
     async (runId: string, queue: RunQueue, pending: PendingBatch): Promise<void> => {
       queue.inFlight = true;
       const ops = pending.calls.flatMap((c) => c.ops);
-      const actor = pending.calls[pending.calls.length - 1]?.actor ?? "frontend";
+      const actor = pending.calls[pending.calls.length - 1]?.actor ?? "act";
       try {
         const res = await applyUiOps({
           runId,
@@ -212,7 +212,7 @@ export function useUiEditor() {
   );
 
   const apply = useCallback(
-    async (runId: string, ops: UiOp[], actor = "frontend") => {
+    async (runId: string, ops: UiOp[], actor = "act") => {
       const key = normalize(runId);
       if (!key) {
         throw new Error("run_id is required");
@@ -239,7 +239,7 @@ export function useUiEditor() {
   );
 
   const upsertNode = useCallback(
-    async (runId: string, node: UiNode, actor = "frontend") => {
+    async (runId: string, node: UiNode, actor = "act") => {
       return await apply(
         runId,
         [
@@ -254,7 +254,7 @@ export function useUiEditor() {
   );
 
   const deleteNode = useCallback(
-    async (runId: string, nodeId: string, actor = "frontend") => {
+    async (runId: string, nodeId: string, actor = "act") => {
       return await apply(
         runId,
         [
@@ -269,7 +269,7 @@ export function useUiEditor() {
   );
 
   const clearNodes = useCallback(
-    async (runId: string, actor = "frontend") => {
+    async (runId: string, actor = "act") => {
       return await apply(
         runId,
         [
@@ -309,4 +309,3 @@ export function useUiEditor() {
     clearRunQueue,
   };
 }
-

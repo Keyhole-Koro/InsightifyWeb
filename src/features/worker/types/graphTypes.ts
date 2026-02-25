@@ -42,12 +42,12 @@ export interface CustomNodeData {
 }
 
 export interface LLMInputNodeData {
-  type: "llmChat";
-  props: LLMChatNodeProps;
+  type: "llmChat" | "act";
+  props: LLMChatNodeProps | ActNodeProps;
   meta?: GraphNodeMeta;
 }
 
-export type GraphNodeType = "llmChat" | "markdown" | "image" | "table";
+export type GraphNodeType = "llmChat" | "markdown" | "image" | "table" | "act";
 
 export interface GraphNodeMeta {
   title?: string;
@@ -92,11 +92,39 @@ export interface TableNodeProps {
   rows: string[][];
 }
 
+export interface ActTimelineEvent {
+  id: string;
+  createdAtUnixMs?: number;
+  kind?: string;
+  summary?: string;
+  detail?: string;
+  workerKey?: string;
+}
+
+export interface ActPendingAction {
+  id: string;
+  label?: string;
+  description?: string;
+}
+
+export interface ActNodeProps {
+  actId: string;
+  status: string;
+  mode: string;
+  goal: string;
+  selectedWorker?: string;
+  timeline: ActTimelineEvent[];
+  pendingActions: ActPendingAction[];
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
 export interface GraphNodePropsByType {
   llmChat: LLMChatNodeProps;
   markdown: MarkdownNodeProps;
   image: ImageNodeProps;
   table: TableNodeProps;
+  act: ActNodeProps;
 }
 
 export type GraphNodeData<TType extends GraphNodeType = GraphNodeType> =

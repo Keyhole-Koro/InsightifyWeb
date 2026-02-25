@@ -45,6 +45,10 @@ export function useBootstrap({
     createTab,
     selectTab,
     cancelStream,
+    selectedActId,
+    selectAct,
+    clearActSelection,
+    sendToAct,
   } = useHomeBootstrapRunner({
     setNodes,
     nodeSeq,
@@ -170,6 +174,17 @@ export function useBootstrap({
     }
   };
 
+  const onSendToAct = async (input: string) => {
+    if (initializingRef.current) return;
+    setInitError(null);
+    try {
+      const activeProjectID = await ensureProjectID(projectId ?? undefined);
+      await sendToAct(input, activeProjectID);
+    } catch (err) {
+      setInitError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
   const onSelectTab = async (tabID: string) => {
     const tid = (tabID ?? "").trim();
     if (!tid || initializingRef.current) return;
@@ -216,5 +231,10 @@ export function useBootstrap({
     onCreateChatNode,
     onSelectTab,
     onCreateTab,
+    selectedActId,
+    selectAct,
+    clearActSelection,
+    onSendToAct,
   };
 }
+

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ProjectItem } from "@/contracts/project";
 import type { UiWorkspaceTab } from "@/contracts/ui";
 
@@ -14,6 +15,8 @@ interface ActionPanelProps {
   onCreateTab: () => void | Promise<void>;
   onCreateChatNode: () => void | Promise<void>;
   initError: string | null;
+  selectedActId: string | null;
+  onSendToAct: (input: string) => void | Promise<void>;
 }
 
 export function ActionPanel({
@@ -29,7 +32,28 @@ export function ActionPanel({
   onCreateTab,
   onCreateChatNode,
   initError,
+  selectedActId,
+  onSendToAct,
 }: ActionPanelProps) {
+  const [actInput, setActInput] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSendToAct = () => {
+    const trimmed = actInput.trim();
+    if (!trimmed || sending) return;
+    setSending(true);
+    void Promise.resolve(onSendToAct(trimmed))
+      .then(() => setActInput(""))
+      .finally(() => setSending(false));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendToAct();
+    }
+  };
+
   return (
     <>
       <div
@@ -184,11 +208,96 @@ export function ActionPanel({
           Add LLM Chat
         </button>
       </div>
+
+      {/* Act Input Row */}
+      <div
+        style={{
+          position: "absolute",
+          top: 140,
+          right: 24,
+          zIndex: 10,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          background:
+            "linear-gradient(135deg, rgba(238,242,255,0.95) 0%, rgba(224,231,255,0.92) 100%)",
+          border: "1px solid rgba(99,102,241,0.35)",
+          borderRadius: 10,
+          padding: "8px 10px",
+          boxShadow: "0 4px 12px rgba(99, 102, 241, 0.08)",
+        }}
+      >
+        <input
+          type="text"
+          placeholder={
+            selectedActId
+              ? `Act ${selectedActId.slice(0, 12)}… に送信`
+              : "新しい Act を作成して送信…"
+          }
+          value={actInput}
+          onChange={(e) => setActInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={!isInitialized || sending}
+          style={{
+            minWidth: 220,
+            border: "1px solid rgba(99,102,241,0.35)",
+            borderRadius: 6,
+            padding: "6px 10px",
+            fontSize: 12,
+            backgroundColor: isInitialized ? "white" : "rgba(241,245,249,0.9)",
+            outline: "none",
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleSendToAct}
+          disabled={!isInitialized || !actInput.trim() || sending}
+          style={{
+            border: "1px solid rgba(99,102,241,0.5)",
+            borderRadius: 6,
+            background:
+              isInitialized && actInput.trim() && !sending
+                ? "rgba(99,102,241,0.9)"
+                : "rgba(241,245,249,0.9)",
+            color:
+              isInitialized && actInput.trim() && !sending
+                ? "#ffffff"
+                : "#94a3b8",
+            padding: "6px 14px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor:
+              isInitialized && actInput.trim() && !sending
+                ? "pointer"
+                : "not-allowed",
+            transition: "all 0.15s ease",
+          }}
+        >
+          {sending
+            ? "…"
+            : selectedActId
+              ? "Send"
+              : "New Act"}
+        </button>
+        {selectedActId ? (
+          <span
+            style={{
+              fontSize: 11,
+              color: "#6366f1",
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            ● {selectedActId.slice(0, 16)}
+          </span>
+        ) : null}
+      </div>
+
       {restoreStatus ? (
         <div
           style={{
             position: "absolute",
-            top: 140,
+            top: 184,
             right: 24,
             zIndex: 10,
             maxWidth: 420,
@@ -207,7 +316,7 @@ export function ActionPanel({
         <div
           style={{
             position: "absolute",
-            top: restoreStatus ? 184 : 140,
+            top: restoreStatus ? 228 : 184,
             right: 24,
             zIndex: 10,
             maxWidth: 360,
@@ -225,3 +334,4 @@ export function ActionPanel({
     </>
   );
 }
+
