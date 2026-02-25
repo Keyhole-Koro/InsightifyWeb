@@ -13,6 +13,7 @@ const BOOTSTRAP_WORKER_KEY = "bootstrap";
 
 export function useHomeBootstrapRunner({
   setNodes,
+  setEdges,
   nodeSeq,
   setInitError,
 }: UseHomeBootstrapRunnerOptions) {
@@ -21,6 +22,7 @@ export function useHomeBootstrapRunner({
 
   const { nodeTypes, appendActTimelineEvent, upsertNodeFromRpc } = useUiNodeSync({
     setNodes,
+    setEdges,
     nodeSeq,
     selectedActId,
     onActSelect: selectAct,

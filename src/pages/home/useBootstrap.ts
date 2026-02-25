@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
-import { type Node } from "reactflow";
+import { type Edge, type Node } from "reactflow";
 
 import type { UiWorkspaceTab } from "@/contracts/ui";
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
@@ -9,12 +9,14 @@ import { useUiRestore } from "./useUiRestore";
 
 interface UseBootstrapOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   nodeSeq: MutableRefObject<number>;
   msgSeq: MutableRefObject<number>;
 }
 
 export function useBootstrap({
   setNodes,
+  setEdges,
   nodeSeq,
   msgSeq,
 }: UseBootstrapOptions) {
@@ -48,6 +50,7 @@ export function useBootstrap({
     sendToAct,
   } = useHomeBootstrapRunner({
     setNodes,
+    setEdges,
     nodeSeq,
     msgSeq,
     projectId,

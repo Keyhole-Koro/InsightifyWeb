@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type MutableRefObject } from "react";
-import { type Node } from "reactflow";
+import { type Edge, type Node } from "reactflow";
 import { ActNode } from "@/components/graph/ActNode/ActNode";
 import { UI_ACT_STATUS, UI_NODE_TYPE, type UiNode } from "@/contracts/ui";
 import type {
@@ -24,6 +24,7 @@ const ACT_STATUS_NAMES: Record<number, string> = {
 
 interface UseUiNodeSyncOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   nodeSeq: MutableRefObject<number>;
   selectedActId?: string | null;
   onActSelect?: (actId: string) => void;
@@ -31,10 +32,18 @@ interface UseUiNodeSyncOptions {
 
 export function useUiNodeSync({
   setNodes,
+  setEdges,
   nodeSeq,
   selectedActId,
   onActSelect,
 }: UseUiNodeSyncOptions) {
+  const proposalNodeId = (actId: string, actionId: string) =>
+    `proposal::${actId}::${actionId}`;
+  const isProposalNode = (nodeId: string, actId: string) =>
+    nodeId.startsWith(`proposal::${actId}::`);
+  const isProposalEdge = (edgeId: string, actId: string) =>
+    edgeId.startsWith(`proposal-edge::${actId}::`);
+
   const appendActTimelineEvent = useCallback(
     (
       targetNodeID: string,
@@ -123,6 +132,8 @@ export function useUiNodeSync({
             const next = [...current];
             next[idx] = {
               ...existing,
+              draggable: true,
+              dragHandle: ".act-node-header",
               data: {
                 type: "act" as const,
                 meta: {
@@ -134,6 +145,25 @@ export function useUiNodeSync({
             return next;
           }
 
+          if (nodeSeq.current === 1) {
+            nodeSeq.current += 1;
+            const centeredNode: RuntimeGraphNode<"act"> = {
+              id: targetNodeID,
+              type: "act",
+              draggable: true,
+              dragHandle: ".act-node-header",
+              position: { x: 0, y: 0 },
+              data: {
+                type: "act",
+                meta: {
+                  title: (node.meta?.title ?? "").trim() || "Act",
+                },
+                props: actProps,
+              },
+            };
+            return [...current, centeredNode as Node<LLMInputNodeData>];
+          }
+
           const position = {
             x: 100 + ((nodeSeq.current - 1) % 2) * 460,
             y: 110 + Math.floor((nodeSeq.current - 1) / 2) * 420,
@@ -143,6 +173,8 @@ export function useUiNodeSync({
           const newNode: RuntimeGraphNode<"act"> = {
             id: targetNodeID,
             type: "act",
+            draggable: true,
+            dragHandle: ".act-node-header",
             position,
             data: {
               type: "act",
@@ -154,9 +186,81 @@ export function useUiNodeSync({
           };
           return [...current, newNode as Node<LLMInputNodeData>];
         });
+
+        setNodes((current) => {
+          const baseNode = current.find((n) => n.id === targetNodeID);
+          if (!baseNode) return current;
+          const remaining = current.filter((n) => !isProposalNode(n.id, targetNodeID));
+          const baseX = baseNode.position.x;
+          const baseY = baseNode.position.y;
+
+          const generated = (act.pendingActions ?? []).map((pa, i) => {
+            const pId = proposalNodeId(targetNodeID, pa.id ?? `p-${i + 1}`);
+            const pLabel = (pa.label ?? "").trim() || `Proposal ${i + 1}`;
+            const pDesc = (pa.description ?? "").trim();
+            const proposalProps: ActNodeProps = {
+              actId: pId,
+              status: "suggesting",
+              mode: "suggesting",
+              goal: pLabel,
+              selectedWorker: act.selectedWorker,
+              timeline: [
+                {
+                  id: `${pId}-evt`,
+                  createdAtUnixMs: Date.now(),
+                  kind: "suggestion",
+                  summary: pLabel,
+                  detail: pDesc,
+                },
+              ],
+              pendingActions: [],
+              isSelected: false,
+              onSelect: () => onActSelect?.(targetNodeID),
+            };
+            const side = i % 2 === 0 ? 1 : -1;
+            const lane = Math.floor(i / 2);
+            return {
+              id: pId,
+              type: "act",
+              draggable: true,
+              dragHandle: ".act-node-header",
+              position: {
+                x: baseX + side * 560,
+                y: baseY - 20 + lane * 180,
+              },
+              data: {
+                type: "act" as const,
+                meta: {
+                  title: `Suggestion ${i + 1}`,
+                },
+                props: proposalProps,
+              },
+            } as Node<LLMInputNodeData>;
+          });
+
+          return [...remaining, ...generated];
+        });
+
+        setEdges((current) => {
+          const pruned = current.filter((e) => !isProposalEdge(e.id, targetNodeID));
+          const generated = (act.pendingActions ?? []).map((pa, i) => {
+            const pId = proposalNodeId(targetNodeID, pa.id ?? `p-${i + 1}`);
+            return {
+              id: `proposal-edge::${targetNodeID}::${pId}`,
+              source: targetNodeID,
+              target: pId,
+              animated: true,
+              style: {
+                stroke: "#14b8a6",
+                strokeWidth: 2,
+              },
+            } as Edge;
+          });
+          return [...pruned, ...generated];
+        });
       }
     },
-    [nodeSeq, onActSelect, selectedActId, setNodes],
+    [nodeSeq, onActSelect, selectedActId, setEdges, setNodes],
   );
 
   return {

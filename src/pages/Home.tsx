@@ -30,6 +30,7 @@ export const Home = () => {
     onSendToAct,
   } = useBootstrap({
     setNodes,
+    setEdges,
     nodeSeq,
     msgSeq,
   });

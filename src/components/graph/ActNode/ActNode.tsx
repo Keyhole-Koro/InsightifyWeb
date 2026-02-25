@@ -31,11 +31,13 @@ export const ActNode = memo(({ data }: NodeProps<GraphNodeData<"act">>) => {
             }}
             style={{
                 width: 420,
-                backgroundColor: "#ffffff",
-                borderRadius: "16px",
+                background:
+                  "radial-gradient(circle at 85% 8%, rgba(56,189,248,0.14) 0%, rgba(255,255,255,0) 46%), linear-gradient(165deg, #ffffff 0%, #f8fafc 72%, #f1f5f9 100%)",
+                borderRadius: "18px",
+                border: "1px solid rgba(15,23,42,0.08)",
                 boxShadow: isSelected
-                    ? "0 0 0 2px #6366f1, 0 10px 15px -3px rgba(99, 102, 241, 0.15)"
-                    : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.05)",
+                    ? "0 0 0 2px rgba(14,165,233,0.55), 0 16px 32px rgba(2, 132, 199, 0.22)"
+                    : "0 12px 24px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15,23,42,0.08)",
                 fontFamily: 'var(--font-ui, "Manrope", "Segoe UI", sans-serif)',
                 overflow: "hidden",
                 display: "flex",
@@ -57,10 +59,12 @@ export const ActNode = memo(({ data }: NodeProps<GraphNodeData<"act">>) => {
 
             {/* Header */}
             <div
+                className="act-node-header"
                 style={{
                     padding: "12px 16px",
-                    background: "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)",
-                    borderBottom: "1px solid rgba(99,102,241,0.12)",
+                    background:
+                      "linear-gradient(125deg, rgba(224,242,254,0.78) 0%, rgba(219,234,254,0.74) 44%, rgba(236,253,245,0.68) 100%)",
+                    borderBottom: "1px solid rgba(2,132,199,0.14)",
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
@@ -115,39 +119,18 @@ export const ActNode = memo(({ data }: NodeProps<GraphNodeData<"act">>) => {
                 <ActTimeline events={timeline} />
             </div>
 
-            {/* Pending Actions (only when needs_user_action) */}
             {pendingActions.length > 0 ? (
-                <div
-                    className="nodrag"
-                    style={{
-                        padding: "10px 16px",
-                        borderTop: "1px solid #f1f5f9",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 6,
-                    }}
-                >
-                    {pendingActions.map((action) => (
-                        <button
-                            key={action.id}
-                            type="button"
-                            title={action.description ?? ""}
-                            style={{
-                                border: "1px solid rgba(99,102,241,0.3)",
-                                borderRadius: 8,
-                                background: "rgba(238,242,255,0.95)",
-                                color: "#4338ca",
-                                padding: "5px 12px",
-                                fontSize: 12,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                            }}
-                        >
-                            {action.label ?? action.id}
-                        </button>
-                    ))}
-                </div>
+              <div
+                style={{
+                  padding: "10px 16px 12px",
+                  borderTop: "1px solid rgba(15,23,42,0.06)",
+                  fontSize: 11,
+                  color: "#0f766e",
+                  fontWeight: 700,
+                }}
+              >
+                {pendingActions.length} suggestions spawned as linked nodes
+              </div>
             ) : null}
 
             <Handle

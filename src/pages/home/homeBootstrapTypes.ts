@@ -1,10 +1,11 @@
 import { type MutableRefObject } from "react";
-import { type Node } from "reactflow";
+import { type Edge, type Node } from "reactflow";
 
 import type { LLMInputNodeData } from "@/features/worker/types/graphTypes";
 
 export interface UseHomeBootstrapRunnerOptions {
   setNodes: React.Dispatch<React.SetStateAction<Node<LLMInputNodeData>[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   nodeSeq: MutableRefObject<number>;
   msgSeq: MutableRefObject<number>;
   projectId: string | null;

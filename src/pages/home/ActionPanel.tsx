@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ProjectItem } from "@/contracts/project";
 import type { UiWorkspaceTab } from "@/contracts/ui";
 
@@ -35,15 +35,25 @@ export function ActionPanel({
 }: ActionPanelProps) {
   const [actInput, setActInput] = useState("");
   const [sending, setSending] = useState(false);
+  const AUTO_SEND_DELAY_MS = 900;
 
-  const handleSendToAct = () => {
+  const handleSendToAct = useCallback(() => {
     const trimmed = actInput.trim();
     if (!trimmed || sending) return;
     setSending(true);
     void Promise.resolve(onSendToAct(trimmed))
       .then(() => setActInput(""))
       .finally(() => setSending(false));
-  };
+  }, [actInput, onSendToAct, sending]);
+
+  useEffect(() => {
+    if (!isInitialized || sending) return;
+    if (!actInput.trim()) return;
+    const timer = setTimeout(() => {
+      handleSendToAct();
+    }, AUTO_SEND_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [AUTO_SEND_DELAY_MS, actInput, handleSendToAct, isInitialized, sending]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -227,37 +237,16 @@ export function ActionPanel({
             outline: "none",
           }}
         />
-        <button
-          type="button"
-          onClick={handleSendToAct}
-          disabled={!isInitialized || !actInput.trim() || sending}
+        <span
           style={{
-            border: "1px solid rgba(99,102,241,0.5)",
-            borderRadius: 6,
-            background:
-              isInitialized && actInput.trim() && !sending
-                ? "rgba(99,102,241,0.9)"
-                : "rgba(241,245,249,0.9)",
-            color:
-              isInitialized && actInput.trim() && !sending
-                ? "#ffffff"
-                : "#94a3b8",
-            padding: "6px 14px",
-            fontSize: 12,
+            fontSize: 11,
+            color: sending ? "#4f46e5" : "#64748b",
             fontWeight: 600,
-            cursor:
-              isInitialized && actInput.trim() && !sending
-                ? "pointer"
-                : "not-allowed",
-            transition: "all 0.15s ease",
+            whiteSpace: "nowrap",
           }}
         >
-          {sending
-            ? "…"
-            : selectedActId
-              ? "Send"
-              : "New Act"}
-        </button>
+          {sending ? "送信中…" : "入力停止で自動送信"}
+        </span>
         {selectedActId ? (
           <span
             style={{
@@ -313,4 +302,3 @@ export function ActionPanel({
     </>
   );
 }
-
